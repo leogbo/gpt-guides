@@ -1,235 +1,144 @@
-### 🔥 **Guia Rigoroso para Escrita de Testes em Apex – Versão Atualizada**  
+# 🧪 Guia Rigoroso de Testes Apex
 
-```markdown
-# ✅ Guia Rigoroso para Escrita de Testes em Apex
+## ✅ Padrão Mínimo Obrigatório
 
-Este guia define **padrões obrigatórios** para a criação de testes unitários em Apex, garantindo:
-
-- Cobertura completa e significativa  
-- Isolamento de efeitos colaterais  
-- Uso seguro de logs com LoggerMock  
-- Conformidade com o Guia Rigoroso de Revisão Apex  
+- Todo teste deve:
+  - Usar `TestDataSetup.setupCompleteEnvironment()`
+  - Desativar flows com `FlowControlManager.disableFlows()` **somente depois**
+  - Ativar `LoggerMock` com `LoggerContext.setLogger(new LoggerMock());`
 
 ---
 
-## 📌 Objetivos
-
-- Validar comportamentos, não implementações  
-- Evitar testes frágeis ou não confiáveis  
-- Facilitar manutenção, leitura e rastreabilidade  
-- Cobrir fluxos positivos, negativos e de exceção  
-
----
-
-## 🔒 Regras Obrigatórias
-
-### ✅ Uso obrigatório de `Test.startTest()` e `Test.stopTest()`
-
-Todo teste **deve** envolver o trecho testado com:
+## 🧪 Ordem Recomendada
 
 ```apex
-Test.startTest();
-// chamada do método
-Test.stopTest();
-```
-
-> **Regra**: Se `Test.startTest();` for omitido, o teste pode falhar com `System.FinalException: Testing has not started`.
-
----
-
-### ✅ Ordem correta com TestDataSetup e FlowControl
-
-Sempre chame `TestDataSetup.setupCompleteEnvironment()` **antes de desativar flows**.
-
-```apex
-Map<String, SObject> testData = TestDataSetup.setupCompleteEnvironment();
-FlowControlManager.disableFlows();
-```
-
-> Flows são necessários para que certos registros sejam gerados corretamente.  
-> Desativá-los antes pode causar dados incompletos ou inválidos.
-
-#### ✅ Se precisar criar registros adicionais manualmente:
-
-Sempre use os métodos do `TestDataSetup` antes de desativar os flows:
-
-```apex
-@isTest
-static void setup() {
-    // Criação de registros que dependem de Flow
-    Account acc = TestDataSetup.createAccount(null, null, 'Empresa X', '12345678000195');
-
-    // Agora é seguro desativar os flows
+@TestSetup
+static void setupTestData() {
+    TestDataSetup.setupCompleteEnvironment();
     FlowControlManager.disableFlows();
 }
 ```
 
 ---
 
-### ✅ Prevenção de `null` no `@testSetup`
+## ✅ LoggerMock nos testes
 
-Adicione validação dentro do `@testSetup` para garantir que `testData` nunca seja `null`.
+Sempre injetar o mock antes do `Test.startTest()`:
 
 ```apex
-@testSetup
-static void setupTestData() {
-    testData = TestDataSetup.setupCompleteEnvironment();
-    System.assert(testData != null, 'testData não pode ser null no setup!');
-}
+LoggerContext.setLogger(new LoggerMock());
 ```
 
-> **Regra**: Sempre validar `testData` antes de acessá-lo.
-
----
-
-### ✅ Uso de variáveis estáticas no início da classe de teste
-
-Para controle e rastreabilidade:
+### 🔍 Validação de logs gerados
 
 ```apex
-private static Map<String, SObject> testData;
-private static Boolean flowsDisabled = false;
-private static LoggerMock logger;
-```
-
----
-
-### ✅ LoggerMock sempre que a classe usa LoggerContext
-
-```apex
-logger = new LoggerMock();
-LoggerContext.setLogger(logger);
-```
-
-❌ **Evite validar logs de chamadas `Queueable`**  
-Os logs podem ser processados de forma assíncrona, causando falhas intermitentes nos testes.
-
-> **Correção**: Não faça assert diretamente em `logger.getLogs()` se houver `Queueable`.
-
-✅ **Verificação segura:**
-```apex
-System.assert(true, 'O teste executou corretamente sem exceções.');
-```
-
----
-
-### ✅ Assertivas fortes e significativas
-
-Evite asserts fracos como `System.assert(true)`.  
-Use asserts com mensagens claras:
-
-```apex
-System.assertEquals(expected, actual, 'Mensagem clara de falha');
-```
-
----
-
-### ✅ Enfileiramento com LoggerJobManager em testes
-
-Se sua classe enfileirar um `Queueable`, **o teste não deve chamar `System.enqueueJob(...)` diretamente**.
-
-Em vez disso, apenas dispare o método que internamente chama:
-
-```apex
-LoggerJobManager.enqueueJob(new MeuQueueable(), recordId);
-```
-
-**Exemplo correto de teste:**
-
-```apex
-Test.startTest();
-ClassePrincipal.acaoQueEnfileira();
-Test.stopTest();
-```
-
-> **Regra**: A verificação deve ser feita por logs ou fluxo de execução, **não pela chamada direta do `Queueable`**.
-
-#### ❌ Nunca faça:
-
-```apex
-System.enqueueJob(new MeuJobQueueable()); // ❌ Proibido em testes e produção
-```
-
----
-
-### ✅ Testes de fluxo completo
-
-Sempre que possível:
-
-- Caminho de sucesso  
-- Parâmetros inválidos  
-- Exceções simuladas (`HttpCalloutMock`)  
-
----
-
-### ❌ Proibido
-
-- Usar `System.enqueueJob()` diretamente em testes  
-- Contar registros em `FlowExecutionLog__c`  
-- Usar `System.debug()` fora de `Test.isRunningTest()`  
-- Desativar flows antes de `setupCompleteEnvironment()` ou `TestDataSetup.createX`  
-- Validar logs que possam ser enfileirados via `Queueable`  
-
----
-
-## 🧪 Estrutura Recomendada
-
-```apex
-@isTest
-private class MinhaClasseTest {
-
-    private static Map<String, SObject> testData;
-    private static Boolean flowsDisabled = false;
-    private static LoggerMock logger;
-
-    @testSetup
-    static void setup() {
-        testData = TestDataSetup.setupCompleteEnvironment();
-        System.assert(testData != null, 'testData não pode ser null no setup!');
-        FlowControlManager.disableFlows();
-    }
-
-    @isTest
-    static void testCasoDeSucesso() {
-        logger = new LoggerMock();
-        LoggerContext.setLogger(logger);
-
-        Test.startTest();
-        MinhaClasse.metodoX();
-        Test.stopTest();
-
-        System.assert(true, 'O teste executou corretamente sem exceções.');
+List<String> logs = ((LoggerMock) LoggerContext.getLogger()).getLogs();
+Boolean logEncontrado = false;
+for (String log : logs) {
+    if (log.contains('createAccount')) {
+        logEncontrado = true;
+        break;
     }
 }
+System.assertEquals(true, logEncontrado, 'Deveria haver log de criação de Account.');
 ```
 
 ---
 
-## 📈 Cobertura mínima esperada
+## 🎯 Cobertura de testes
 
-| Elemento                  | Coberto |
-|---------------------------|---------|
-| Fluxo principal           | ✅      |
-| Fluxo alternativo         | ✅      |
-| Erros esperados           | ✅      |
-| Falhas simuladas (Mock)   | ✅      |
-| Uso do LoggerContext      | ✅      |
-| Enfileiramento rastreado  | ✅      |
+- Cenário positivo (sucesso)
+- Cenário negativo (erro esperado)
+- Cenário de exceção (try/catch validando falha)
+
 
 ---
 
-## 🔁 Testes são obrigatórios para:
+# 📝 Guia Rigoroso de Logging Apex
 
-- Classes com lógica (REST, Batch, Queueable, TriggerHandler)  
-- Métodos utilitários que manipulam dados  
-- Lógicas condicionais ou de exceção  
+## ✅ Interface obrigatória: `ILogger`
+
+```apex
+void log(
+    Logger.LogLevel level,
+    String className,
+    String methodName,
+    String triggerRecordId,
+    String errorMessage,
+    String debugInformation,
+    String stackTrace,
+    String serializedData,
+    String triggerType,
+    String logCategory,
+    String env
+);
+```
 
 ---
 
-## ✅ Conclusão
+## ✅ Uso via `LoggerContext.getLogger().log(...)`
 
-Testes são parte do contrato de código.  
-Sem testes válidos, nenhuma refatoração é segura.  
-Siga este guia em 100% dos casos.
+```apex
+LoggerContext.getLogger().log(
+    Logger.LogLevel.INFO,
+    LoggerContext.className,
+    'createAccount',
+    null,
+    'Conta criada com sucesso',
+    null,
+    null,
+    null,
+    LoggerContext.triggerType,
+    LoggerContext.logCategory,
+    LoggerContext.environment
+);
+```
 
 ---
+
+## ❌ Sintaxes proibidas
+
+- `System.debug()`
+- `LoggerContext.getLogger().log(...)` com menos de 11 parâmetros
+- `log => log.contains(...)` (sintaxe inválida em Apex)
+
+---
+
+## ✅ LoggerHelper
+
+### Padrão para logs de erro com Exception:
+
+```apex
+LoggerHelper.logError(
+    'Erro ao criar UC',
+    'UcTestDataSetup',
+    'createUC',
+    e,
+    'test-data'
+);
+```
+
+### Padrão para logs de informação:
+
+```apex
+LoggerHelper.logInfo(
+    'UC criada com sucesso',
+    'UcTestDataSetup',
+    'createUC',
+    'test-data'
+);
+```
+
+---
+
+## 🔁 Cuidado com recursão de log
+
+Nunca fazer:
+```apex
+logError(...) // que chama LoggerQueueable // que chama logError() de novo
+```
+
+---
+
+✅ Use `LoggerHelper` em todos os `*TestDataSetup`, Queueables, Triggers e Batches.
+
