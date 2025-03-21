@@ -2,19 +2,19 @@
 
 Este guia define **padrões obrigatórios** para a criação de testes unitários em Apex, garantindo:
 
-- Cobertura completa e significativa
-- Isolamento de efeitos colaterais
-- Uso seguro de logs com LoggerMock
-- Conformidade com o Guia Rigoroso de Revisão Apex
+- Cobertura completa e significativa  
+- Isolamento de efeitos colaterais  
+- Uso seguro de logs com LoggerMock  
+- Conformidade com o Guia Rigoroso de Revisão Apex  
 
 ---
 
 ## 📌 Objetivos
 
-- Validar comportamentos, não implementações
-- Evitar testes frágeis ou não confiáveis
-- Facilitar manutenção, leitura e rastreabilidade
-- Cobrir fluxos positivos, negativos e de exceção
+- Validar comportamentos, não implementações  
+- Evitar testes frágeis ou não confiáveis  
+- Facilitar manutenção, leitura e rastreabilidade  
+- Cobrir fluxos positivos, negativos e de exceção  
 
 ---
 
@@ -105,22 +105,64 @@ System.assertEquals(expected, actual, 'Mensagem clara de falha');
 
 ---
 
+### ✅ Enfileiramento com LoggerJobManager em testes
+
+Se sua classe enfileirar um `Queueable`, **o teste não deve chamar `System.enqueueJob(...)` diretamente**.
+
+Em vez disso, apenas dispare o método que internamente chama:
+
+```apex
+LoggerJobManager.enqueueJob(new MeuQueueable(), recordId);
+```
+
+**Exemplo correto de teste:**
+
+```apex
+Test.startTest();
+ClassePrincipal.acaoQueEnfileira();
+Test.stopTest();
+```
+
+Em testes, o `LoggerJobManager` seguirá o fluxo padrão de enfileiramento.  
+**Não há necessidade de simular o queueable diretamente** — a verificação deve ser feita por logs, não por execução.
+
+#### ✅ Valide o log de enfileiramento:
+
+```apex
+Boolean enfileirado = false;
+for (String log : logger.getLogs()) {
+    if (log.contains('Enfileirando job da classe')) {
+        enfileirado = true;
+        break;
+    }
+}
+System.assert(enfileirado, 'Esperava log de enfileiramento');
+```
+
+#### ❌ Nunca faça:
+
+```apex
+System.enqueueJob(new MeuJobQueueable()); // ❌ Proibido em testes e produção
+```
+
+---
+
 ### ✅ Testes de fluxo completo
 
 Sempre que possível:
 
-- Caminho de sucesso
-- Parâmetros inválidos
-- Exceções simuladas (`HttpCalloutMock`)
+- Caminho de sucesso  
+- Parâmetros inválidos  
+- Exceções simuladas (`HttpCalloutMock`)  
 
 ---
 
 ### ❌ Proibido
 
-- Usar `System.enqueueJob()` diretamente em testes
-- Contar registros em `FlowExecutionLog__c`
-- Usar `System.debug()` fora de `Test.isRunningTest()`
-- Desativar flows antes de `setupCompleteEnvironment()` ou `TestDataSetup.createX`
+- Usar `System.enqueueJob()` diretamente em testes  
+- Contar registros em `FlowExecutionLog__c`  
+- Usar `System.debug()` fora de `Test.isRunningTest()`  
+- Desativar flows antes de `setupCompleteEnvironment()` ou `TestDataSetup.createX`  
 
 ---
 
@@ -171,14 +213,15 @@ private class MinhaClasseTest {
 | Erros esperados           | ✅      |
 | Falhas simuladas (Mock)   | ✅      |
 | Uso do LoggerContext      | ✅      |
+| Enfileiramento rastreado  | ✅      |
 
 ---
 
 ## 🔁 Testes são obrigatórios para:
 
-- Classes com lógica (REST, Batch, Queueable, TriggerHandler)
-- Métodos utilitários que manipulam dados
-- Lógicas condicionais ou de exceção
+- Classes com lógica (REST, Batch, Queueable, TriggerHandler)  
+- Métodos utilitários que manipulam dados  
+- Lógicas condicionais ou de exceção  
 
 ---
 
