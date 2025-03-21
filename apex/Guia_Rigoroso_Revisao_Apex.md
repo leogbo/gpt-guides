@@ -1,152 +1,145 @@
-# 📖 Guia Rigoroso de Revisão Apex
+## ✅ Guia Rigoroso de Revisão Apex (Versão Atualizada)
+
+```markdown
+# ✅ Guia Rigoroso de Revisão Apex
+
+Última atualização: MAR/2025
 
 ---
 
-## ✅ 1. Obediência total ao Guia
+## 📌 Princípios Fundamentais
 
-- Toda classe Apex **deve seguir este guia na íntegra**
-- Nenhuma exceção será aceita, mesmo que o código "funcione"
-- Se não estiver 100% em conformidade, **a revisão deve ser recusada**
+1. **Cada classe deve ter uma única responsabilidade (SRP)**
+2. **Todos os logs devem usar `LoggerContext.getLogger().log(...)` com 11 parâmetros**
+3. **Testes devem usar `LoggerMock` + `TestDataSetup.setupCompleteEnvironment()`**
+4. **`System.debug()` é terminantemente proibido**
+5. **Uso obrigatório de `LoggerHelper` para padronizar logs**
 
 ---
 
-## ✅ 2. Estrutura obrigatória do código
+## 🧱 Estrutura obrigatória de classes
 
-Cada classe Apex deve conter no topo:
+Cada classe deve conter no topo:
 
 ```apex
-@TestVisible private static String environment       = Label.ENVIRONMENT;
-@TestVisible private static String log_level         = Label.LOG_LEVEL;
-@TestVisible private static Integer MAX_DEBUG_LENGTH = 3000;
-private static final String className   = 'NOME_DA_CLASSE';
-private static final String triggerType = 'Apex'; // ou Batch, REST, etc.
-private static final String logCategory = 'NomeCategoria';
+public static final String environment = 'test';
+public static final Logger.LogLevel log_level = Logger.LogLevel.DEBUG;
+public static final String className = '<NOME_DA_CLASSE>';
+public static final String triggerType = '<Batch | Trigger | Apex>';
+public static final String logCategory = '<domínio funcional>';
 ```
 
 ---
 
-## ✅ 3. Uso obrigatório de logs
+## 📝 Logging padronizado
 
-Todos os logs devem usar:
+Use **somente** a interface `ILogger` com todos os **11 parâmetros obrigatórios**:
 
 ```apex
 LoggerContext.getLogger().log(
-    'NIVEL',
+    Logger.LogLevel.INFO,
+    LoggerContext.className,
     'nomeDoMetodo',
-    'Mensagem de log',
-    optionalErrorMessage,
-    optionalStackTrace,
-    optionalSerializedData
+    null,
+    'mensagem de erro',
+    'debug info',
+    'stacktrace',
+    null,
+    LoggerContext.triggerType,
+    LoggerContext.logCategory,
+    LoggerContext.environment
 );
 ```
 
-- ❌ `System.debug()` é proibido (exceto em testes)
-- ❌ `System.enqueueJob(...)` direto é proibido (ver seção abaixo)
-- ✅ Logs devem ser específicos, claros e rastreáveis
+Use `LoggerHelper.logInfo(...)` e `logError(...)` sempre que possível nos módulos de teste.
 
 ---
 
-## ✅ 4. Enfileiramento com log (`LoggerJobManager`)
+## 🧪 Testes rigorosos
 
-### 🔒 É **proibido** usar `System.enqueueJob(...)` diretamente.
-
-Para enfileirar qualquer job do tipo `Queueable`, utilize:
+- Testes devem usar:
 
 ```apex
-LoggerJobManager.enqueueJob(new MeuQueueable(), recordId);
+LoggerContext.setLogger(new LoggerMock());
 ```
 
-### ✅ Implementação obrigatória:
+- E validar logs com:
 
 ```apex
-public class LoggerJobManager {
-    public static void enqueueJob(Queueable job, String recordId) {
-        LoggerContext.getLogger().log(
-            'INFO',
-            'LoggerJobManager.enqueueJob',
-            'Enfileirando job da classe: ' + String.valueOf(job),
-            recordId,
-            null,
-            null
-        );
-        System.enqueueJob(job);
+List<String> logs = ((LoggerMock) LoggerContext.getLogger()).getLogs();
+System.assert(logs.anyMatch(l => l.contains('createAccount')));
+```
+
+- Ou com loop:
+
+```apex
+Boolean encontrou = false;
+for (String log : logs) {
+    if (log.contains('createUC')) {
+        encontrou = true;
+        break;
     }
 }
+System.assertEquals(true, encontrou);
 ```
 
-### ❌ Proibido:
+---
 
+## 🧱 Arquitetura de dados de teste
+
+### 🔹 Orquestradora principal:
 ```apex
-System.enqueueJob(new MeuJob());                   // ❌ NUNCA
-LoggerContext.getLogger().logQueueable(...);       // ❌ Método inexistente
-ILogger.logQueueable(...)                          // ❌ Fora do escopo permitido
+TestDataSetup.setupCompleteEnvironment()
+```
+
+Essa classe **não deve conter nenhuma lógica de criação**, apenas chamar:
+
+### 🔸 Módulos `*TestDataSetup.cls` por objeto:
+
+| Classe                        | Responsável por criar           |
+|------------------------------|---------------------------------|
+| `UserTestDataSetup`          | `User`, `ProfileId`             |
+| `AccountTestDataSetup`       | `Account`, `Contact`            |
+| `LeadTestDataSetup`          | Todos os tipos de `Lead`        |
+| `DistribuidoraTestDataSetup` | `Distribuidora__c`, `Tarifa__c` |
+| `GeradorTestDataSetup`       | `Gerador__c`, `Veiculo__c`, `Produto__c` |
+| `VerticalTestDataSetup`      | `Vertical__c`                   |
+| `OriginadorTestDataSetup`    | `Originador__c`, filho ou pai   |
+| `OpportunityTestDataSetup`   | `Opportunity`                   |
+| `PropostaTestDataSetup`      | `Proposta__c`                   |
+| `UcTestDataSetup`            | `UC__c`, `Contrato_de_Adesao__c`|
+| `CobrancaTestDataSetup`      | `Cobranca__c`                   |
+| `DocumentoTestDataSetup`     | Todos os `Documento__*__c`      |
+| `SignatarioTestDataSetup`    | `Signatario_do_Gerador__c`, `Signatario_da_Oportunidade__c` |
+| `CaseTestDataSetup`          | `Case`                          |
+
+---
+
+## 🚫 Proibições absolutas
+
+| Sintaxe / prática                 | Status      |
+|----------------------------------|-------------|
+| `System.debug(...)`              | ❌ PROIBIDO |
+| `LoggerContext.getLogger().log(...)` com menos de 11 parâmetros | ❌ PROIBIDO |
+| `TestDataSetup` contendo lógica de criação | ❌ PROIBIDO |
+| Misturar objetos em `*TestDataSetup.cls` (ex: `Lead` em `AccountTestDataSetup`) | ❌ PROIBIDO |
+| Safe navigation `obj?.field`     | ❌ Apex não suporta |
+| Operadores `??` e `?:`           | ❌ Apex não suporta |
+| `var` como tipo de variável      | ❌ Apex exige tipo explícito |
+
+---
+
+## 🧾 Checklist de revisão
+
+- [ ] Cada classe `*TestDataSetup` contém apenas 1 objeto
+- [ ] Logging 100% via `LoggerHelper` ou `ILogger` completo
+- [ ] Testes usam `LoggerMock` com `LoggerContext.setLogger(...)`
+- [ ] Nenhum `System.debug()` existe no código fora de `LoggerMock`
+- [ ] `TestDataSetup` só orquestra, não cria registros diretamente
+
+---
+
+✅ **Esse guia é obrigatório para todo PR com testes unitários, batchs, triggers, flows e agendamentos.**
 ```
 
 ---
-
-## ✅ 5. Testes obrigatórios
-
-- Devem usar:
-  - `LoggerMock` para interceptar logs
-  - `TestDataSetup.setupCompleteEnvironment()` no `@testSetup`
-  - `FlowControlManager.disableFlows()` no `@testSetup`
-- Devem validar:
-  - Cenários positivos
-  - Negativos
-  - Com exceção
-- Devem usar `LoggerMock.getLogs()` para verificar logs emitidos
-
----
-
-## ✅ 6. Validação de equivalência funcional
-
-Para qualquer **refatoração solicitada**, a resposta da revisão deve conter:
-
-1. Código final completo
-2. Tabela "Antes vs Depois"
-3. Garantia de equivalência funcional (sem alteração de comportamento)
-
-📄 Modelo: [bit.ly/ComparacaoApex](https://bit.ly/ComparacaoApex)
-
----
-
-## 🚨 7. Sintaxes proibidas
-
-As seguintes construções são **estritamente proibidas** no Apex:
-
-| Proibido 🚫                        | Motivo ❌ |
-|-----------------------------------|-----------|
-| `log => log.contains()`           | Arrow functions não são suportadas |
-| `list.anyMatch(...)`              | Collections modernas não existem |
-| `System.Test.getAccessible...()`  | Método inexistente |
-| `obj?.campo`                      | Safe navigation não suportado |
-| `??`                              | Coalescência não existe |
-| `var`                             | Apex exige tipo explícito |
-
-📖 Veja: [bit.ly/GuiaApexRevisao](https://bit.ly/GuiaApexRevisao)
-
----
-
-## ✅ 8. Exemplo de revisão rejeitada corretamente
-
-```markdown
-❌ O código fornecido não segue o Guia Rigoroso de Revisão Apex:
-
-- Está usando System.enqueueJob(...) diretamente (proibido)
-- Faltam variáveis de controle: className, log_level, etc.
-- Nenhum uso de LoggerContext.getLogger().log(...)
-
-📚 Siga o padrão:  
-🔗 Guia completo: bit.ly/GuiaApexRevisao  
-🧪 Testes obrigatórios: bit.ly/GuiaTestsApex  
-📊 Refatorações: bit.ly/ComparacaoApex  
-```
-
----
-
-## 🔁 Links úteis
-
-- [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)  
-- [Guia de Logging com LoggerQueueable](https://bit.ly/GuiaLoggerApex)  
-- [Comparações de Refatoração](https://bit.ly/ComparacaoApex)  
-```
