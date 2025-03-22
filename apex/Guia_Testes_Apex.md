@@ -154,26 +154,60 @@ Espera-se: status 200 + response JSON
 
 ---
 
+Claro! Aqui está a revisão da seção **4.5 – Assertivas obrigatórias**, com correções de clareza, padronização e formatação em conformidade com o tom do Guia Rigoroso:
+
+---
+
 ## 🧪 4.5 – Assertivas obrigatórias
 
+### ✅ Estrutura básica
+
+Sempre validar status da resposta e existência do corpo da resposta:
+
 ```apex
-System.assertEquals(200, RestContext.response.statusCode);
-System.assert(RestContext.response.responseBody != null);
+System.assertEquals(200, RestContext.response.statusCode, 'Status HTTP inesperado: ' + RestContext.response.statusCode);
+System.assertNotEquals(null, RestContext.response.responseBody, 'Body da resposta não pode ser nulo.');
 ```
 
-Em caso de exceções:
+### 🚨 Em caso de exceções esperadas
+
+Capturar a exceção e validar explicitamente o comportamento:
 
 ```apex
 Boolean erro = false;
+
 try {
     MinhaClasseREST.metodo();
 } catch (RestServiceHelper.AccessException e) {
     erro = true;
 }
-System.assert(erro, 'Deveria lançar AccessException');
+
+System.assertEquals(true, erro, 'Exceção esperada não foi lançada.');
 ```
 
 ---
+
+### 🔎 Mensagens de `System.assert` devem conter o valor real retornado
+
+Para facilitar o diagnóstico de falhas em testes, **todas as assertivas devem conter mensagens descritivas com os valores esperados e recebidos**.
+
+#### ✅ Correto:
+```apex
+System.assertEquals('joão', contato.FirstName.toLowerCase(), 'Nome do contato inválido: ' + contato.FirstName);
+System.assert(response.toLowerCase().contains('erro'), 'Resposta esperada deve conter "erro". Resposta completa: ' + response);
+```
+
+#### ❌ Incorreto:
+```apex
+System.assertEquals('joão', contato.FirstName.toLowerCase());
+System.assert(response.toLowerCase().contains('erro'));
+```
+
+> 🧠 **Dica**: Mensagens claras reduzem drasticamente o tempo de debug quando um teste falha no CI ou em sandbox.
+
+---
+
+
 
 ## 💡 4.6 – Método auxiliar para mock reutilizável
 
