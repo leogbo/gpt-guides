@@ -1,25 +1,22 @@
-## ✅ Guia Rigoroso de Revisão Apex (Versão Atualizada)
-
-```markdown
-# ✅ Guia Rigoroso de Revisão Apex
-
-Última atualização: MAR/2025
+# ✅ Guia Rigoroso de Revisão Apex  
+📅 Última atualização: MAR/2025
 
 ---
 
-## 📌 Princípios Fundamentais
+## 📌 1. Princípios Fundamentais
 
 1. **Cada classe deve ter uma única responsabilidade (SRP)**
 2. **Todos os logs devem usar `LoggerContext.getLogger().log(...)` com 11 parâmetros**
 3. **Testes devem usar `LoggerMock` + `TestDataSetup.setupCompleteEnvironment()`**
 4. **`System.debug()` é terminantemente proibido**
-5. **Uso obrigatório de `LoggerHelper` para padronizar logs**
+5. **Uso obrigatório de `LoggerHelper` ou `LoggerContext.getLogger()`**
+6. **Métodos `private` relevantes devem ser `@TestVisible` e cobertos por testes**
 
 ---
 
-## 🧱 Estrutura obrigatória de classes
+## 🧱 2. Estrutura obrigatória das classes Apex
 
-Cada classe deve conter no topo:
+Topo de toda classe principal deve conter:
 
 ```apex
 public static final String environment = 'test';
@@ -31,9 +28,9 @@ public static final String logCategory = '<domínio funcional>';
 
 ---
 
-## 📝 Logging padronizado
+## 🪵 3. Logging Padronizado
 
-Use **somente** a interface `ILogger` com todos os **11 parâmetros obrigatórios**:
+Usar exclusivamente `LoggerContext.getLogger().log(...)` com **todos os 11 parâmetros obrigatórios**:
 
 ```apex
 LoggerContext.getLogger().log(
@@ -41,8 +38,8 @@ LoggerContext.getLogger().log(
     LoggerContext.className,
     'nomeDoMetodo',
     null,
-    'mensagem de erro',
-    'debug info',
+    'mensagem',
+    'detalhes',
     'stacktrace',
     null,
     LoggerContext.triggerType,
@@ -51,398 +48,194 @@ LoggerContext.getLogger().log(
 );
 ```
 
-Use `LoggerHelper.logInfo(...)` e `logError(...)` sempre que possível nos módulos de teste.
+### ✅ Alternativas para testes e classes auxiliares:
+
+```apex
+LoggerHelper.logInfo('msg', 'class', 'method', 'categoria');
+LoggerHelper.logError('msg', 'class', 'method', ex, 'categoria');
+```
 
 ---
 
-## 🧪 Testes rigorosos
+# 🧪 4. Testes Rigorosos
 
-- Testes devem usar:
+---
+
+## ✅ 4.1 Estrutura mínima obrigatória
+
+```apex
+@TestSetup
+static void setupTestData() {
+    TestDataSetup.setupCompleteEnvironment();
+    FlowControlManager.disableFlows();
+}
+```
+
+---
+
+## 🧱 4.2 Logger obrigatório
 
 ```apex
 LoggerContext.setLogger(new LoggerMock());
 ```
 
-- E validar logs com:
+Validação de logs:
 
 ```apex
 List<String> logs = ((LoggerMock) LoggerContext.getLogger()).getLogs();
-System.assert(logs.anyMatch(l => l.contains('createAccount')));
-```
-
-- Ou com loop:
-
-```apex
-Boolean encontrou = false;
-for (String log : logs) {
-    if (log.contains('createUC')) {
-        encontrou = true;
-        break;
-    }
-}
+Boolean encontrou = logs.any(l => l.contains('createAccount'));
 System.assertEquals(true, encontrou);
 ```
 
-🚧 Capítulo em construção conforme o **Guia Rigoroso de Testes Apex**.  
-Segue abaixo o novo **capítulo dedicado à mockagem de `RestRequest` e `RestResponse`**, com foco total em padronização, clareza e cobertura de cenários esperados e de exceção.
-
 ---
 
-# 📦 CAPÍTULO 7 – Mockagem Rigorosa de `RestRequest` e `RestResponse`
+## 📦 4.3 Mockagem de `RestRequest` e `RestResponse`
 
----
-
-## 🎯 Objetivo
-
-Este capítulo estabelece o **padrão obrigatório** para criação de testes de métodos `@RestResource`, garantindo:
-
-- Isolamento completo da camada HTTP
-- Simulação fiel de cenários **positivos**, **inválidos**, **incompletos** e **malformados**
-- Testes funcionais com verificação de logs, exceções e respostas HTTP padronizadas
-
----
-
-## ✅ 7.1 – Estrutura mínima obrigatória
-
-Todo teste que aciona uma classe `@RestResource` deve conter:
+### ⚠️ Requisito obrigatório
 
 ```apex
 RestContext.request = new RestRequest();
-RestContext.response = new RestResponse();
+RestContext.response = new RestResponse(); // 🚨 Nunca omitir!
 ```
 
-> 🔒 **Proibido omitir `RestContext.response`!**  
-> Isso impede `RestServiceHelper.sendResponse(...)` de funcionar e quebra a serialização de saída.
+> ❗ Omitir `RestContext.response` causa `NullPointerException` nos métodos `sendResponse(...)`
 
----
+### ✅ Exemplos:
 
-## 🧱 7.2 – Padrão base para requisições
-
-### Exemplo: requisição GET com parâmetro de query
-
+#### GET com parâmetro
 ```apex
 RestContext.request = new RestRequest();
 RestContext.response = new RestResponse();
-
-RestContext.request.requestURI = '/services/apexrest/seuendpoint';
+RestContext.request.requestURI = '/services/apexrest/getinfo';
 RestContext.request.httpMethod = 'GET';
-RestContext.request.addParameter('id', 'a00XXXXXXXXXXXX');
-RestContext.request.addHeader('Access_token', Label.BEARER_SEU_LABEL);
+RestContext.request.addParameter('id', 'a00...');
+RestContext.request.addHeader('Access_token', 'Bearer VALIDO');
 ```
 
-### Exemplo: requisição POST com JSON no body
-
+#### POST com body JSON
 ```apex
-Map<String, Object> body = new Map<String, Object>{
-    'campo1' => 'valor',
-    'campo2' => 123
-};
 RestContext.request = new RestRequest();
 RestContext.response = new RestResponse();
-
-RestContext.request.requestURI = '/services/apexrest/seuendpoint';
 RestContext.request.httpMethod = 'POST';
-RestContext.request.requestBody = Blob.valueOf(JSON.serialize(body));
-RestContext.request.addHeader('Access_token', Label.BEARER_SEU_LABEL);
+RestContext.request.requestURI = '/services/apexrest/postinfo';
+RestContext.request.requestBody = Blob.valueOf(JSON.serialize(payload));
+RestContext.request.addHeader('Access_token', 'Bearer VALIDO');
 RestContext.request.addHeader('Content-Type', 'application/json');
 ```
 
 ---
 
-## ⚠️ 7.3 – Cenários obrigatórios de mockagem
+## ⚙️ 4.4 Cenários obrigatórios
 
-### 🔐 A. Token ausente ou inválido
-
-```apex
-RestContext.request.addHeader('Access_token', 'Bearer INVALIDO');
-```
-
-> Espera-se que `RestServiceHelper.validateAccessToken(...)` lance `AccessException`.
-
----
-
-### 📭 B. Parâmetro obrigatório ausente
-
-```apex
-RestContext.request.addParameter('id', null);
-```
-
-> Espera-se resposta 400 com mensagem `"Parâmetro 'id' é obrigatório."` ou exceção personalizada.
+| Cenário                        | Esperado                                 |
+|-------------------------------|------------------------------------------|
+| Token ausente/errado          | `AccessException`                        |
+| Parâmetro obrigatório ausente | `badRequest(...)`                        |
+| JSON malformado               | `BadRequestException`                    |
+| Requisição válida             | Código 200 + `RestContext.responseBody` |
 
 ---
 
-### 🧨 C. Requisição malformada (ex: JSON inválido)
+## 🧪 4.5 Assertivas esperadas
 
 ```apex
-RestContext.request.requestBody = Blob.valueOf('{ campo1: valor }'); // JSON inválido
+System.assertEquals(200, RestContext.response.statusCode);
+System.assert(RestContext.response.responseBody != null);
 ```
 
-> Espera-se que `getRequestBody()` lance `BadRequestException`.
-
----
-
-### ☁️ D. Sucesso com todos os dados corretos
+Com exceção esperada:
 
 ```apex
-// Parâmetros e headers válidos
-RestContext.request.addParameter('id', registro.Id);
-RestContext.request.addHeader('Access_token', Label.BEARER_XYZ);
-
-// Expectativa: resposta 200 com corpo contendo os dados esperados
-```
-
----
-
-## 🧪 7.4 – Assertivas obrigatórias no teste
-
-```apex
-System.assertEquals(expectedStatus, RestContext.response.statusCode, 'Código HTTP inesperado');
-System.assert(RestContext.response.responseBody != null, 'Corpo da resposta não pode ser nulo');
-```
-
-Quando testando exceções explícitas:
-
-```apex
-Boolean lancou = false;
+Boolean erro = false;
 try {
     ClasseREST.metodo();
 } catch (RestServiceHelper.AccessException e) {
-    lancou = true;
+    erro = true;
 }
-System.assert(lancou, 'Exceção de acesso esperado não foi lançada');
+System.assert(erro);
 ```
 
 ---
 
-## 💡 7.5 – Dica para parametrizar testes
+# 🧩 5. Cobertura Obrigatória de Métodos `@TestVisible`
 
-Crie métodos auxiliares para gerar o `RestRequest` com diferentes cenários. Exemplo:
+---
+
+## 🎯 Regra Absoluta
+
+> Todo método `private` com lógica de negócio, validação ou montagem de objetos **deve ser `@TestVisible` e ter teste direto**.
+
+---
+
+## ✅ O que testar
+
+| Tipo de método    | Teste positivo | Teste negativo |
+|-------------------|----------------|----------------|
+| `validateXxx()`   | Com valor      | Nulo/inválido  |
+| `buildXxx()`      | Objeto completo| Objeto parcial |
+| `truncateString()`| Curta/longa    | Vazia/nula     |
+
+---
+
+### ✅ Exemplo de `validateRecordId`
 
 ```apex
-private static void mockRequest(String token, String metodo, String uri, String bodyJson) {
-    RestContext.request = new RestRequest();
-    RestContext.response = new RestResponse();
-    RestContext.request.httpMethod = metodo;
-    RestContext.request.requestURI = uri;
-    if (token != null) RestContext.request.addHeader('Access_token', token);
-    if (bodyJson != null) RestContext.request.requestBody = Blob.valueOf(bodyJson);
+RestContext.request = new RestRequest();
+RestContext.response = new RestResponse();
+
+Boolean erro = false;
+try {
+    MinhaClasse.validateRecordId(null);
+} catch (AuraHandledException e) {
+    erro = true;
 }
+System.assertEquals(true, erro);
 ```
 
 ---
 
-## 🔒 7.6 – Proibições rígidas
-
-| ❌ Proibido                           | Motivo |
-|-------------------------------------|--------|
-| Omitir `RestContext.response`       | Impede envio de resposta |
-| Enviar body malformado sem assert   | Teste inválido |
-| Enviar token correto em cenário negativo | Teste perde propósito |
-| Usar `System.debug` sem `LoggerMock` | Fora do padrão rigoroso de logs |
+# 📘 6. Estrutura Modular de Dados de Teste
 
 ---
 
-📘 Este capítulo será referenciado por todos os testes `@isTest` que envolvam REST, seja GET, POST ou PATCH.
-
----
-
-Excelente diretriz! 📘 Vamos oficializar isso como mais um capítulo do **Guia Rigoroso de Testes Apex**, com o título:
-
----
-
-# 🧩 CAPÍTULO 8 – Cobertura Obrigatória de Métodos `@TestVisible` Privados
-
----
-
-## 🎯 Objetivo
-
-Garantir cobertura total, previsibilidade e segurança dos **métodos auxiliares internos** (`private static`) das classes `@RestResource`, `@future`, `Queueable`, triggers e services, especialmente quando:
-
-- Recebem parâmetros primitivos (String, Id, Boolean, etc.)
-- Contêm lógica de validação ou formatação
-- Influenciam diretamente os fluxos REST ou de negócio
-
----
-
-## ✅ Regra obrigatória
-
-> Todo método `private` deve ser anotado com `@TestVisible` **e testado diretamente nos testes de unidade da classe**.
-
----
-
-## 🧪 Benefícios esperados
-
-- ✅ Aumenta a cobertura de linhas e branches
-- ✅ Valida comportamentos isolados (ex: `null`, vazio, inválido)
-- ✅ Impede que métodos de apoio virem “caixas pretas” não verificadas
-
----
-
-## 📌 Padrão de testes para métodos auxiliares
-
-Abaixo, os **testes complementares obrigatórios** para a classe `Cobranca_Rest_API_GET.cls`:
-
----
-
-### ✅ Teste: `validateRecordId`
+## 🔹 Setup principal:
 
 ```apex
-@IsTest
-static void validateRecordIdTest() {
-    Boolean exceptionThrown = false;
-    try {
-        Cobranca_Rest_API_GET.validateRecordId(null);
-    } catch (AuraHandledException ex) {
-        exceptionThrown = true;
-        System.assert(ex.getMessage().contains('Parâmetro ID inválido.'));
-    }
-    System.assertEquals(true, exceptionThrown, 'Deveria lançar exceção para ID nulo.');
-}
+TestDataSetup.setupCompleteEnvironment();
 ```
 
----
-
-### ✅ Teste: `validateCobrancaExists`
-
-```apex
-@IsTest
-static void validateCobrancaExistsTest() {
-    Boolean exceptionThrown = false;
-    try {
-        Cobranca_Rest_API_GET.validateCobrancaExists(null, 'abc123');
-    } catch (AuraHandledException ex) {
-        exceptionThrown = true;
-        System.assert(ex.getMessage().contains('Cobrança não encontrada.'));
-    }
-    System.assertEquals(true, exceptionThrown, 'Deveria lançar exceção para cobrança nula.');
-}
-```
-
----
-
-### ✅ Teste: `getCobrancaById`
-
-```apex
-@IsTest
-static void getCobrancaByIdTest() {
-    setupTestData();
-    Cobranca__c result = Cobranca_Rest_API_GET.getCobrancaById(validCobrancaId);
-    System.assertNotEquals(null, result, 'Cobrança esperada não encontrada.');
-}
-```
-
----
-
-### ✅ Teste: `buildCobrancaResponse`
-
-```apex
-@IsTest
-static void buildCobrancaResponseTest() {
-    setupTestData();
-    Cobranca__c cobranca = (Cobranca__c) testData.get('Cobranca');
-    Map<String, Object> json = Cobranca_Rest_API_GET.buildCobrancaResponse(cobranca);
-    System.assert(json.containsKey('id'), 'JSON deve conter o campo id');
-    System.assert(json.containsKey('status'), 'JSON deve conter o campo status');
-}
-```
-
----
-
-### ✅ Teste: `addJsonField`
-
-```apex
-@IsTest
-static void addJsonFieldTest() {
-    Map<String, Object> json = new Map<String, Object>();
-    Cobranca_Rest_API_GET.addJsonField(json, 'chave', 'valor');
-    System.assertEquals('valor', json.get('chave'), 'Valor não foi adicionado corretamente.');
-
-    Cobranca_Rest_API_GET.addJsonField(json, 'nulo', null);
-    System.assert(!json.containsKey('nulo'), 'Campos nulos não devem ser adicionados.');
-}
-```
-
----
-
-### ✅ Teste: `truncateString`
-
-```apex
-@IsTest
-static void truncateStringTest() {
-    String curta = 'abc';
-    String longa = 'x'.repeat(500);
-
-    System.assertEquals(curta, Cobranca_Rest_API_GET.truncateString(curta, 10));
-    System.assertEquals(255, Cobranca_Rest_API_GET.truncateString(longa, 255).length());
-    System.assertEquals(null, Cobranca_Rest_API_GET.truncateString('', 50));
-}
-```
-
----
-
-## 🔒 Observações finais
-
-- **Nunca** remover `@TestVisible` de métodos auxiliares que fazem validações, montagens ou chamadas críticas
-- Cada método privado deve ter **pelo menos 1 cenário positivo e 1 de exceção testado**
-- A padronização desses testes deve ser obrigatória para **merge de qualquer classe Apex crítica**
-
----
-
-## 🧱 Arquitetura de dados de teste
-
-### 🔹 Orquestradora principal:
-```apex
-TestDataSetup.setupCompleteEnvironment()
-```
-
-Essa classe **não deve conter nenhuma lógica de criação**, apenas chamar:
-
-### 🔸 Módulos `*TestDataSetup.cls` por objeto:
+## 🔸 Cada módulo cria **somente seu objeto**:
 
 | Classe                        | Responsável por criar           |
 |------------------------------|---------------------------------|
 | `UserTestDataSetup`          | `User`, `ProfileId`             |
-| `AccountTestDataSetup`       | `Account`, `Contact`            |
-| `LeadTestDataSetup`          | Todos os tipos de `Lead`        |
-| `DistribuidoraTestDataSetup` | `Distribuidora__c`, `Tarifa__c` |
-| `GeradorTestDataSetup`       | `Gerador__c`, `Veiculo__c`, `Produto__c` |
-| `VerticalTestDataSetup`      | `Vertical__c`                   |
-| `OriginadorTestDataSetup`    | `Originador__c`, filho ou pai   |
-| `OpportunityTestDataSetup`   | `Opportunity`                   |
+| `LeadTestDataSetup`          | Tipos de `Lead`                 |
 | `PropostaTestDataSetup`      | `Proposta__c`                   |
-| `UcTestDataSetup`            | `UC__c`, `Contrato_de_Adesao__c`|
 | `CobrancaTestDataSetup`      | `Cobranca__c`                   |
-| `DocumentoTestDataSetup`     | Todos os `Documento__*__c`      |
-| `SignatarioTestDataSetup`    | `Signatario_do_Gerador__c`, `Signatario_da_Oportunidade__c` |
-| `CaseTestDataSetup`          | `Case`                          |
+| `GeradorTestDataSetup`       | `Gerador__c`, `Produto__c`      |
 
 ---
 
-## 🚫 Proibições absolutas
+# 🚫 7. Proibições Invioláveis
 
-| Sintaxe / prática                 | Status      |
-|----------------------------------|-------------|
-| `System.debug(...)`              | ❌ PROIBIDO |
-| `LoggerContext.getLogger().log(...)` com menos de 11 parâmetros | ❌ PROIBIDO |
-| `TestDataSetup` contendo lógica de criação | ❌ PROIBIDO |
-| Misturar objetos em `*TestDataSetup.cls` (ex: `Lead` em `AccountTestDataSetup`) | ❌ PROIBIDO |
-| Safe navigation `obj?.field`     | ❌ Apex não suporta |
-| Operadores `??` e `?:`           | ❌ Apex não suporta |
-| `var` como tipo de variável      | ❌ Apex exige tipo explícito |
-
----
-
-## 🧾 Checklist de revisão
-
-- [ ] Cada classe `*TestDataSetup` contém apenas 1 objeto
-- [ ] Logging 100% via `LoggerHelper` ou `ILogger` completo
-- [ ] Testes usam `LoggerMock` com `LoggerContext.setLogger(...)`
-- [ ] Nenhum `System.debug()` existe no código fora de `LoggerMock`
-- [ ] `TestDataSetup` só orquestra, não cria registros diretamente
+| Proibido                         | Motivo |
+|----------------------------------|--------|
+| `System.debug()`                 | Não rastreável/logável         |
+| `enqueueJob(...)` direto         | Use `LoggerContext.getLogger()`|
+| `Logger.log(...)` com menos de 11 parâmetros | Quebra padrão de log |
+| `TestDataSetup` com lógica de criação | Separação por classe obrigatória |
+| Mistura de objetos em *TestDataSetup.cls* | Viola SRP               |
+| `var`, `??`, `?.`, `anyMatch()`  | **Não suportados em Apex!**   |
 
 ---
 
-✅ **Esse guia é obrigatório para todo PR com testes unitários, batchs, triggers, flows e agendamentos.**
-```
+# 🧾 8. Checklist de Revisão Final
 
----
+- [ ] Classe segue estrutura com `environment`, `log_level`, etc.
+- [ ] Todos os logs usam `LoggerContext.getLogger().log(...)`
+- [ ] Nenhum `System.debug()` no código
+- [ ] Testes usam `LoggerMock` e `TestDataSetup`
+- [ ] Métodos `@TestVisible` possuem testes diretos
+- [ ] `RestContext.response` sempre mockado quando necessário
+- [ ] PR cobre cenários de sucesso, exceção e entrada inválida
+- [ ] 100% compatível com [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
