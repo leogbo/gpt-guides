@@ -199,6 +199,7 @@ System.assertEquals(true, erro);
 
 ---
 
+### 6.1
 ## 🔹 Setup principal:
 
 ```apex
@@ -214,6 +215,29 @@ TestDataSetup.setupCompleteEnvironment();
 | `PropostaTestDataSetup`      | `Proposta__c`                   |
 | `CobrancaTestDataSetup`      | `Cobranca__c`                   |
 | `GeradorTestDataSetup`       | `Gerador__c`, `Produto__c`      |
+
+
+### 6.2 – Padrão de otimização para testes intensivos
+
+Toda classe `*TestDataSetup` que realiza consultas de dados padrão (como `RecordType`, `Profile`, `Vertical`, `Distribuidora`, etc.) deve usar **cache estático local** para evitar estouro de limite de SOQL (`Too many SOQL queries: 101`) durante:
+
+- Testes com `setupCompleteEnvironment()`
+- Testes de carga
+- Execuções paralelas (`Test.setParallelTestExecution(true)`)
+
+📌 Use sempre `Map<String, Id>` com a chave sendo o nome buscado.  
+Exemplo em `UserTestDataSetup`:
+
+```apex
+private static Map<String, Id> profileCache = new Map<String, Id>();
+
+public static Id getProfileIdByName(String profileName) {
+    if (profileCache.containsKey(profileName)) return profileCache.get(profileName);
+    Id profileId = [SELECT Id FROM Profile WHERE Name = :profileName LIMIT 1].Id;
+    profileCache.put(profileName, profileId);
+    return profileId;
+}
+
 
 ---
 
