@@ -56,3 +56,13 @@ Use este template em todas as entregas de revisão/refatoração para demonstrar
 > Todas as melhorias são estruturais, sem impacto em comportamento.
 
 ---
+
+### 📎 Compatibilidade com os guias oficiais
+- [ ] [Guia de Revisão Apex](https://bit.ly/GuiaApexRevisao)
+- [ ] [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
+- [ ] [Guia de Logging](https://bit.ly/GuiaLoggerApex)
+- [ ] [Guia de Refatoração Apex](https://bit.ly/ComparacaoApex)
+- [ ] [Classe orquestradora `TestDataSetup.cls`](https://bit.ly/TestDataSetup)
+- [ ] [Checklist de Confirmação Final](https://bit.ly/ConfirmacaoApex)
+
+---
