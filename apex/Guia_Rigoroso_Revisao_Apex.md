@@ -231,11 +231,36 @@ TestDataSetup.setupCompleteEnvironment();
 
 # 🧾 8. Checklist de Revisão Final
 
-- [ ] Classe segue estrutura com `environment`, `log_level`, etc.
-- [ ] Todos os logs usam `LoggerContext.getLogger().log(...)`
-- [ ] Nenhum `System.debug()` no código
-- [ ] Testes usam `LoggerMock` e `TestDataSetup`
-- [ ] Métodos `@TestVisible` possuem testes diretos
-- [ ] `RestContext.response` sempre mockado quando necessário
-- [ ] PR cobre cenários de sucesso, exceção e entrada inválida
-- [ ] 100% compatível com [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
+
+✅ Utilize esta lista **ao finalizar cada PR de Apex**:
+
+---
+
+### 🔧 Estrutura e padrões obrigatórios
+- [ ] Classe define corretamente: `environment`, `log_level`, `className`, `triggerType`, `logCategory`
+- [ ] Todos os logs usam `LoggerContext.getLogger().log(...)` com **11 parâmetros**
+- [ ] Nenhum uso de `System.debug()` no código (exceto testes com `Test.isRunningTest()`)
+
+---
+
+### 🧪 Testes
+- [ ] Usa `LoggerMock` com `LoggerContext.setLogger(...)`
+- [ ] Usa `TestDataSetup.setupCompleteEnvironment()` no `@TestSetup`
+- [ ] `RestContext.response` está mockado em testes REST
+- [ ] Métodos `@TestVisible` possuem testes diretos e isolados
+- [ ] Testes cobrem: cenário positivo, negativo e de exceção
+- [ ] Cobertura funcional e estrutural ≥ 95%
+
+---
+
+### 📎 Compatibilidade com os guias oficiais
+- [ ] [Guia de Revisão Apex](https://bit.ly/GuiaApexRevisao)
+- [ ] [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
+- [ ] [Guia de Logging](https://bit.ly/GuiaLoggerApex)
+- [ ] [Guia de Refatoração Apex](https://bit.ly/ComparacaoApex)
+- [ ] [Classe orquestradora `TestDataSetup.cls`](https://bit.ly/TestDataSetup)
+- [ ] [Checklist de Confirmação Final](https://bit.ly/ConfirmacaoApex)
+
+---
+
+📌 **Este checklist deve ser incluído como seção final de todos os guias técnicos e aplicado a todo PR de Apex.**
