@@ -272,6 +272,60 @@ Por isso, recomenda-se validar apenas a ocorrência da exceção, e não sua men
 
 ---
 
+📌 Essa diretriz deve ser adicionada no **[Guia Rigoroso de Testes Apex](https://bit.ly/GuiaTestsApex)** — pois trata diretamente de **como construir e usar dados de teste de forma padronizada e reutilizável**, especialmente no contexto do `TestDataSetup`.
+
+---
+
+## ✅ Local ideal: Capítulo 6 — Estrutura Modular de Dados de Teste
+
+Você já tem lá a tabela com os `*TestDataSetup.cls`. Sugiro adicionar **uma nova seção 6.1** logo abaixo da tabela:
+
+---
+
+### 📘 6.1 – Obrigatoriedade de assinaturas simples para métodos `createXxx()`
+
+Para garantir padronização e produtividade em testes, **todo método público de `*TestDataSetup` deve ter uma sobrecarga sem parâmetros**, com assinatura:
+
+```apex
+public static Tipo__c createXxx()
+```
+
+Essa versão deve:
+
+- ✅ Criar registros válidos, completos e persistidos (`insert`)
+- ✅ Usar valores default ou fallback seguros
+- ✅ Delegar internamente para a versão com parâmetros (`createXxx(...params)`)
+
+---
+
+### ✅ Exemplo aplicado
+
+```apex
+public static UC__c createUC() {
+    return createUC(null, null, null);
+}
+```
+
+### ✅ Vantagens
+
+- Permite escrever testes mais legíveis:  
+  `UC__c uc = UcTestDataSetup.createUC();`
+- Elimina necessidade de conhecer a ordem dos parâmetros
+- Evita repetição e erro humano
+
+---
+
+### 🔒 Regras obrigatórias
+
+| Regra                                            | Status |
+|--------------------------------------------------|--------|
+| A assinatura sem parâmetros **deve existir**     | ✅     |
+| Deve chamar a versão principal com `null`        | ✅     |
+| O método principal deve garantir fallback internos| ✅     |
+| Apenas `TestDataSetup` pode usar lógica composta | ✅     |
+
+---
+
 
 ### 📎 Compatibilidade com os guias oficiais
 - [ ] [Guia de Revisão Apex](https://bit.ly/GuiaApexRevisao)
