@@ -1,6 +1,23 @@
 # 📝 Guia Rigoroso de Logging Apex
 
-## ✅ Interface obrigatória: `ILogger`
+📅 Última atualização: MAR/2025
+
+---
+
+## 🎯 Objetivo
+
+Padronizar 100% dos logs estruturados em Apex com:
+
+- Interface obrigatória `ILogger`
+- Proibição de `System.debug()`
+- Logs contextualizados com `LoggerContext`
+- Facilitação de testes com `LoggerMock`
+
+---
+
+## ✅ 1. Interface obrigatória: `ILogger`
+
+Toda implementação deve respeitar os 11 parâmetros:
 
 ```apex
 void log(
@@ -20,7 +37,9 @@ void log(
 
 ---
 
-## ✅ Uso via `LoggerContext.getLogger().log(...)`
+## ✅ 2. Uso obrigatório com `LoggerContext.getLogger().log(...)`
+
+Exemplo padrão de chamada:
 
 ```apex
 LoggerContext.getLogger().log(
@@ -38,31 +57,29 @@ LoggerContext.getLogger().log(
 );
 ```
 
----
+### ✅ Requisitos:
 
-## ❌ Sintaxes proibidas
-
-- `System.debug()`
-- `LoggerContext.getLogger().log(...)` com menos de 11 parâmetros
-- `log => log.contains(...)` (sintaxe inválida em Apex)
+- Sempre 11 argumentos (mesmo que `null`)
+- Usar `LoggerContext` como fonte de contexto
+- Nomes de métodos devem refletir o real ponto de execução
 
 ---
 
-## ✅ LoggerHelper
+## 🔧 3. Uso de `LoggerHelper` (atalho padronizado)
 
-### Padrão para logs de erro com Exception:
+### 🔴 Log de erro com exceção:
 
 ```apex
 LoggerHelper.logError(
     'Erro ao criar UC',
     'UcTestDataSetup',
     'createUC',
-    e,
+    ex,
     'test-data'
 );
 ```
 
-### Padrão para logs de informação:
+### 🟢 Log de sucesso ou info:
 
 ```apex
 LoggerHelper.logInfo(
@@ -73,16 +90,92 @@ LoggerHelper.logInfo(
 );
 ```
 
+> ⚠️ `LoggerHelper` é obrigatório em todas as classes do tipo `*TestDataSetup`, Queueables, Triggers e Batches.
+
 ---
 
-## 🔁 Cuidado com recursão de log
+## 🧪 4. Validação de logs em testes (LoggerMock)
 
-Nunca fazer:
+### Ativação:
+
 ```apex
-logError(...) // que chama LoggerQueueable // que chama logError() de novo
+LoggerContext.setLogger(new LoggerMock());
 ```
 
+### Validação:
+
+```apex
+List<String> logs = ((LoggerMock) LoggerContext.getLogger()).getLogs();
+System.assert(logs.any(l => l.contains('createUC')));
+```
+
+> Recomendado verificar também `LogLevel`, `className` e `methodName` quando necessário.
+
 ---
 
-✅ Use `LoggerHelper` em todos os `*TestDataSetup`, Queueables, Triggers e Batches.
+## 🚨 5. Proibições absolutas
 
+| Proibido                                                       | Motivo                         |
+|----------------------------------------------------------------|--------------------------------|
+| `System.debug(...)`                                            | Não rastreável / não testável |
+| Usar `log(...)` com menos de 11 parâmetros                     | Quebra do contrato da interface |
+| `LoggerQueueable` sendo chamado diretamente dentro do `log`    | Causa recursão infinita       |
+| `LoggerMock` sem ser injetado com `LoggerContext.setLogger()` | Log não capturado no teste     |
+
+---
+
+## 🔁 6. Cuidado com recursão de log
+
+**Nunca** chamar `LoggerQueueable` de dentro de `LoggerQueueable`.
+
+### Exemplo inválido:
+
+```apex
+// dentro do execute()
+LoggerHelper.logError('Erro', 'LoggerQueueable', 'execute', ex, 'log');
+```
+
+> 🧨 Isso gerará um loop infinito de enfileiramento.
+
+### Correto:
+Use `System.debug()` somente se estiver em modo `Test.isRunningTest()`  
+**ou** desative a chamada recursiva com `LoggerContext.disable()` (caso implementado).
+
+---
+
+## ✅ 7. Checklist de log para revisão
+
+| Item                                                           | Status |
+|----------------------------------------------------------------|--------|
+| Usa `LoggerContext.getLogger().log(...)` com 11 parâmetros     | ✅     |
+| Contexto preenchido (`className`, `methodName`, `triggerType`) | ✅     |
+| Nenhum `System.debug(...)` presente no código                  | ✅     |
+| Usa `LoggerHelper` em helpers e `*TestDataSetup`               | ✅     |
+| Testes validam logs com `LoggerMock.getLogs()`                 | ✅     |
+
+---
+
+## 📌 Sugestão de organização de logs por categoria
+
+| logCategory     | Descrição                                 |
+|-----------------|-------------------------------------------|
+| `api`           | Requisições REST externas                 |
+| `batch`         | Processos em lote (`Batchable`)           |
+| `trigger`       | Fluxos automáticos de trigger             |
+| `test-data`     | Dados gerados para teste                  |
+| `validation`    | Validações de campos, tokens, permissões  |
+| `integration`   | Chamada a sistemas externos (HTTP, etc.)  |
+
+---
+
+✅ Esse guia deve ser aplicado em **100% das classes Apex que contenham logs, exceções ou fluxos REST**.
+
+---
+
+Se quiser, posso entregar um `.md` completo com o **Guia Rigoroso Consolidado** incluindo:
+
+- Revisão Apex  https://bit.ly/GuiaApexRevisao
+- Guia de Testes  https://bit.ly/GuiaTestsApex
+- Guia de Logging  https://bit.ly/GuiaLoggerApex
+- Guia de Refatoração: bit.ly/ComparacaoApex 
+- Classe orquestradora TestDataSetup.cls: bit.ly/TestDataSetup 
