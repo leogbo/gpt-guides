@@ -24,6 +24,9 @@ LoggerContext.setLogger(new LoggerMock());
 
 ## 📐 2. Ordem Recomendada no Setup
 
+🔁 Padrão de otimização para testes intensivos
+Toda classe *TestDataSetup que consulta registros padrões como RecordType, Profile, Distribuidora, etc., deve usar cache local estático para evitar estouro de limites em testes de carga.
+
 1. `TestDataSetup.setupCompleteEnvironment()`  
 2. `FlowControlManager.disableFlows()`  
 3. Apenas depois disso: execuções e assertivas  
