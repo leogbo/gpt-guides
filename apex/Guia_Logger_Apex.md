@@ -172,10 +172,12 @@ Use `System.debug()` somente se estiver em modo `Test.isRunningTest()`
 
 ---
 
-Se quiser, posso entregar um `.md` completo com o **Guia Rigoroso Consolidado** incluindo:
+### 📎 Compatibilidade com os guias oficiais
+- [ ] [Guia de Revisão Apex](https://bit.ly/GuiaApexRevisao)
+- [ ] [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
+- [ ] [Guia de Logging](https://bit.ly/GuiaLoggerApex)
+- [ ] [Guia de Refatoração Apex](https://bit.ly/ComparacaoApex)
+- [ ] [Classe orquestradora `TestDataSetup.cls`](https://bit.ly/TestDataSetup)
+- [ ] [Checklist de Confirmação Final](https://bit.ly/ConfirmacaoApex)
 
-- Revisão Apex  https://bit.ly/GuiaApexRevisao
-- Guia de Testes  https://bit.ly/GuiaTestsApex
-- Guia de Logging  https://bit.ly/GuiaLoggerApex
-- Guia de Refatoração: bit.ly/ComparacaoApex 
-- Classe orquestradora TestDataSetup.cls: bit.ly/TestDataSetup 
+---
