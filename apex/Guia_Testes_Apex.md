@@ -45,6 +45,25 @@ System.assertEquals(true, logEncontrado, 'Deveria haver log de criação de Acco
 
 ---
 
+
+## ✅ Mocks obrigatórios para chamadas HTTP (mesmo quando null)
+
+Regra nova adicionada ao guia:
+
+Em qualquer teste que execute código com chamadas HTTP (HTTPRequest, HTTP.send()), o uso de Test.setMock(HttpCalloutMock.class, ...) é obrigatório, mesmo quando a resposta esperada é null, erro ou exceção.
+
+📌 Isso evita:
+
+UnexpectedException por res == null
+
+Falhas de integração simulada
+
+Interrupção do batch/teste silenciosamente
+
+✅ Mocks devem retornar HttpResponse válidos, nunca null diretamente
+
+---
+
 ## 🎯 Cobertura de testes
 
 - Cenário positivo (sucesso)
