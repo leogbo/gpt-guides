@@ -250,8 +250,14 @@ static void validateRecordIdTest() {
 
 ---
 
+## ⚠️ Observação importante sobre AuraHandledException:
+Durante testes, o método getMessage() pode retornar "Script-thrown exception" ao invés da mensagem definida.
+Por isso, recomenda-se validar apenas a ocorrência da exceção, e não sua mensagem, para garantir estabilidade dos testes.
+
+---
+
 ## 🔒 Regras adicionais
-- Ao testar **métodos que lançam AuraHandledException** com logging, envolva a chamada com Test.startTest()/stopTest() para garantir que LoggerQueueable não silencie exceções.
+
 - Não usar `@TestVisible` se o método for irrelevante (ex: getters/setters simples)
 - Usar sempre parâmetros **primitivos ou SObjects mockados**
 - Deve haver pelo menos **1 teste de sucesso** e **1 de erro** para cada método testável
