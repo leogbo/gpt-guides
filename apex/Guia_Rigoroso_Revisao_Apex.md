@@ -11,6 +11,7 @@
 4. **`System.debug()` é terminantemente proibido**
 5. **Uso obrigatório de `LoggerHelper` ou `LoggerContext.getLogger()`**
 6. **Métodos `private` relevantes devem ser `@TestVisible` e cobertos por testes**
+7. **Padrão de otimização para testes intensivos** : Toda classe *TestDataSetup que consulta registros padrões como RecordType, Profile, Distribuidora, etc., deve usar cache local estático para evitar estouro de limites em testes de carga.
 
 ---
 
