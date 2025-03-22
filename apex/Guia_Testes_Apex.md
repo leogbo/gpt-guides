@@ -1,3 +1,7 @@
+Aqui está a versão revisada do **Guia Rigoroso de Testes Apex**, agora com as novas instruções e aprendizados:
+
+---
+
 # ✅ Guia Rigoroso de Testes Apex
 
 ---
@@ -8,9 +12,9 @@ Este guia define o padrão obrigatório de construção de testes Apex com base 
 
 - `TestDataSetup` completo
 - Desativação de flows (`FlowControlManager`)
-- Uso de `LoggerContext.getLogger()` com `LoggerMock`
-- Mock de callouts e logs
-- Validação de logs com `Logger.LogEntry`
+- **Uso de SELECTs** para validar dados em vez de depender de mapeamentos como `testData`
+- **Não validação de logs** em testes (evitar assertions de logs)
+- **Validação de logs** com `Logger.LogEntry` em contextos específicos, quando necessário
 
 ---
 
@@ -26,11 +30,13 @@ static void setupTestData() {
 }
 ```
 
-E sempre que houver logging estruturado:
+Sempre que necessário, use **mocking de logs**:
 
 ```apex
 LoggerContext.setLogger(new LoggerMock());
 ```
+
+> 🔒 **Não use `System.debug()`** em testes. Em vez disso, registre logs com `LoggerContext.getLogger().log(...)`.
 
 ---
 
@@ -40,18 +46,18 @@ Padrão de otimização para testes intensivos:
 
 1. `TestDataSetup.setupCompleteEnvironment()`
 2. `FlowControlManager.disableFlows()`
-3. Depois disso: alterações customizadas (`insert`, `update`, etc.)
-4. Usar `Test.startTest()` e `Test.stopTest()` em blocos pontuais
+3. Após isso, alterações customizadas (e.g., `insert`, `update`, etc.)
+4. Use `Test.startTest()` e `Test.stopTest()` em blocos pontuais
 
 > ⚠️ Toda classe de `TestDataSetup` deve usar cache local estático (`if (mock == null)`) para evitar estouro de limites em testes de carga.
 
 ---
 
-## 🪵 3. Uso obrigatório de `LoggerMock`
+## 🪵 3. Uso de `LoggerMock`
 
 ### ✅ 3.1 – Mock obrigatório
 
-Todo teste que envolva logging estruturado **deve mockar o logger** com:
+Todo teste que envolva **logging estruturado** **deve mockar o logger** com:
 
 ```apex
 LoggerMock logger = new LoggerMock();
@@ -61,6 +67,8 @@ LoggerContext.setLogger(logger);
 ---
 
 ### ✅ 3.2 – Validação com `Logger.LogEntry`
+
+Em casos onde é estritamente necessário validar logs, a validação deve ser feita com `Logger.LogEntry`:
 
 ```apex
 List<Logger.LogEntry> logs = logger.getLogs();
@@ -101,8 +109,8 @@ RestContext.request = new RestRequest();
 RestContext.response = new RestResponse();
 ```
 
-> 🔒 **Obrigatório simular `RestContext.response`**.  
-> Sem isso, chamadas como `res.responseBody = Blob.valueOf(...)` lançam `NullPointerException`.
+> 🔒 **Simulação de `RestContext.response` é obrigatória**.  
+> Sem isso, chamadas como `res.responseBody = Blob.valueOf(...)` podem gerar `NullPointerException`.
 
 ---
 
@@ -312,7 +320,7 @@ O uso de `System.debug()` é **proibido em testes**, exceto para fins de depura�
 
 - **Correto:**
 ```apex
-    LoggerContext.getLogger().log(Logger.LogLevel.ERROR, className, 'testMethod', null, 'Erro: Contato não encontrado.');
+    LoggerContext.getLogger().log(Logger.LogLevel.ERROR, 'ClassName', 'MethodName', null, 'Erro: Contato não encontrado.');
 ```
 
 #### 4. **Desabilitação de Fluxos**
@@ -332,64 +340,15 @@ Sempre que necessário, use **`FlowControlManager.disableFlows()`** no método `
 #### 5. **Documentação de Casos de Teste**
 Cada método de teste deve ter um propósito claro e ser bem documentado, incluindo a descrição do comportamento esperado, cenário de teste, dados de entrada e a verificação dos resultados.
 
----
+--- 
 
-### **Objetivos dessa Prática no Guia de Testes:**
+### 📎 Compatibilidade com os guias oficiais
+- [ ] [Guia de Revisão Apex](https://bit.ly/GuiaApexRevisao)
+- [ ] [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
+- [ ] [Guia de Logging](https://bit.ly/GuiaLoggerApex)
+- [ ] [Guia de Refatoração Apex](https://bit.ly/ComparacaoApex)
+- [ ] [Classe orquestradora `TestDataSetup.cls`](https://bit.ly/TestDataSetup)
+- [ ] [Checklist de Confirmação Final](https://bit.ly/ConfirmacaoApex)
 
-1. **Aumentar a Precisão dos Testes:** A utilização de consultas `SOQL` diretamente permite que os testes sejam mais próximos de um cenário real, com dados de banco de dados consistentes.
-2. **Facilitar a Manutenção de Testes:** O uso direto de `SOQL` permite que os testes sejam mais claros e menos propensos a falhas relacionadas ao uso inadequado de variáveis temporárias ou não carregadas corretamente.
-3. **Seguir as Melhores Práticas de Performance:** Consultas `SOQL` ajudam a garantir que o código do teste seja o mais eficiente possível, evitando problemas de integridade de dados e de performance.
 
----
-
-### **Exemplo Completo do Guia de Testes:**
-
-```markdown
-## **Guia de Testes - Rigoroso**
-
-### **Objetivos dos Testes:**
-- Garantir que o código seja executado corretamente com dados reais.
-- Testar as interações entre os objetos no banco de dados.
-- Garantir que os fluxos e funcionalidades da aplicação sejam mantidos.
-
-### **Boas Práticas de Testes:**
-
-#### **1. Recuperação de Dados com SOQL**
-Sempre que for necessário recuperar dados, use consultas `SOQL` diretamente. Não use mapeamentos ou `testData` que possam não ser carregados corretamente.
-
-```apex
-    @IsTest
-    static void testMethod() {
-        Contact contato = [SELECT Id, MobilePhone FROM Contact LIMIT 1];
-        System.assertNotEquals(null, contato, 'Contato não foi encontrado.');
-    }
-```
-
-#### **2. Desabilitação de Fluxos**
-Use `FlowControlManager.disableFlows()` para desabilitar fluxos automaticamente durante a execução dos testes, garantindo que fluxos não sejam acionados.
-
-```apex
-    @TestSetup
-    static void setupTestData() {
-        FlowControlManager.disableFlows();
-    }
-```
-
-#### **3. Logs em vez de System.debug()**
-Nunca use `System.debug()` nos testes. Utilize sempre `LoggerContext.getLogger().log(...)` para registrar informações importantes sobre a execução do teste.
-
-```apex
-    LoggerContext.getLogger().log(Logger.LogLevel.ERROR, 'ClassName', 'MethodName', null, 'Erro: Mensagem de erro');
-```
-
-#### **4. Testes de Erro**
-Sempre que testar uma falha, valide a resposta da API e os logs adequados, garantindo que os erros sejam registrados corretamente.
-
-```apex
-    System.assert(response.contains('error'), 'Deveria retornar erro no JSON.');
-    List<Logger.Log.Entry> logs = ((LoggerMock) LoggerContext.getLogger()).getLogs();
-    System.assert(logs.size() > 0, 'O erro deveria estar registrado nos logs.');
-```
-
----
-```
+Este guia agora está atualizado, com foco nas melhores práticas, como a **não validação de logs** e o uso de **SOQL** para garantir que os testes sejam mais robustos e alinhados com as práticas recomendadas para Apex.
