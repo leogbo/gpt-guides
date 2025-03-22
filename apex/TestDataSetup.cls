@@ -1,6 +1,10 @@
 @isTest
 public class TestDataSetup {
 
+    /*
+    pendente: adicionar docstring explicando a funcao orquestradora da classe
+    */
+
     public static final String environment = 'test';
     public static final Logger.LogLevel log_level = Logger.LogLevel.DEBUG;
     public static final String className = 'TestDataSetup';
@@ -11,6 +15,7 @@ public class TestDataSetup {
 
     private static Map<String, String> testLabels = new Map<String, String>();
 
+    @TestVisible
     public static void overrideLabel(String labelName, String value) {
         if (Test.isRunningTest()) {
             LoggerHelper.logInfo('Substituindo Label em teste: ' + labelName + ' = ' + value, className, 'overrideLabel', logCategory);
@@ -20,10 +25,12 @@ public class TestDataSetup {
         }
     }
 
+    @TestVisible
     public static String getLabel(String labelName) {
         return testLabels.containsKey(labelName) ? testLabels.get(labelName) : null;
     }
 
+    @TestVisible
     public static Map<String, SObject> setupCompleteEnvironment() {
         LoggerHelper.logInfo('📌 [START] setupCompleteEnvironment', className, 'setupCompleteEnvironment', logCategory);
 
@@ -74,6 +81,7 @@ public class TestDataSetup {
             // 🔗 Contrato e UC
             Contrato_de_Adesao__c contrato = UcTestDataSetup.createContratoDeAdesao(account.Id, contact.Id, veiculo.Id);
             UC__c uc = UcTestDataSetup.createUC(contrato.Id, produto.Id, proposta.Id);
+            Contato_da_UC__c contatoDaUc = UcTestDataSetup.createContatoDaUC(uc.Id, uc.Rep_Legal__c, null);
 
             // 💰 Cobrança e 📞 Atendimento
             Cobranca__c cobranca = CobrancaTestDataSetup.createCobranca(uc.Id, null, 1000, null);
@@ -105,6 +113,7 @@ public class TestDataSetup {
             createdRecords.put('SignatarioOportunidade', signOpp);
             createdRecords.put('Contrato', contrato);
             createdRecords.put('UC', uc);
+            createdRecords.put('ContatoDaUc', contatoDaUc);
             createdRecords.put('Cobranca', cobranca);
             createdRecords.put('Case', caseRecord);
 
@@ -117,6 +126,7 @@ public class TestDataSetup {
         }
     }
 
+    @TestVisible
     public static void cleanUp(List<SObject> records) {
         LoggerHelper.logInfo('Iniciando limpeza de registros', className, 'cleanUp', logCategory);
 
