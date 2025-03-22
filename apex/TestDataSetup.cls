@@ -1,9 +1,12 @@
 @isTest
 public class TestDataSetup {
 
-    /*
-    pendente: adicionar docstring explicando a funcao orquestradora da classe
-    */
+    /**
+     * Classe orquestradora principal responsável por montar o ambiente de teste completo
+     * utilizado em todos os testes de integração e APIs.
+     *
+     * Todos os dados retornados no `Map<String, SObject>` podem ser acessados nos testes por chave.
+     */
 
     public static final String environment = 'test';
     public static final Logger.LogLevel log_level = Logger.LogLevel.DEBUG;
@@ -38,8 +41,8 @@ public class TestDataSetup {
 
         try {
             // 🧑‍💼 Usuário e Responsável
-            User user = UserTestDataSetup.createUser(null, null, null, null, null);
-            Configuracoes__c responsavel = ResponsavelTestDataSetup.createResponsavel(null);
+            User user = UserTestDataSetup.createUser();
+            Configuracoes__c responsavel = ResponsavelTestDataSetup.createResponsavel(user.Id);
 
             // 🏢 Vertical e Originadores
             Vertical__c vertical = VerticalTestDataSetup.createVertical('Ultragaz Energia');
@@ -47,11 +50,11 @@ public class TestDataSetup {
             Originador__c originadorFilho = OriginadorTestDataSetup.createOriginadorFilho(vertical.Id, null, originadorPai.Id);
 
             // ⚡ Distribuidora e Tarifa
-            Distribuidora__c distribuidora = DistribuidoraTestDataSetup.createDistribuidora(null, null);
+            Distribuidora__c distribuidora = DistribuidoraTestDataSetup.createDistribuidora();
             Tarifa_Distribuidora__c tarifa = DistribuidoraTestDataSetup.createTarifaDistribuidora(distribuidora);
 
             // 🔋 Gerador e Produto
-            Gerador__c gerador = GeradorTestDataSetup.createGerador(null);
+            Gerador__c gerador = GeradorTestDataSetup.createGerador();
             Veiculo__c veiculo = GeradorTestDataSetup.createVeiculo(gerador.Id, null);
             Plataforma_de_Cobranca__c plataforma = GeradorTestDataSetup.createPlataformaCobranca(veiculo.Id, 'itau');
             Produto_do_Gerador__c produto = GeradorTestDataSetup.createProdutoDoGerador(vertical.Id, veiculo.Id, distribuidora.Id, plataforma.Id);
