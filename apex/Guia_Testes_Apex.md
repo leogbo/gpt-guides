@@ -207,7 +207,146 @@ private static void mockRequest(String token, String metodo, String uri, String 
 
 📘 Este capítulo será referenciado por todos os testes `@isTest` que envolvam REST, seja GET, POST ou PATCH.
 
-Deseja que eu gere um *template base* reutilizável de mock de `RestRequest` com parâmetros dinâmicos também?
+Excelente diretriz! 📘 Vamos oficializar isso como mais um capítulo do **Guia Rigoroso de Testes Apex**, com o título:
+
+---
+
+# 🧩 CAPÍTULO 8 – Cobertura Obrigatória de Métodos `@TestVisible` Privados
+
+---
+
+## 🎯 Objetivo
+
+Garantir cobertura total, previsibilidade e segurança dos **métodos auxiliares internos** (`private static`) das classes `@RestResource`, `@future`, `Queueable`, triggers e services, especialmente quando:
+
+- Recebem parâmetros primitivos (String, Id, Boolean, etc.)
+- Contêm lógica de validação ou formatação
+- Influenciam diretamente os fluxos REST ou de negócio
+
+---
+
+## ✅ Regra obrigatória
+
+> Todo método `private` deve ser anotado com `@TestVisible` **e testado diretamente nos testes de unidade da classe**.
+
+---
+
+## 🧪 Benefícios esperados
+
+- ✅ Aumenta a cobertura de linhas e branches
+- ✅ Valida comportamentos isolados (ex: `null`, vazio, inválido)
+- ✅ Impede que métodos de apoio virem “caixas pretas” não verificadas
+
+---
+
+## 📌 Padrão de testes para métodos auxiliares
+
+Abaixo, os **testes complementares obrigatórios** para a classe `Cobranca_Rest_API_GET.cls`:
+
+---
+
+### ✅ Teste: `validateRecordId`
+
+```apex
+@IsTest
+static void validateRecordIdTest() {
+    Boolean exceptionThrown = false;
+    try {
+        Cobranca_Rest_API_GET.validateRecordId(null);
+    } catch (AuraHandledException ex) {
+        exceptionThrown = true;
+        System.assert(ex.getMessage().contains('Parâmetro ID inválido.'));
+    }
+    System.assertEquals(true, exceptionThrown, 'Deveria lançar exceção para ID nulo.');
+}
+```
+
+---
+
+### ✅ Teste: `validateCobrancaExists`
+
+```apex
+@IsTest
+static void validateCobrancaExistsTest() {
+    Boolean exceptionThrown = false;
+    try {
+        Cobranca_Rest_API_GET.validateCobrancaExists(null, 'abc123');
+    } catch (AuraHandledException ex) {
+        exceptionThrown = true;
+        System.assert(ex.getMessage().contains('Cobrança não encontrada.'));
+    }
+    System.assertEquals(true, exceptionThrown, 'Deveria lançar exceção para cobrança nula.');
+}
+```
+
+---
+
+### ✅ Teste: `getCobrancaById`
+
+```apex
+@IsTest
+static void getCobrancaByIdTest() {
+    setupTestData();
+    Cobranca__c result = Cobranca_Rest_API_GET.getCobrancaById(validCobrancaId);
+    System.assertNotEquals(null, result, 'Cobrança esperada não encontrada.');
+}
+```
+
+---
+
+### ✅ Teste: `buildCobrancaResponse`
+
+```apex
+@IsTest
+static void buildCobrancaResponseTest() {
+    setupTestData();
+    Cobranca__c cobranca = (Cobranca__c) testData.get('Cobranca');
+    Map<String, Object> json = Cobranca_Rest_API_GET.buildCobrancaResponse(cobranca);
+    System.assert(json.containsKey('id'), 'JSON deve conter o campo id');
+    System.assert(json.containsKey('status'), 'JSON deve conter o campo status');
+}
+```
+
+---
+
+### ✅ Teste: `addJsonField`
+
+```apex
+@IsTest
+static void addJsonFieldTest() {
+    Map<String, Object> json = new Map<String, Object>();
+    Cobranca_Rest_API_GET.addJsonField(json, 'chave', 'valor');
+    System.assertEquals('valor', json.get('chave'), 'Valor não foi adicionado corretamente.');
+
+    Cobranca_Rest_API_GET.addJsonField(json, 'nulo', null);
+    System.assert(!json.containsKey('nulo'), 'Campos nulos não devem ser adicionados.');
+}
+```
+
+---
+
+### ✅ Teste: `truncateString`
+
+```apex
+@IsTest
+static void truncateStringTest() {
+    String curta = 'abc';
+    String longa = 'x'.repeat(500);
+
+    System.assertEquals(curta, Cobranca_Rest_API_GET.truncateString(curta, 10));
+    System.assertEquals(255, Cobranca_Rest_API_GET.truncateString(longa, 255).length());
+    System.assertEquals(null, Cobranca_Rest_API_GET.truncateString('', 50));
+}
+```
+
+---
+
+## 🔒 Observações finais
+
+- **Nunca** remover `@TestVisible` de métodos auxiliares que fazem validações, montagens ou chamadas críticas
+- Cada método privado deve ter **pelo menos 1 cenário positivo e 1 de exceção testado**
+- A padronização desses testes deve ser obrigatória para **merge de qualquer classe Apex crítica**
+
 
 ---
 
