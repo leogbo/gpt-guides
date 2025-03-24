@@ -122,12 +122,10 @@ LoggerContext.setLogger(logger);
 
 ## 🛑 Proibições Absolutas
 
-| Sintaxe proibida                    | Motivo                       |
-|------------------------------------|------------------------------|
-| `System.debug()`                   | Não rastreável / padronizado |
-| `System.enqueueJob(new LoggerQueueable(...))` | Viola injeção de dependência |
-| `new LoggerQueueable(...).log()`   | Foge do padrão central       |
-| `Logger.log(...)` direto           | Fere encapsulamento de log   |
+- ❌ `System.debug()` em produção
+- ❌ `LoggerMock.getLogs()` para validação de mensagens
+- ✅ `System.debug()` é **permitido em testes**, quando `LoggerContext` é mockado
+
 
 ---
 
