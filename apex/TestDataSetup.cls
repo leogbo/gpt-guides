@@ -1,3 +1,120 @@
+# 🧱 Guia Rigoroso de TestDataSetup (Versão Estendida 2025)
+
+> 🌐 Base: https://bit.ly/TestDataSetup
+
+📎 Consulte também:
+- 📘 [Guia de Revisão Apex](https://bit.ly/GuiaApexRevisao)
+- 🧪 [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
+- 🧪 [Guia de Logger](https://bit.ly/GuiaLoggerApex)
+- 🔁 [Guia de Refatoração](https://bit.ly/ComparacaoApex)
+- ✅ [Confirmação de Equivalência Funcional](https://bit.ly/ConfirmacaoApex)
+
+---
+
+## ✅ Objetivo
+Definir padrões obrigatórios para criação de dados de teste reutilizáveis, centralizados e rastreáveis.
+
+TestDataSetup é a **classe orquestradora principal**, usada por todas as suítes de testes Apex para montar o ambiente mínimo e completo.
+
+---
+
+## ⚙️ Regras Obrigatórias
+
+### 1. Apenas `@TestSetup` pode invocar `setupCompleteEnvironment()`
+- ❌ **Nunca** chamar `setupCompleteEnvironment()` dentro de métodos de teste individuais
+- ✅ Cada método de teste deve fazer `SELECT` para buscar os registros criados
+- ❌ Nunca reutilizar o `Map<String, SObject>` retornado pelo setup
+
+### 2. A estrutura de dados criada deve cobrir:
+- Usuário, Vertical, Originadores, Distribuidora, Produto, Usina, Lead, Conta, Contato, Oportunidade, Proposta, Documentos, UC, Cobrança, etc.
+
+### 3. Toda lógica de criação de objetos deve ser delegada para `*TestDataSetup` especializados
+- Exemplo: `UserTestDataSetup`, `LeadTestDataSetup`, `GeradorTestDataSetup`
+
+### 4. Usar sempre `LoggerHelper.logInfo(...)` para rastreabilidade
+
+### 5. Todos os métodos devem ser `@TestVisible`
+
+---
+
+## 🧪 Uso padrão nos testes
+
+```apex
+@TestSetup
+static void setupTestData() {
+    TestDataSetup.setupCompleteEnvironment();
+    FlowControlManager.disableFlows();
+}
+```
+
+```apex
+@isTest
+static void meuTeste() {
+    Account acc = [SELECT Id FROM Account LIMIT 1];
+    // seguir com lógica do teste...
+}
+```
+
+---
+
+## 🧩 Boas práticas
+
+### 🧠 Nomenclatura das chaves no `Map<String, SObject>`
+- Sempre use nomes padronizados e sem ambiguidades:
+  - `'Account'`, `'Contact'`, `'Opportunity'`, `'LeadPF'`, `'Distribuidora'`, `'Produto'`, etc.
+
+### ⚠️ `Map<String, SObject>` não deve ser reutilizado entre métodos
+- Ele só serve para validação rápida em ambiente controlado
+
+### 💡 Otimize com cache estático local em `*TestDataSetup` especializados
+- Evite `SOQL` repetitivo: cacheie `RecordType`, `Profile`, etc.
+
+---
+
+## 📄 Estrutura obrigatória da classe TestDataSetup
+
+### 1. Topo com variáveis padrão
+```apex
+public static final String environment = 'test';
+public static final Logger.LogLevel log_level = Logger.LogLevel.DEBUG;
+public static final String className = 'TestDataSetup';
+public static final String triggerType = 'test';
+public static final String logCategory = 'test-data';
+```
+
+### 2. Método principal de orquestração
+```apex
+@TestVisible
+public static Map<String, SObject> setupCompleteEnvironment() {
+    // Criação de objetos, delegando para classes auxiliares
+    // Inserções e adições no Map<String, SObject>
+    return createdRecords;
+}
+```
+
+### 3. Métodos auxiliares (override de Label, cleanup, mocks)
+```apex
+@TestVisible
+public static void overrideLabel(String labelName, String value) {...}
+
+@TestVisible
+public static void cleanUp(List<SObject> records) {...}
+```
+
+---
+
+## 🧾 Checklist para `TestDataSetup.cls`
+- [ ] Possui `setupCompleteEnvironment()` anotado com `@TestVisible`
+- [ ] Usa `LoggerHelper` para todos os logs
+- [ ] Não tem lógica de criação de objeto inline (usa `*TestDataSetup`)
+- [ ] Não é usada fora do `@TestSetup`
+- [ ] Todos os dados têm SELECT possível (sem depender de Map)
+- [ ] Classe define: `environment`, `log_level`, `className`, `triggerType`, `logCategory`
+
+---
+
+## Conteúdo explícito da versão atual de TestDataSetup.cls (devemos sempre manter o guia atualizado)
+
 @isTest
 public class TestDataSetup {
 
