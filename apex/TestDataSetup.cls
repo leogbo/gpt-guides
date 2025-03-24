@@ -13,6 +13,9 @@ public class TestDataSetup {
     public static final String className = 'TestDataSetup';
     public static final String triggerType = 'test';
     public static final String logCategory = 'test-data';
+    private static final String MOCK_DOMINIO = 'https://mock-dominio.com';
+    private static final String MOCK_URL     = 'https://mock-token.com/oauth';
+
 
     public class TestSetupException extends Exception {}
 
@@ -34,6 +37,30 @@ public class TestDataSetup {
     }
 
     @TestVisible
+    public static Integracao__c createIntegracao() {
+        LoggerHelper.logInfo('Criando registro de Integracao__c', className, 'createIntegracao', logCategory);
+    
+        try {
+            Integracao__c integracao = new Integracao__c(
+                Dominio__c     = 'https://mock-dominio.com',
+                clientId__c    = 'mockClientId'+String.valueOf(System.currentTimeMillis()).right(8),
+                clientSecret__c = 'mockClientSecret'+String.valueOf(System.currentTimeMillis()).right(8),
+                username__c    = 'usuario'+String.valueOf(System.currentTimeMillis()).right(8),
+                password__c    = 'senha'+String.valueOf(System.currentTimeMillis()).right(8),
+                url__c         = 'https://mock-token.com/oauth'
+            );
+            insert integracao;
+    
+            LoggerHelper.logInfo('Integracao__c criado com sucesso: ' + integracao.Id, className, 'createIntegracao', logCategory);
+            return integracao;
+    
+        } catch (Exception ex) {
+            LoggerHelper.logError('Erro ao criar Integracao__c', className, 'createIntegracao', ex, logCategory);
+            throw ex;
+        }
+    }
+
+    @TestVisible
     public static Map<String, SObject> setupCompleteEnvironment() {
         LoggerHelper.logInfo('📌 [START] setupCompleteEnvironment', className, 'setupCompleteEnvironment', logCategory);
 
@@ -43,6 +70,8 @@ public class TestDataSetup {
             // 🧑‍💼 Usuário e Responsável
             User user = UserTestDataSetup.createUser();
             Configuracoes__c responsavel = ResponsavelTestDataSetup.createResponsavel(user.Id);
+            //Integracao__c integracao = createIntegracao();
+
 
             // 🏢 Vertical e Originadores
             Vertical__c vertical = VerticalTestDataSetup.createVertical('Ultragaz Energia');
@@ -59,6 +88,9 @@ public class TestDataSetup {
             Plataforma_de_Cobranca__c plataforma = GeradorTestDataSetup.createPlataformaCobranca(veiculo.Id, 'itau');
             Produto_do_Gerador__c produto = GeradorTestDataSetup.createProdutoDoGerador(vertical.Id, veiculo.Id, distribuidora.Id, plataforma.Id);
 
+            // Usina
+            Usina__c usina = UsinaTestDataSetup.createUsina(distribuidora.Id, gerador.Id, veiculo.Id);
+            
             // 🧪 Leads
             Lead leadPF = LeadTestDataSetup.createLeadPfQualificando(originadorPai.Id, distribuidora.Id);
             Lead leadPJ = LeadTestDataSetup.createLeadPjQualificando(originadorFilho.Id, distribuidora.Id, null);
@@ -93,7 +125,9 @@ public class TestDataSetup {
             // ✅ Preenchendo o mapa de retorno
             createdRecords.put('User', user);
             createdRecords.put('Responsavel', responsavel);
+            // createdRecords.put('Integracao', integracao);
             createdRecords.put('Vertical', vertical);
+            createdRecords.put('Originador', originadorPai);
             createdRecords.put('OriginadorPai', originadorPai);
             createdRecords.put('OriginadorFilho', originadorFilho);
             createdRecords.put('Distribuidora', distribuidora);
@@ -102,6 +136,7 @@ public class TestDataSetup {
             createdRecords.put('Veiculo', veiculo);
             createdRecords.put('Plataforma', plataforma);
             createdRecords.put('Produto', produto);
+            createdRecords.put('Usina', usina);
             createdRecords.put('LeadPF', leadPF);
             createdRecords.put('LeadPJ', leadPJ);
             createdRecords.put('Account', account);
