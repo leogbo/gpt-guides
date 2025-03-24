@@ -158,7 +158,7 @@ public class TestDataSetup {
 
             if (!existentes.isEmpty()) {
                 LoggerHelper.logInfo('Registro existente de Integracao__c encontrado: ' + existentes[0].Id, className, 'createIntegracao', logCategory);
-                return existentes[0]; // se existente, evitamos o insert pois só pode haver um registro na org
+                return existentes[0];
             }
 
             Integracao__c integracao = new Integracao__c(
@@ -288,11 +288,96 @@ public class TestDataSetup {
                 return;
             }
 
-            delete records;
-            LoggerHelper.logInfo('Registros excluídos com sucesso: ' + records.size(), className, 'cleanUp', logCategory);
+            Map<String, List<SObject>> grouped = new Map<String, List<SObject>>();
+            for (SObject s : records) {
+                String tipo = String.valueOf(s.getSObjectType());
+                if (!grouped.containsKey(tipo)) grouped.put(tipo, new List<SObject>());
+                grouped.get(tipo).add(s);
+            }
+
+            Integer totalDeleted = 0;
+            for (List<SObject> listToDelete : grouped.values()) {
+                if (!listToDelete.isEmpty()) {
+                    String tipo = String.valueOf(listToDelete[0].getSObjectType());
+                    if (tipo == 'User') continue;
+                    try {
+                        delete listToDelete;
+                        totalDeleted += listToDelete.size();
+                    } catch (DmlException dex) {
+                        if (!dex.getMessage().contains('ENTITY_IS_DELETED')) {
+                            throw dex;
+                        }
+                        LoggerHelper.logInfo('Skip deletados: ' + listToDelete.size(), className, 'cleanUp', logCategory);
+                    }
+                }
+            }
+
+            LoggerHelper.logInfo('Registros excluídos com sucesso: ' + totalDeleted, className, 'cleanUp', logCategory);
 
         } catch (Exception ex) {
             LoggerHelper.logError('Erro ao limpar registros', className, 'cleanUp', ex, logCategory);
+            throw ex;
+        }
+    }
+
+    @TestVisible
+    public static void fullCleanUpAllSupportedObjects() {
+        LoggerHelper.logInfo('Iniciando limpeza completa de todos os objetos suportados', className, 'fullCleanUpAllSupportedObjects', logCategory);
+
+        try {
+            List<List<SObject>> batches = new List<List<SObject>>();
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Geracao__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Fatura_da_Usina__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Fatura__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Contato_da_UC__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM UC__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Contrato_de_Adesao__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Documento_da_Oportunidade__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Documento_da_Proposta__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Documento_do_Contato__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Documento_da_Conta__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Signatario_da_Oportunidade__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Signatario_do_Gerador__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Proposta__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Opportunity')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Contact')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Account')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Lead')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Usina__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Produto_do_Gerador__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Plataforma_de_Cobranca__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Veiculo__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Gerador__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Tarifa_Distribuidora__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Distribuidora__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Originador__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Vertical__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Configuracoes__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Integracao__c')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Case')));
+            batches.add(new List<SObject>(Database.query('SELECT Id FROM Cobranca__c')));
+
+            Integer totalDeleted = 0;
+            for (List<SObject> listToDelete : batches) {
+                if (!listToDelete.isEmpty()) {
+                    String tipo = String.valueOf(listToDelete[0].getSObjectType());
+                    if (tipo == 'User') continue;
+                    try {
+                        delete listToDelete;
+                        totalDeleted += listToDelete.size();
+                    } catch (DmlException dex) {
+                        if (!dex.getMessage().contains('ENTITY_IS_DELETED')) {
+                            throw dex;
+                        }
+                        LoggerHelper.logInfo('Skip deletados: ' + listToDelete.size(), className, 'fullCleanUpAllSupportedObjects', logCategory);
+                    }
+                }
+            }
+
+            LoggerHelper.logInfo('Limpeza completa finalizada. Total de registros excluídos: ' + totalDeleted, className, 'fullCleanUpAllSupportedObjects', logCategory);
+
+        } catch (Exception ex) {
+            LoggerHelper.logError('Erro durante a limpeza completa', className, 'fullCleanUpAllSupportedObjects', ex, logCategory);
             throw ex;
         }
     }
