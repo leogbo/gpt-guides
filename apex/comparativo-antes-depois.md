@@ -11,58 +11,79 @@ Use este template em todas as entregas de revisão/refatoração para demonstrar
 
 ---
 
-## ✅ Bloco de Código Revisado (Final)
+## ✅ Código Revisado (Versão Final)
 
-> Inclua aqui o código revisado completo, após aplicação de todos os padrões do Guia Rigoroso.
-
----
-
-## 🔍 Comparativo Antes vs Depois
-
-| Elemento                    | Versão Original                          | Versão Revisada                            | Status     |
-|-----------------------------|------------------------------------------|--------------------------------------------|------------|
-| Estrutura de variáveis      | Sem padrão                               | Usa bloco padrão (`environment`, etc.)     | ✅ Aplicado |
-| Logging                     | `System.enqueueJob(...)` ou `debug()`    | `LoggerContext.getLogger().log(...)`       | ✅ Aplicado |
-| Testabilidade               | Não mockável                             | Usa `LoggerMock`                           | ✅ Aplicado |
-| Equivalência funcional      | Campo `X` atualizado                     | Campo `X` mantido                          | ✅ Preservado |
-| Tratamento de exceções      | Parcial ou inexistente                   | Try/Catch completo com log                 | ✅ Aplicado |
-| Estrutura modular           | Métodos longos ou duplicados             | Métodos auxiliares                         | ✅ Refatorado |
-| Safe null handling          | Ausente                                  | `if != null`, `containsKey()`              | ✅ Aplicado |
+> Inclua aqui o código refatorado completo, seguindo o [Guia Rigoroso de Revisão Apex](https://bit.ly/GuiaApexRevisao)
 
 ---
 
-## 🧪 Itens validados
+## 🔍 Comparativo Técnico
 
-- [x] Todos os métodos foram preservados
-- [x] Todos os campos atualizados foram mantidos
-- [x] Logs passaram para `LoggerContext`
-- [x] Testes com `LoggerMock` cobrem todos os fluxos
-- [x] Nenhum comportamento foi alterado sem justificativa
-
----
-
-## 🧠 Justificativas de melhorias (se houver)
-
-- Uso de `LoggerContext` centraliza logs e evita quebra em testes
-- Modularização reduz complexidade e melhora manutenção
-- Uso de `TestDataSetup` evita duplicação de lógica de dados
+| Elemento                  | Antes                                      | Depois                                     | Observação Técnica                        | Status   |
+|---------------------------|---------------------------------------------|--------------------------------------------|--------------------------------------------|----------|
+| 🎯 Nome da classe         | `Cidade_Rest_API`                          | `Cidade_Rest_API`                          | Mantido conforme regra                     | ✅        |
+| 🔒 Métodos expostos       | `@InvocableMethod createUC()`             | `createUC()`                               | Sem alteração                              | ✅        |
+| 🔒 Variáveis públicas     | `@InvocableVariable prop_id`              | `prop_id`                                  | Nome mantido                               | ✅        |
+| 📦 JSON Input/Output      | `{ prop_id: "123" }`                       | `{ prop_id: "123" }`                       | Estrutura inalterada                       | ✅        |
+| 🪵 Logging                | `System.enqueueJob(...)`                  | `LoggerContext.getLogger().log(...)`       | Atualizado para padrão Rigoroso            | ✅        |
+| ⚠️ Exceções               | Sem try/catch                              | Try/Catch com `LoggerHelper.logError()`    | Tratamento seguro                          | ✅        |
+| 🧪 Testes                 | Validação de log via `LoggerMock.getLogs()` | Apenas uso de `LoggerMock` sem validação  | Conforme guia (não testar logs)            | ✅        |
+| 🧩 Modularização          | Lógica inline                              | `validaToken(...)`, `respondeErro(...)`    | Métodos auxiliares criados                 | ✅        |
 
 ---
 
-## ✅ Confirmação final
+## 📋 Checklist Técnico de Equivalência
 
-> A nova versão é **100% funcionalmente equivalente** à original.  
-> Nenhum método, lógica ou campo foi perdido.  
-> Todas as melhorias são estruturais, sem impacto em comportamento.
+| Item                                                                 | Confirmado? |
+|----------------------------------------------------------------------|-------------|
+| 🔒 Nome da classe **não foi alterado**                               | ✅ / ❌      |
+| 🔒 Métodos expostos **não foram alterados**                          | ✅ / ❌      |
+| 🔒 Variáveis públicas/input/output **não foram alteradas**           | ✅ / ❌      |
+| 🔄 JSON de input **mantido idêntico**                                | ✅ / ❌      |
+| 🔄 JSON de output **mantido idêntico**                               | ✅ / ❌      |
+| 🧪 Todos os testes anteriores passaram                               | ✅ / ❌      |
+| 📄 Refatoração cobre todos fluxos anteriores                         | ✅ / ❌      |
 
 ---
 
-### 📎 Compatibilidade com os guias oficiais
-- [ ] [Guia de Revisão Apex](https://bit.ly/GuiaApexRevisao)
-- [ ] [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
-- [ ] [Guia de Logging](https://bit.ly/GuiaLoggerApex)
-- [ ] [Guia de Refatoração Apex](https://bit.ly/ComparacaoApex)
-- [ ] [Classe orquestradora `TestDataSetup.cls`](https://bit.ly/TestDataSetup)
-- [ ] [Checklist de Confirmação Final](https://bit.ly/ConfirmacaoApex)
+## 🧠 Justificativas para alterações (se houver)
+
+> Explique aqui qualquer melhoria além de estrutura ou log, como:
+- Inclusão de nova validação
+- Ajuste em cálculo (com evidência de equivalência)
+- Extração para método testável (`@TestVisible`)
+- Substituição de padrão de assert para `toUpperCase()` em testes
+
+---
+
+## ✅ Confirmação Final
+
+```markdown
+✅ Confirmação de Equivalência Funcional
+
+- Nenhum nome de classe, método público ou variável exposta foi alterado
+- Estruturas de JSON de entrada e saída permanecem inalteradas
+- Logs migrados para `LoggerContext.getLogger()` com 11 parâmetros
+- Testes passaram com sucesso e foram adequados ao padrão: sem validação de log
+- Toda refatoração é estrutural e segura
+
+✔️ Refatoração validada como funcionalmente equivalente
+```
+
+---
+
+## 📎 Compatibilidade com os guias oficiais
+
+- [x] [Guia de Revisão Apex](https://bit.ly/GuiaApexRevisao)
+- [x] [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
+- [x] [Guia de Logger](https://bit.ly/GuiaLoggerApex)
+- [x] [Guia de Refatoração](https://bit.ly/ComparacaoApex)
+- [x] [Classe `TestDataSetup`](https://bit.ly/TestDataSetup)
+- [x] [Confirmação de Equivalência](https://bit.ly/ConfirmacaoApex)
+
+---
+
+> 🟢 Versão 2025 validada pelo Apex Revisor Rigoroso  
+> 📅 Última atualização: MAR/2025
 
 ---
