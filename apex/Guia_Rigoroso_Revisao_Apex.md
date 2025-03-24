@@ -1,291 +1,122 @@
-# ✅ Guia Rigoroso de Revisão Apex  
-📅 Última atualização: MAR/2025
+# 📘 Guia Rigoroso de Revisão Apex
+
+📎 Consulte também os demais guias complementares:
+- 📄 [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
+- 🧪 [Guia de Logger + LoggerContext](https://bit.ly/GuiaLoggerApex)
+- 🔁 [Template de Comparação Antes vs Depois](https://bit.ly/ComparacaoApex)
+- 🧱 [Classe TestDataSetup Central](https://bit.ly/TestDataSetup)
+- ✅ [Confirmação de Equivalência Funcional](https://bit.ly/ConfirmacaoApex)
 
 ---
 
-## 📌 1. Princípios Fundamentais
-
-1. **Cada classe deve ter uma única responsabilidade (SRP)**
-2. **Todos os logs devem usar `LoggerContext.getLogger().log(...)` com 11 parâmetros**
-3. **Testes devem usar `LoggerMock` + `TestDataSetup.setupCompleteEnvironment()`**
-4. **`System.debug()` é terminantemente proibido**
-5. **Uso obrigatório de `LoggerHelper` ou `LoggerContext.getLogger()`**
-6. **Métodos `private` relevantes devem ser `@TestVisible` e cobertos por testes**
-7. **Padrão de otimização para testes intensivos** : Toda classe *TestDataSetup que consulta registros padrões como RecordType, Profile, Distribuidora, etc., deve usar cache local estático para evitar estouro de limites em testes de carga.
+## ✅ Objetivo
+Estabelecer **padrões inegociáveis** para revisão, escrita, refatoramento e logging de código Apex, com foco em:
+- Previsibilidade
+- Padrão organizacional
+- Auditação de logs
+- Testabilidade
 
 ---
 
-## 🧱 2. Estrutura obrigatória das classes Apex
+## ⚖️ Regras Absolutas
 
-Topo de toda classe principal deve conter:
-
+### 1. Logger obrigatório
+- Proibido `System.debug()` (exceto em testes com `LoggerMock`)
+- Sempre usar: 
 ```apex
-public static final String environment = 'test';
-public static final Logger.LogLevel log_level = Logger.LogLevel.DEBUG;
-public static final String className = '<NOME_DA_CLASSE>';
-public static final String triggerType = '<Batch | Trigger | Apex>';
-public static final String logCategory = '<domínio funcional>';
+LoggerContext.getLogger().log(...);
 ```
 
+### 2. Controle de contexto
+Toda classe Apex **deve conter no topo**:
+```apex
+@TestVisible private static String environment = Label.ENVIRONMENT;
+@TestVisible private static String log_level = Label.LOG_LEVEL;
+private static final String className = '<NOME_DA_CLASSE>';
+private static final String triggerType = '<REST | Batch | Trigger | Apex>';
+private static final String logCategory = '<API | Service | Apex | etc>';
+```
+
+### 3. Refatorar com equivalência funcional
+- Toda refatoracao **deve incluir**:
+  - ✅ Novo código completo
+  - ✅ Tabela comparativa Antes vs Depois ([Template](https://bit.ly/ComparacaoApex))
+  - ✅ Confirmação de equivalência funcional ([Checklist Final](https://bit.ly/ConfirmacaoApex))
+
+### 4. Testes obrigatórios
+- Usar `TestDataSetup.setupCompleteEnvironment()`
+- Desabilitar flows com `FlowControlManager.disableFlows()`
+- ❌ **Não usar `System.enqueueJob()` diretamente:** simular com `LoggerMock`
+- ⚠️ **Não validar logs gerados nos testes**, pois `LoggerQueueable` é assíncrono
+
+### 5. Sintaxes proibidas
+| Proibido 🚫                        | Motivo ❌ |
+|-----------------------------------|-----------|
+| `obj?.campo`                      | Safe nav. não suportado em Apex |
+| `var`                             | Apex exige tipo explícito |
+| `??`                              | Coalescência não existe em Apex |
+| `log => log.contains(...)`        | Arrow functions não existem |
+| `list.anyMatch(...)`              | não suportado |
+
+### 6. Métodos internos @TestVisible
+- Todos os métodos internos devem ser anotados com `@TestVisible`
+- Os métodos devem ser escritos com parâmetros de entrada simples e simuláveis
+- Objetivo: facilitar cobertura completa e segura durante os testes
+
 ---
 
-## 🪵 3. Logging Padronizado
-
-Usar exclusivamente `LoggerContext.getLogger().log(...)` com **todos os 11 parâmetros obrigatórios**:
-
+## 🗃️ Modelo padrão de log
 ```apex
 LoggerContext.getLogger().log(
     Logger.LogLevel.INFO,
-    LoggerContext.className,
-    'nomeDoMetodo',
-    null,
-    'mensagem',
-    'detalhes',
-    'stacktrace',
-    null,
-    LoggerContext.triggerType,
-    LoggerContext.logCategory,
-    LoggerContext.environment
+    className,
+    methodName,
+    triggerRecordId,
+    'Mensagem de contexto',
+    detalheTecnico,
+    stackTrace,
+    dadosSerializados,
+    triggerType,
+    logCategory,
+    environment
 );
 ```
 
-### ✅ Alternativas para testes e classes auxiliares:
-
-```apex
-LoggerHelper.logInfo('msg', 'class', 'method', 'categoria');
-LoggerHelper.logError('msg', 'class', 'method', ex, 'categoria');
-```
+> ✊ Sugestão: criar `logInfo(...)` e `logError(...)` como wrappers internos
 
 ---
 
-# 🧪 4. Testes Rigorosos
+## 🧰 Checklist de Revisão
+- [ ] Classe usa `LoggerContext.getLogger()`?
+- [ ] Variáveis de controle estão no topo?
+- [ ] Testes usam `LoggerMock`?
+- [ ] Nenhum uso de `System.debug()`?
+- [ ] **Não usa `enqueueJob()` diretamente nos testes**?
+- [ ] Usa `TestDataSetup.setupCompleteEnvironment()`?
+- [ ] Fluxos desabilitados com `FlowControlManager.disableFlows()`?
+- [ ] ⚠️ Não tenta validar logs de LoggerQueueable?
+- [ ] Refatorou com comparação Antes vs Depois?
+- [ ] Métodos internos estão anotados com `@TestVisible`?
 
 ---
 
-## ✅ 4.1 Estrutura mínima obrigatória
-
-```apex
-@TestSetup
-static void setupTestData() {
-    TestDataSetup.setupCompleteEnvironment();
-    FlowControlManager.disableFlows();
-}
-```
-
----
-
-## 🧱 4.2 Logger obrigatório
-
-```apex
-LoggerContext.setLogger(new LoggerMock());
-```
-
-Validação de logs:
-
-```apex
-List<String> logs = ((LoggerMock) LoggerContext.getLogger()).getLogs();
-Boolean encontrou = logs.any(l => l.contains('createAccount'));
-System.assertEquals(true, encontrou);
-```
+## 📄 Apêndice: Padrões para classes de teste
+- Nome da classe deve terminar com `Test`
+- Usar `@isTest`, `@TestSetup`, e `Test.startTest()` / `Test.stopTest()` corretamente
+- Logs devem ser simulados com `LoggerMock`, **não validados diretamente**
+- Incluir cenários:
+  - Positivo (happy path)
+  - Negativo (validação de erros)
+  - Exceção (falhas intencionais)
 
 ---
 
-## 📦 4.3 Mockagem de `RestRequest` e `RestResponse`
-
-### ⚠️ Requisito obrigatório
-
-```apex
-RestContext.request = new RestRequest();
-RestContext.response = new RestResponse(); // 🚨 Nunca omitir!
-```
-
-> ❗ Omitir `RestContext.response` causa `NullPointerException` nos métodos `sendResponse(...)`
-
-### ✅ Exemplos:
-
-#### GET com parâmetro
-```apex
-RestContext.request = new RestRequest();
-RestContext.response = new RestResponse();
-RestContext.request.requestURI = '/services/apexrest/getinfo';
-RestContext.request.httpMethod = 'GET';
-RestContext.request.addParameter('id', 'a00...');
-RestContext.request.addHeader('Access_token', 'Bearer VALIDO');
-```
-
-#### POST com body JSON
-```apex
-RestContext.request = new RestRequest();
-RestContext.response = new RestResponse();
-RestContext.request.httpMethod = 'POST';
-RestContext.request.requestURI = '/services/apexrest/postinfo';
-RestContext.request.requestBody = Blob.valueOf(JSON.serialize(payload));
-RestContext.request.addHeader('Access_token', 'Bearer VALIDO');
-RestContext.request.addHeader('Content-Type', 'application/json');
-```
+## ⚙️ Apêndice: Boas práticas sugeridas
+- Criar classes `XTestDataSetup` por objeto (ex: `UsinaTestDataSetup`)
+- Centralizar testes com dados reutilizáveis
+- Evitar `seeAllData=true` sempre que possível
+- Tornar métodos testáveis por design, com assinatura simples e pública ou `@TestVisible`
 
 ---
 
-## ⚙️ 4.4 Cenários obrigatórios
-
-| Cenário                        | Esperado                                 |
-|-------------------------------|------------------------------------------|
-| Token ausente/errado          | `AccessException`                        |
-| Parâmetro obrigatório ausente | `badRequest(...)`                        |
-| JSON malformado               | `BadRequestException`                    |
-| Requisição válida             | Código 200 + `RestContext.responseBody` |
-
----
-
-## 🧪 4.5 Assertivas esperadas
-
-```apex
-System.assertEquals(200, RestContext.response.statusCode);
-System.assert(RestContext.response.responseBody != null);
-```
-
-Com exceção esperada:
-
-```apex
-Boolean erro = false;
-try {
-    ClasseREST.metodo();
-} catch (RestServiceHelper.AccessException e) {
-    erro = true;
-}
-System.assert(erro);
-```
-
----
-
-# 🧩 5. Cobertura Obrigatória de Métodos `@TestVisible`
-
----
-
-## 🎯 Regra Absoluta
-
-> Todo método `private` com lógica de negócio, validação ou montagem de objetos **deve ser `@TestVisible` e ter teste direto**.
-
----
-
-## ✅ O que testar
-
-| Tipo de método    | Teste positivo | Teste negativo |
-|-------------------|----------------|----------------|
-| `validateXxx()`   | Com valor      | Nulo/inválido  |
-| `buildXxx()`      | Objeto completo| Objeto parcial |
-| `truncateString()`| Curta/longa    | Vazia/nula     |
-
----
-
-### ✅ Exemplo de `validateRecordId`
-
-```apex
-RestContext.request = new RestRequest();
-RestContext.response = new RestResponse();
-
-Boolean erro = false;
-try {
-    MinhaClasse.validateRecordId(null);
-} catch (AuraHandledException e) {
-    erro = true;
-}
-System.assertEquals(true, erro);
-```
-
----
-
-# 📘 6. Estrutura Modular de Dados de Teste
-
----
-
-### 6.1
-## 🔹 Setup principal:
-
-```apex
-TestDataSetup.setupCompleteEnvironment();
-```
-
-## 🔸 Cada módulo cria **somente seu objeto**:
-
-| Classe                        | Responsável por criar           |
-|------------------------------|---------------------------------|
-| `UserTestDataSetup`          | `User`, `ProfileId`             |
-| `LeadTestDataSetup`          | Tipos de `Lead`                 |
-| `PropostaTestDataSetup`      | `Proposta__c`                   |
-| `CobrancaTestDataSetup`      | `Cobranca__c`                   |
-| `GeradorTestDataSetup`       | `Gerador__c`, `Produto__c`      |
-
-
-### 6.2 – Padrão de otimização para testes intensivos
-
-Toda classe `*TestDataSetup` que realiza consultas de dados padrão (como `RecordType`, `Profile`, `Vertical`, `Distribuidora`, etc.) deve usar **cache estático local** para evitar estouro de limite de SOQL (`Too many SOQL queries: 101`) durante:
-
-- Testes com `setupCompleteEnvironment()`
-- Testes de carga
-- Execuções paralelas (`Test.setParallelTestExecution(true)`)
-
-📌 Use sempre `Map<String, Id>` com a chave sendo o nome buscado.  
-Exemplo em `UserTestDataSetup`:
-
-```apex
-private static Map<String, Id> profileCache = new Map<String, Id>();
-
-public static Id getProfileIdByName(String profileName) {
-    if (profileCache.containsKey(profileName)) return profileCache.get(profileName);
-    Id profileId = [SELECT Id FROM Profile WHERE Name = :profileName LIMIT 1].Id;
-    profileCache.put(profileName, profileId);
-    return profileId;
-}
-
-
----
-
-# 🚫 7. Proibições Invioláveis
-
-| Proibido                         | Motivo |
-|----------------------------------|--------|
-| `System.debug()`                 | Não rastreável/logável         |
-| `enqueueJob(...)` direto         | Use `LoggerContext.getLogger()`|
-| `Logger.log(...)` com menos de 11 parâmetros | Quebra padrão de log |
-| `TestDataSetup` com lógica de criação | Separação por classe obrigatória |
-| Mistura de objetos em *TestDataSetup.cls* | Viola SRP               |
-| `var`, `??`, `?.`, `anyMatch()`  | **Não suportados em Apex!**   |
-
----
-
-# 🧾 8. Checklist de Revisão Final
-
-
-✅ Utilize esta lista **ao finalizar cada PR de Apex**:
-
----
-
-### 🔧 Estrutura e padrões obrigatórios
-- [ ] Classe define corretamente: `environment`, `log_level`, `className`, `triggerType`, `logCategory`
-- [ ] Todos os logs usam `LoggerContext.getLogger().log(...)` com **11 parâmetros**
-- [ ] Nenhum uso de `System.debug()` no código (exceto testes com `Test.isRunningTest()`)
-
----
-
-### 🧪 Testes
-- [ ] Usa `LoggerMock` com `LoggerContext.setLogger(...)`
-- [ ] Usa `TestDataSetup.setupCompleteEnvironment()` no `@TestSetup`
-- [ ] `RestContext.response` está mockado em testes REST
-- [ ] Métodos `@TestVisible` possuem testes diretos e isolados
-- [ ] Testes cobrem: cenário positivo, negativo e de exceção
-- [ ] Cobertura funcional e estrutural ≥ 95%
-
----
-
-### 📎 Compatibilidade com os guias oficiais
-- [ ] [Guia de Revisão Apex](https://bit.ly/GuiaApexRevisao)
-- [ ] [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
-- [ ] [Guia de Logging](https://bit.ly/GuiaLoggerApex)
-- [ ] [Guia de Refatoração Apex](https://bit.ly/ComparacaoApex)
-- [ ] [Classe orquestradora `TestDataSetup.cls`](https://bit.ly/TestDataSetup)
-- [ ] [Checklist de Confirmação Final](https://bit.ly/ConfirmacaoApex)
-
----
-
-📌 **Este checklist deve ser incluído como seção final de todos os guias técnicos e aplicado a todo PR de Apex.**
+> ⭐ Versão 2025 com ajustes baseados em revisões reais via Apex Revisor Rigoroso
