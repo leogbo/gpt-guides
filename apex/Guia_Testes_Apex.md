@@ -68,6 +68,67 @@ Caso contrário, pode ocorrer `NullPointerException` em produção
 
 ---
 
+Excelente decisão. Vamos criar uma **seção dedicada dentro do seu Guia Oficial de Testes Apex** (`https://bit.ly/GuiaTestsApex`) para consolidar o uso de `TestDataSetup`, `LoggerMock` e os padrões que vêm sendo aplicados.
+
+---
+
+## 📄 Seção sugerida: `7. TestDataSetup e Rigor de Ambiente`
+
+Sugiro inserir após a seção de "Cobertura e Isolamento de Testes", algo assim:
+
+---
+
+### 7. TestDataSetup e Rigor de Ambiente
+
+Todos os testes que envolvem múltiplas entidades, integrações ou execuções REST/BATCH devem utilizar o padrão oficial de setup de dados via `TestDataSetup.cls`.
+
+#### ✅ Por que usar `TestDataSetup`
+
+- Garantia de rastreabilidade por `Map<String, SObject>`
+- Fallbacks automáticos (ex: `createUC(null, null, null)` cria tudo o que precisa)
+- Dados com vínculos válidos entre `Lead`, `Opportunity`, `Proposta`, `UC`, `Cobranca`, `Fatura`
+- Logging estruturado via `LoggerHelper`
+- Testes mais rápidos, consistentes e confiáveis
+
+#### 🧪 Exemplos de uso
+
+```apex
+LoggerContext.setLogger(new LoggerMock());
+
+Map<String, SObject> dados = TestDataSetup.setupCompleteEnvironment();
+
+System.assertNotEquals(null, dados.get('UC'));
+System.assertNotEquals(null, dados.get('Cobranca'));
+```
+
+---
+
+#### ♻️ Métodos auxiliares disponíveis
+
+| Método | Descrição |
+|--------|-----------|
+| `setupCompleteEnvironment()` | Cria todo o ecossistema: usuário, lead, opp, proposta, UC, cobrança, etc |
+| `createIntegracao()` | Idempotente – retorna único registro válido de `Integracao__c` |
+| `cleanUp(List<SObject>)` | Agrupa e deleta registros por tipo, ignora `User` e falhas conhecidas |
+| `fullCleanUpAllSupportedObjects()` | Exclui todos os registros suportados em ordem segura de deleção |
+
+---
+
+#### ⚠️ Observações
+
+- `User` nunca será deletado – é ignorado explicitamente
+- `Contact`, `Gerador`, `Account` e `Case` podem ter relacionamentos com `Delete Restricted`. O método `cleanUp` é **best-effort**
+- Testes não devem depender de `assertEquals(0, ...)` após `cleanUp`
+
+---
+
+### 📘 Referência cruzada:
+
+- [bit.ly/TestDataSetup](https://bit.ly/TestDataSetup)
+- [bit.ly/GuiaLoggerApex](https://bit.ly/GuiaLoggerApex)
+
+---
+
 ## 🔕 Logs em Testes – Diretriz Oficial
 
 - 🚫 **Não valide logs em testes** (nem com `LoggerMock.getLogs()`)
