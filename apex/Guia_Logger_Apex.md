@@ -1,183 +1,148 @@
-# 📝 Guia Rigoroso de Logging Apex
+# 🧪 Guia Rigoroso de Logger em Apex
 
-📅 Última atualização: MAR/2025
+> 🌐 Base: https://bit.ly/GuiaLoggerApex
 
----
-
-## 🎯 Objetivo
-
-Padronizar 100% dos logs estruturados em Apex com:
-
-- Interface obrigatória `ILogger`
-- Proibição de `System.debug()`
-- Logs contextualizados com `LoggerContext`
-- Facilitação de testes com `LoggerMock`
+📎 Consulte também os guias complementares:
+- 📘 [Guia de Revisão Apex](https://bit.ly/GuiaApexRevisao)
+- 🧪 [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
+- 🔁 [Template de Comparação Antes vs Depois](https://bit.ly/ComparacaoApex)
+- 🧱 [Classe TestDataSetup Central](https://bit.ly/TestDataSetup)
+- ✅ [Confirmação de Equivalência Funcional](https://bit.ly/ConfirmacaoApex)
 
 ---
 
-## ✅ 1. Interface obrigatória: `ILogger`
-
-Toda implementação deve respeitar os 11 parâmetros:
-
-```apex
-void log(
-    Logger.LogLevel level,
-    String className,
-    String methodName,
-    String triggerRecordId,
-    String errorMessage,
-    String debugInformation,
-    String stackTrace,
-    String serializedData,
-    String triggerType,
-    String logCategory,
-    String env
-);
-```
+## ✅ Objetivo
+Padronizar 100% dos logs Apex com base em `LoggerContext`, `LoggerQueueable` e `LoggerMock`, garantindo:
+- Rastreabilidade total (11 parâmetros obrigatórios)
+- Flexibilidade em produção e testes
+- Integração com `LoggerMock` para simulação
+- Segurança em ambientes assíncronos
 
 ---
 
-## ✅ 2. Uso obrigatório com `LoggerContext.getLogger().log(...)`
+## 🧱 LoggerContext: padrão obrigatório
 
-Exemplo padrão de chamada:
-
+### 🔐 Interface única para todos os logs:
 ```apex
 LoggerContext.getLogger().log(
     Logger.LogLevel.INFO,
-    LoggerContext.className,
-    'createAccount',
-    null,
-    'Conta criada com sucesso',
-    null,
-    null,
-    null,
-    LoggerContext.triggerType,
-    LoggerContext.logCategory,
-    LoggerContext.environment
+    className,
+    methodName,
+    triggerRecordId,
+    mensagem,
+    detalheTecnico,
+    stackTrace,
+    dadosSerializados,
+    triggerType,
+    logCategory,
+    environment
 );
 ```
 
-### ✅ Requisitos:
-
-- Sempre 11 argumentos (mesmo que `null`)
-- Usar `LoggerContext` como fonte de contexto
-- Nomes de métodos devem refletir o real ponto de execução
+### 🎯 Campos obrigatórios (ordem fixa):
+1. `Logger.LogLevel` (DEBUG, INFO, WARNING, ERROR)
+2. `className`
+3. `methodName`
+4. `triggerRecordId` (pode ser `null`)
+5. `mensagem` (explicação legível do evento)
+6. `detalheTecnico` (SQL, input, etc)
+7. `stackTrace` (em caso de erro)
+8. `dadosSerializados` (opcional)
+9. `triggerType` (REST, Batch, Trigger, etc)
+10. `logCategory` (Apex, Service, API...)
+11. `environment` (Label.ENVIRONMENT)
 
 ---
 
-## 🔧 3. Uso de `LoggerHelper` (atalho padronizado)
+## 🧰 Wrappers recomendados (boas práticas)
 
-### 🔴 Log de erro com exceção:
-
+### ✅ logInfo
 ```apex
-LoggerHelper.logError(
-    'Erro ao criar UC',
-    'UcTestDataSetup',
-    'createUC',
-    ex,
-    'test-data'
-);
+private static void logInfo(String message, String method) {
+    LoggerContext.getLogger().log(
+        Logger.LogLevel.INFO,
+        className,
+        method,
+        null,
+        message,
+        null,
+        null,
+        null,
+        triggerType,
+        logCategory,
+        environment
+    );
+}
 ```
 
-### 🟢 Log de sucesso ou info:
-
+### ✅ logError
 ```apex
-LoggerHelper.logInfo(
-    'UC criada com sucesso',
-    'UcTestDataSetup',
-    'createUC',
-    'test-data'
-);
+private static void logError(String message, String method, Exception ex) {
+    LoggerContext.getLogger().log(
+        Logger.LogLevel.ERROR,
+        className,
+        method,
+        null,
+        message,
+        ex.getMessage(),
+        ex.getStackTraceString(),
+        null,
+        triggerType,
+        logCategory,
+        environment
+    );
+}
 ```
 
-> ⚠️ `LoggerHelper` é obrigatório em todas as classes do tipo `*TestDataSetup`, Queueables, Triggers e Batches.
-
 ---
 
-## 🧪 4. Validação de logs em testes (LoggerMock)
+## 🧪 LoggerMock (testes unitários)
 
-### Ativação:
-
+### ⚠️ NUNCA usar `System.enqueueJob(...)` em testes
+- Ao testar logs, use:
 ```apex
-LoggerContext.setLogger(new LoggerMock());
+LoggerMock logger = new LoggerMock();
+LoggerContext.setLogger(logger);
 ```
 
-### Validação:
-
-```apex
-List<String> logs = ((LoggerMock) LoggerContext.getLogger()).getLogs();
-System.assert(logs.any(l => l.contains('createUC')));
-```
-
-> Recomendado verificar também `LogLevel`, `className` e `methodName` quando necessário.
+### ⚠️ Não validar conteúdo do log
+- `LoggerQueueable` é assíncrono — conteúdo não é garantido
+- `LoggerMock` serve apenas para prevenir execução real
 
 ---
 
-## 🚨 5. Proibições absolutas
+## 🧩 Comportamento por ambiente
 
-| Proibido                                                       | Motivo                         |
-|----------------------------------------------------------------|--------------------------------|
-| `System.debug(...)`                                            | Não rastreável / não testável |
-| Usar `log(...)` com menos de 11 parâmetros                     | Quebra do contrato da interface |
-| `LoggerQueueable` sendo chamado diretamente dentro do `log`    | Causa recursão infinita       |
-| `LoggerMock` sem ser injetado com `LoggerContext.setLogger()` | Log não capturado no teste     |
+| Ambiente       | LoggerContext.getLogger() retorna          |
+|----------------|--------------------------------------------|
+| Produção       | LoggerQueueable (enfileira log)            |
+| Teste unitário | LoggerMock (evita enqueue)                 |
 
 ---
 
-## 🔁 6. Cuidado com recursão de log
+## 🛑 Proibições Absolutas
 
-**Nunca** chamar `LoggerQueueable` de dentro de `LoggerQueueable`.
-
-### Exemplo inválido:
-
-```apex
-// dentro do execute()
-LoggerHelper.logError('Erro', 'LoggerQueueable', 'execute', ex, 'log');
-```
-
-> 🧨 Isso gerará um loop infinito de enfileiramento.
-
-### Correto:
-Use `System.debug()` somente se estiver em modo `Test.isRunningTest()`  
-**ou** desative a chamada recursiva com `LoggerContext.disable()` (caso implementado).
+| Sintaxe proibida                    | Motivo                       |
+|------------------------------------|------------------------------|
+| `System.debug()`                   | Não rastreável / padronizado |
+| `System.enqueueJob(new LoggerQueueable(...))` | Viola injeção de dependência |
+| `new LoggerQueueable(...).log()`   | Foge do padrão central       |
+| `Logger.log(...)` direto           | Fere encapsulamento de log   |
 
 ---
 
-## ✅ 7. Checklist de log para revisão
-
-| Item                                                           | Status |
-|----------------------------------------------------------------|--------|
-| Usa `LoggerContext.getLogger().log(...)` com 11 parâmetros     | ✅     |
-| Contexto preenchido (`className`, `methodName`, `triggerType`) | ✅     |
-| Nenhum `System.debug(...)` presente no código                  | ✅     |
-| Usa `LoggerHelper` em helpers e `*TestDataSetup`               | ✅     |
-| Testes validam logs com `LoggerMock.getLogs()`                 | ✅     |
-
----
-
-## 📌 Sugestão de organização de logs por categoria
-
-| logCategory     | Descrição                                 |
-|-----------------|-------------------------------------------|
-| `api`           | Requisições REST externas                 |
-| `batch`         | Processos em lote (`Batchable`)           |
-| `trigger`       | Fluxos automáticos de trigger             |
-| `test-data`     | Dados gerados para teste                  |
-| `validation`    | Validações de campos, tokens, permissões  |
-| `integration`   | Chamada a sistemas externos (HTTP, etc.)  |
+## 📎 Checklist de Logging por classe
+- [ ] Usa `LoggerContext.getLogger().log(...)` com 11 parâmetros?
+- [ ] Usa `logInfo(...)` e `logError(...)` como abstrações?
+- [ ] Classe define no topo:
+  - `environment`
+  - `log_level`
+  - `className`
+  - `triggerType`
+  - `logCategory`
+- [ ] Em testes, usa `LoggerMock`
+- [ ] Nunca usa `enqueueJob()` nos testes
 
 ---
 
-✅ Esse guia deve ser aplicado em **100% das classes Apex que contenham logs, exceções ou fluxos REST**.
-
----
-
-### 📎 Compatibilidade com os guias oficiais
-- [ ] [Guia de Revisão Apex](https://bit.ly/GuiaApexRevisao)
-- [ ] [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
-- [ ] [Guia de Logging](https://bit.ly/GuiaLoggerApex)
-- [ ] [Guia de Refatoração Apex](https://bit.ly/ComparacaoApex)
-- [ ] [Classe orquestradora `TestDataSetup.cls`](https://bit.ly/TestDataSetup)
-- [ ] [Checklist de Confirmação Final](https://bit.ly/ConfirmacaoApex)
-
----
+> ⭐ Versão 2025 com base em integrações reais auditadas em projetos rigorosos
