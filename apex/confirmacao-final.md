@@ -26,7 +26,11 @@ Garantir que toda **refatoração preserve integralmente o comportamento funcion
 | 🔄 JSON de input **manteve estrutura original**                      | ✅ / ❌      |
 | 🔄 JSON de output **manteve estrutura original**                     | ✅ / ❌      |
 | 🧪 Todos os testes anteriores passaram sem alteração                 | ✅ / ❌      |
+| 🧪 Logs não foram validados nos testes                               | ✅ / ❌      |
+| 🐞 `System.debug()` usado apenas se `Test.isRunningTest()`           | ✅ / ❌      |
 | 📄 Refatoração cobre os mesmos fluxos do código anterior             | ✅ / ❌      |
+
+
 
 ---
 
