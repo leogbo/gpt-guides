@@ -120,13 +120,6 @@ public static void cleanUp(List<SObject> records) {...}
 @isTest
 public class TestDataSetup {
 
-    /**
-     * Classe orquestradora principal responsável por montar o ambiente de teste completo
-     * utilizado em todos os testes de integração e APIs.
-     *
-     * Todos os dados retornados no `Map<String, SObject>` podem ser acessados nos testes por chave.
-     */
-
     public static final String environment = 'test';
     public static final Logger.LogLevel log_level = Logger.LogLevel.DEBUG;
     public static final String className = 'TestDataSetup';
@@ -135,9 +128,10 @@ public class TestDataSetup {
     private static final String MOCK_DOMINIO = 'https://mock-dominio.com';
     private static final String MOCK_URL     = 'https://mock-token.com/oauth';
 
-
+    @TestVisible
     public class TestSetupException extends Exception {}
 
+    @TestVisible
     private static Map<String, String> testLabels = new Map<String, String>();
 
     @TestVisible
@@ -157,22 +151,30 @@ public class TestDataSetup {
 
     @TestVisible
     public static Integracao__c createIntegracao() {
-        LoggerHelper.logInfo('Criando registro de Integracao__c', className, 'createIntegracao', logCategory);
-    
+        LoggerHelper.logInfo('Iniciando criação de Integracao__c', className, 'createIntegracao', logCategory);
+
         try {
+            List<Integracao__c> existentes = [SELECT Id FROM Integracao__c LIMIT 1];
+
+            if (!existentes.isEmpty()) {
+                LoggerHelper.logInfo('Registro existente de Integracao__c encontrado: ' + existentes[0].Id, className, 'createIntegracao', logCategory);
+                return existentes[0]; // se existente, evitamos o insert pois só pode haver um registro na org
+            }
+
             Integracao__c integracao = new Integracao__c(
-                Dominio__c     = 'https://mock-dominio.com',
-                clientId__c    = 'mockClientId'+String.valueOf(System.currentTimeMillis()).right(8),
-                clientSecret__c = 'mockClientSecret'+String.valueOf(System.currentTimeMillis()).right(8),
-                username__c    = 'usuario'+String.valueOf(System.currentTimeMillis()).right(8),
-                password__c    = 'senha'+String.valueOf(System.currentTimeMillis()).right(8),
-                url__c         = 'https://mock-token.com/oauth'
+                Dominio__c       = MOCK_DOMINIO,
+                clientId__c      = 'mockClientId' + String.valueOf(System.currentTimeMillis()).right(8),
+                clientSecret__c  = 'mockSecret'   + String.valueOf(System.currentTimeMillis()).right(8),
+                username__c      = 'usuario'      + String.valueOf(System.currentTimeMillis()).right(8),
+                password__c      = 'senha'        + String.valueOf(System.currentTimeMillis()).right(8),
+                url__c           = MOCK_URL
             );
+
             insert integracao;
-    
+
             LoggerHelper.logInfo('Integracao__c criado com sucesso: ' + integracao.Id, className, 'createIntegracao', logCategory);
             return integracao;
-    
+
         } catch (Exception ex) {
             LoggerHelper.logError('Erro ao criar Integracao__c', className, 'createIntegracao', ex, logCategory);
             throw ex;
@@ -186,65 +188,55 @@ public class TestDataSetup {
         Map<String, SObject> createdRecords = new Map<String, SObject>();
 
         try {
-            // 🧑‍💼 Usuário e Responsável
             User user = UserTestDataSetup.createUser();
             Configuracoes__c responsavel = ResponsavelTestDataSetup.createResponsavel(user.Id);
-            //Integracao__c integracao = createIntegracao();
+            Integracao__c integracao = createIntegracao();
 
-
-            // 🏢 Vertical e Originadores
             Vertical__c vertical = VerticalTestDataSetup.createVertical('Ultragaz Energia');
             Originador__c originadorPai = OriginadorTestDataSetup.createOriginador(vertical.Id, null);
             Originador__c originadorFilho = OriginadorTestDataSetup.createOriginadorFilho(vertical.Id, null, originadorPai.Id);
 
-            // ⚡ Distribuidora e Tarifa
             Distribuidora__c distribuidora = DistribuidoraTestDataSetup.createDistribuidora();
             Tarifa_Distribuidora__c tarifa = DistribuidoraTestDataSetup.createTarifaDistribuidora(distribuidora);
 
-            // 🔋 Gerador e Produto
             Gerador__c gerador = GeradorTestDataSetup.createGerador();
             Veiculo__c veiculo = GeradorTestDataSetup.createVeiculo(gerador.Id, null);
             Plataforma_de_Cobranca__c plataforma = GeradorTestDataSetup.createPlataformaCobranca(veiculo.Id, 'itau');
             Produto_do_Gerador__c produto = GeradorTestDataSetup.createProdutoDoGerador(vertical.Id, veiculo.Id, distribuidora.Id, plataforma.Id);
-
-            // Usina
-            Usina__c usina = UsinaTestDataSetup.createUsina(distribuidora.Id, gerador.Id, veiculo.Id);
             
-            // 🧪 Leads
+            Usina__c usina = UsinaTestDataSetup.createUsina(distribuidora.Id, gerador.Id, veiculo.Id);
+            Fatura_da_Usina__c faturaUsina = UsinaTestDataSetup.createFaturaDaUsina(usina.Id, Date.today().toStartOfMonth());
+            List<Geracao__c> geracoes = UsinaTestDataSetup.createGeracoesParaUsina(usina.Id, Date.today().addMonths(-2), Date.today());
+
             Lead leadPF = LeadTestDataSetup.createLeadPfQualificando(originadorPai.Id, distribuidora.Id);
             Lead leadPJ = LeadTestDataSetup.createLeadPjQualificando(originadorFilho.Id, distribuidora.Id, null);
 
-            // 👤 Conta e Contato
             Account account = AccountTestDataSetup.createAccount(vertical.Id, originadorFilho.Id, null, '34.363.771/0001-65');
             Contact contact = AccountTestDataSetup.createContact(account.Id, null, null, null, null, null);
 
-            // 💼 Oportunidade e Proposta
             Opportunity opportunity = OpportunityTestDataSetup.createOpportunity(account.Id, produto.Id, contact.Id);
             Proposta__c proposta = PropostaTestDataSetup.createProposta(opportunity.Id);
-
-            // 📎 Documentos
+            
             Documento_da_Conta__c docConta = DocumentoTestDataSetup.createDocConta(account.Id, null, null, null);
             Documento_do_Contato__c docContato = DocumentoTestDataSetup.createDocContato(contact.Id, null, null, null);
             Documento_da_Proposta__c docProposta = DocumentoTestDataSetup.createDocProposta(proposta.Id, null, null, null);
             Documento_da_Oportunidade__c docOportunidade = DocumentoTestDataSetup.createDocOportunidade(opportunity.Id, null, null);
-
-            // ✍️ Assinaturas
+            
             Signatario_do_Gerador__c signGerador = SignatarioTestDataSetup.createSignatarioGerador(gerador.Id, contact.Id);
             Signatario_da_Oportunidade__c signOpp = SignatarioTestDataSetup.createSignatarioOportunidade(docOportunidade.Id, contact.Id);
-
-            // 🔗 Contrato e UC
+            
             Contrato_de_Adesao__c contrato = UcTestDataSetup.createContratoDeAdesao(account.Id, contact.Id, veiculo.Id);
             UC__c uc = UcTestDataSetup.createUC(contrato.Id, produto.Id, proposta.Id);
             Contato_da_UC__c contatoDaUc = UcTestDataSetup.createContatoDaUC(uc.Id, uc.Rep_Legal__c, null);
-
-            // 💰 Cobrança e 📞 Atendimento
+            
+            Fatura__c faturaUc = UcTestDataSetup.createFatura(uc.Id, Date.today().toStartOfMonth());
             Cobranca__c cobranca = CobrancaTestDataSetup.createCobranca(uc.Id, null, 1000, null);
+            
             Case caseRecord = CaseTestDataSetup.createCase(uc.Id);
 
-            // ✅ Preenchendo o mapa de retorno
             createdRecords.put('User', user);
             createdRecords.put('Responsavel', responsavel);
-            // createdRecords.put('Integracao', integracao);
+            createdRecords.put('Integracao', integracao);
             createdRecords.put('Vertical', vertical);
             createdRecords.put('Originador', originadorPai);
             createdRecords.put('OriginadorPai', originadorPai);
@@ -273,6 +265,9 @@ public class TestDataSetup {
             createdRecords.put('ContatoDaUc', contatoDaUc);
             createdRecords.put('Cobranca', cobranca);
             createdRecords.put('Case', caseRecord);
+            createdRecords.put('FaturaUC', faturaUc);
+            createdRecords.put('FaturaUsina', faturaUsina);
+            createdRecords.put('Geracoes', geracoes[0]);
 
             LoggerHelper.logInfo('✅ Ambiente de teste completo configurado.', className, 'setupCompleteEnvironment', logCategory);
             return createdRecords;
