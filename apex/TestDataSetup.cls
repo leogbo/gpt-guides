@@ -24,6 +24,8 @@ TestDataSetup é a **classe orquestradora principal**, usada por todas as suíte
 - ❌ **Nunca** chamar `setupCompleteEnvironment()` dentro de métodos de teste individuais
 - ✅ Cada método de teste deve fazer `SELECT` para buscar os registros criados
 - ❌ Nunca reutilizar o `Map<String, SObject>` retornado pelo setup
+- ✅ LoggerMock é obrigatório
+- ❌ Nenhum método setup deve tentar logar mensagens com assert nos testes
 
 ### 2. A estrutura de dados criada deve cobrir:
 - Usuário, Vertical, Originadores, Distribuidora, Produto, Usina, Lead, Conta, Contato, Oportunidade, Proposta, Documentos, UC, Cobrança, etc.
