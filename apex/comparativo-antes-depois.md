@@ -29,6 +29,7 @@ Use este template em todas as entregas de revisão/refatoração para demonstrar
 | ⚠️ Exceções               | Sem try/catch                              | Try/Catch com `LoggerHelper.logError()`    | Tratamento seguro                          | ✅        |
 | 🧪 Testes                 | Validação de log via `LoggerMock.getLogs()` | Apenas uso de `LoggerMock` sem validação  | Conforme guia (não testar logs)            | ✅        |
 | 🧩 Modularização          | Lógica inline                              | `validaToken(...)`, `respondeErro(...)`    | Métodos auxiliares criados                 | ✅        |
+| 🧪 Testes validam logs?    | Sim (`getLogs`)                           | ❌ Removido                                |logs não devem ser validados                 |✅       |
 
 ---
 
@@ -42,6 +43,8 @@ Use este template em todas as entregas de revisão/refatoração para demonstrar
 | 🔄 JSON de input **mantido idêntico**                                | ✅ / ❌      |
 | 🔄 JSON de output **mantido idêntico**                               | ✅ / ❌      |
 | 🧪 Todos os testes anteriores passaram                               | ✅ / ❌      |
+| 🧪 Logs **não foram validados** nos testes                           | ✅ / ❌      |
+| 🐞 `System.debug()` usado apenas dentro de testes                    | ✅ / ❌      |
 | 📄 Refatoração cobre todos fluxos anteriores                         | ✅ / ❌      |
 
 ---
