@@ -68,6 +68,16 @@ Caso contrário, pode ocorrer `NullPointerException` em produção
 
 ---
 
+## 🔕 Logs em Testes – Diretriz Oficial
+
+- 🚫 **Não valide logs em testes** (nem com `LoggerMock.getLogs()`)
+- ✅ `LoggerMock` deve ser usado apenas para **isolar efeitos colaterais**
+- ✅ É permitido usar `System.debug()` em testes para depuração, especialmente quando `LoggerQueueable` é simulado
+- ❌ Nunca use `System.debug()` em código de produção
+
+
+---
+
 ## 🧱 Estrutura de Classe de Teste
 
 ```apex
@@ -118,6 +128,9 @@ private class MinhaClasseTest {
 - [ ] Possui cobertura de métodos `@TestVisible`
 - [ ] Não usa `enqueueJob()` real
 - [ ] ⚠️ Não valida execução nem conteúdo de logs assíncronos
+- [ ] Não valida conteúdo de logs gerados (logger é assíncrono)
+- [ ] Usa `System.debug()` apenas se necessário e somente em testes
+
 
 ---
 
