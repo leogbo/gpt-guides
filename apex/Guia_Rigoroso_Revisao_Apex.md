@@ -50,13 +50,13 @@ private static final String logCategory = '<API | Service | Apex | etc>';
 - ⚠️ **Não validar logs gerados nos testes**, pois `LoggerQueueable` é assíncrono
 
 ### 5. Sintaxes proibidas
-| Proibido 🚫                        | Motivo ❌ |
-|-----------------------------------|-----------|
-| `obj?.campo`                      | Safe nav. não suportado em Apex |
-| `var`                             | Apex exige tipo explícito |
-| `??`                              | Coalescência não existe em Apex |
-| `log => log.contains(...)`        | Arrow functions não existem |
-| `list.anyMatch(...)`              | não suportado |
+| Proibido                           | Motivo ❌                                     |
+|------------------------------------|-----------------------------------------------|
+| `System.debug()` **em produção**   | Não rastreável, não auditável                 |
+| `System.enqueueJob(...)` direto    | Deve usar `LoggerContext.getLogger()`        |
+| `LoggerMock.getLogs()` em testes   | 🚫 Proibido. Logger é assíncrono              |
+| `log => log.contains(...)`         | Arrow functions não suportadas em Apex       |
+
 
 ### 6. Métodos internos @TestVisible
 - Todos os métodos internos devem ser anotados com `@TestVisible`
