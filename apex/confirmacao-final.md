@@ -1,112 +1,87 @@
-# 📄 Guia de Confirmação de Equivalência Funcional – Apex (Versão Estendida 2025)
+# ✅ Confirmação de Equivalência Funcional – Apex Rigoroso v2025
 
-> 🌐 Base original: [bit.ly/ConfirmacaoApex](https://bit.ly/ConfirmacaoApex)
+> _Checklist obrigatório para validação de refatorações em classes Apex críticas, com foco em integridade estrutural, contratual e comportamental._
 
-📎 Consulte também:
-- 📘 [Guia de Revisão Apex](https://bit.ly/GuiaApexRevisao)
+📎 Guias relacionados:
+- 🔁 [Template Comparativo Antes vs Depois](https://bit.ly/ComparacaoApex)
 - 🧪 [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
-- 🔁 [Template de Comparação Antes vs Depois](https://bit.ly/ComparacaoApex)
-- 🧱 [Guia TestDataSetup](https://bit.ly/TestDataSetup)
+- 🪵 [Guia de Logger v2](https://bit.ly/GuiaLoggerApex)
+- 🧱 [TestDataSetup Central](https://bit.ly/TestDataSetup)
+- 🧠 [Guia Rigoroso de Revisão Apex](https://bit.ly/GuiaApexRevisao)
 
 ---
 
-## ✅ Objetivo
+## 🎯 Objetivo
 
-Garantir que toda **refatoração preserve integralmente o comportamento funcional anterior**, mesmo com melhorias estruturais, de logging ou extração de métodos.
-
----
-
-## 📋 Checklist Técnico de Equivalência
-
-| Item                                                                 | Confirmado? |
-|----------------------------------------------------------------------|-------------|
-| 🔒 Nome da classe **não foi alterado**                               | ✅ / ❌      |
-| 🔒 Métodos expostos (públicos/global/@InvocableMethod) **mantidos**  | ✅ / ❌      |
-| 🔒 Variáveis expostas (`@InvocableVariable`, parâmetros REST) **inalteradas** | ✅ / ❌ |
-| 🔄 JSON de input **manteve estrutura original**                      | ✅ / ❌      |
-| 🔄 JSON de output **manteve estrutura original**                     | ✅ / ❌      |
-| 🧪 Todos os testes anteriores passaram sem alteração                 | ✅ / ❌      |
-| 🧪 Logs não foram validados nos testes                               | ✅ / ❌      |
-| 🐞 `System.debug()` usado apenas se `Test.isRunningTest()`           | ✅ / ❌      |
-| 📄 Refatoração cobre os mesmos fluxos do código anterior             | ✅ / ❌      |
-
-
+Garantir que uma refatoração **preserva exatamente o comportamento anterior**, sem quebrar:
+- 🔒 Contratos públicos (`public`, `global`, `@Invocable`, JSON)
+- 🔁 Fluxos de entrada/saída (REST, Flow, Trigger)
+- 🧪 Comportamento em teste
+- 🪵 Logging e tratamento de exceções
 
 ---
 
-## 🔁 Tabela de Comparação – Antes vs Depois
+## 📋 Checklist Oficial de Confirmação
 
-| Comparação            | Versão Anterior                       | Versão Refatorada                     |
-|-----------------------|----------------------------------------|----------------------------------------|
-| Nome da Classe        | `MinhaClasse`                         | `MinhaClasse`                         |
-| Método principal      | `processarLead()`                     | `processarLead()`                     |
-| Tipo de log usado     | `System.debug(...)`                   | `LoggerContext.getLogger().log(...)`  |
-| Validação de token    | Inline (`if(token != 'xyz')`)         | `validaToken(token)`                  |
-| Tratamento de erro    | `System.debug(...)`                   | `LoggerHelper.logError(...)`          |
+| Item                                                                 | Status (✅ / ❌) |
+|----------------------------------------------------------------------|------------------|
+| 🔒 Nome da classe permaneceu inalterado                              |                  |
+| 🔒 Assinaturas de métodos públicos foram mantidas                    |                  |
+| 🔒 Variáveis públicas (`@InvocableVariable`, `public`, etc.) mantidas |                  |
+| 🔄 JSON de entrada inalterado (ex: REST/Flow)                        |                  |
+| 🔄 JSON de saída inalterado                                          |                  |
+| 🧪 Todos os testes anteriores continuam passando                     |                  |
+| 🧪 Nenhum teste foi excluído ou desativado                           |                  |
+| 🧪 Cobertura completa dos novos fluxos adicionados                   |                  |
+| 🧪 Testes seguem `TestDataSetup` e usam `LoggerMock`                 |                  |
+| 🪵 Logging atualizado para padrão `Logger v2` (com `.setMethod()`)   |                  |
+| ⚠️ Exceções agora são logadas corretamente                          |                  |
+| 🧱 Refatoração modularizou lógica (ex: `@TestVisible` onde aplicável)|                  |
+| 🔐 Segurança e controle transacional foram mantidos                  |                  |
 
 ---
 
-## ✅ Confirmação Final de Equivalência
+## 🧠 Exemplos de validação
+
+- Refatorou `createUC()` sem alterar seu contrato JSON
+- Substituiu `System.enqueueJob()` por `Logger.setAsync(true)`
+- Moveu lógica inline para `validaCamposObrigatorios() @TestVisible`
+- Atualizou testes para usar `LoggerMock`, sem validar insert real
+- Confirmou que `Flow` continua chamando a classe via Apex Action
+
+---
+
+## 📦 Evidências incluídas neste PR
+
+- [x] Código final da refatoração
+- [x] Template Comparativo Antes vs Depois preenchido
+- [x] Testes atualizados com `LoggerMock`
+- [x] Confirmação assinada abaixo
+
+---
+
+## ✅ Declaração Final de Equivalência
 
 ```markdown
-✅ Confirmação de Equivalência Funcional
+✔️ CONFIRMAÇÃO DE EQUIVALÊNCIA FUNCIONAL
 
-- Nenhum nome de método público ou classe foi alterado
-- Nenhuma variável `@InvocableVariable` ou parâmetro REST foi modificada
-- Estrutura de JSON de entrada e saída permanece inalterada
-- Testes anteriores passam integralmente
-- A nova estrutura cobre todos os fluxos originais
+- Esta refatoração **não altera nenhum contrato público**
+- Toda entrada e saída JSON foi mantida
+- Todos os testes existentes foram preservados e continuam passando
+- Novos fluxos de exceção/log foram cobertos com `Logger (v2)`
+- Nenhuma regressão funcional foi introduzida
+- A refatoração é **estrutural, segura e auditável**
 
-→ Refatoração validada como funcionalmente equivalente.
+Aprovado para merge.
 ```
 
 ---
 
-## ❌ Não é equivalência se...
+## 🧠 Dica Mamba
 
-| Situação                            | Exigência adicional                      |
-|------------------------------------|------------------------------------------|
-| Mudou nome de método público       | Autorização expressa do mantenedor       |
-| Mudou campo de output JSON         | Exige validação regressiva e aprovação   |
-| Mudou estrutura da entrada REST    | Exige versão nova da API ou contrato     |
-| Criou novo `@InvocableVariable`    | Deve ser aprovado com documentação       |
+> Se você **não pode garantir 100% de equivalência**, esta não é uma refatoração — é uma evolução funcional, e precisa ser tratada com mais testes, mais evidências e revisão mais profunda.
 
 ---
 
-## 📎 Apêndice: O que PODE ser alterado sem quebra
-
-| Pode alterar...                | Desde que...                           |
-|-------------------------------|----------------------------------------|
-| Métodos `private` ou `@TestVisible` | Permaneçam com lógica equivalente        |
-| Logs (`System.debug` → Logger) | Mensagem e nível semântico sejam mantidos |
-| Extração de método privado     | A nova função seja logicamente idêntica  |
-| Nomes de variáveis internas    | Sem impacto em inputs/outputs externos   |
-
----
-
-## 🧪 Exemplo completo de aplicação em PR
-
-```markdown
-### Refatoração: `Cidade_Rest_API.cls`
-
-- `System.enqueueJob(...)` substituído por `LoggerContext.getLogger().log(...)`
-- Método `valida_token()` extraído para clareza
-- Bloco de erro `401` mantido idêntico
-- Mensagens de log foram mantidas com mesmo significado
-
-✅ Confirmado:
-- Nenhum método ou classe teve o nome alterado
-- `@InvocableVariable` e JSON de resposta mantiveram estrutura
-- Todos os testes passaram sem ajustes
-
-✔️ Refatoração validada como funcionalmente equivalente.
-```
-
----
-
-> 🛡️ Este documento é **obrigatório** para toda refatoração com PR.  
-> 📎 Versão 2025 – validada pelo Apex Revisor Rigoroso.
-
----
-
-Se quiser, posso gerar este conteúdo como arquivo `.md` pronto para uso. Deseja que eu faça isso agora?
+📅 Última validação: MAR/2025  
+🔒 Versão mantida por Apex Revisor Rigoroso
