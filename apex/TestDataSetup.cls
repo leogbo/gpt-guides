@@ -1,4 +1,4 @@
-************** PENDENCIAS PARA INTEGRAR ****************
+# ************** PENDENCIAS PARA INTEGRAR ****************
 
 🆕 Regra de reforço:
 ❗ Nenhum dado em TestDataSetup pode impedir a execução de validações obrigatórias
@@ -15,7 +15,7 @@ Gerar exceções explícitas e previsíveis
 
 Garantir que testes que esperam falha de fato cobrem essa falha
 
-************** FIM DAS PENDENCIAS ****************
+# ************** FIM DAS PENDENCIAS ****************
 
 A seguir está a versão **refatorada e atualizada do Guia Rigoroso de TestDataSetup (2025)**, já ajustada para:
 
