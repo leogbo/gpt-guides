@@ -1,3 +1,18 @@
+************** PENDENCIAS PARA INTEGRAR ****************
+
+🆕 NOVA REGRA: Evite dependência de comportamento implícito em testes
+❌ Nunca presuma que exceções serão lançadas “automaticamente”
+✅ Toda exceção esperada deve:
+
+Ser lançada manualmente (throw new IllegalArgumentException(...))
+
+Ser capturada e validada explicitamente no teste
+
+✔️ Se não houver throw, o teste não pode assumir erro
+
+************** FRIM DAS PENDENCIAS ****************
+
+
 # 📘 Guia Rigoroso de Revisão Apex – v2025  
 > _Atualizado com Logger Fluent + Async + Mock_
 
