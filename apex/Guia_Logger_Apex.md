@@ -1,146 +1,143 @@
-# 🧪 Guia Rigoroso de Logger em Apex
+A seguir está a **nova versão oficial revisada do guia `Logger`**, já refletindo:
 
-> 🌐 Base: https://bit.ly/GuiaLoggerApex
-
-📎 Consulte também os guias complementares:
-- 📘 [Guia de Revisão Apex](https://bit.ly/GuiaApexRevisao)
-- 🧪 [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
-- 🔁 [Template de Comparação Antes vs Depois](https://bit.ly/ComparacaoApex)
-- 🧱 [Classe TestDataSetup Central](https://bit.ly/TestDataSetup)
-- ✅ [Confirmação de Equivalência Funcional](https://bit.ly/ConfirmacaoApex)
+- Contexto estático por classe  
+- Logger fluente por instância  
+- Suporte a async via `LoggerQueueable`  
+- Mock isolado via `ILogger` e `LoggerMock`  
+- Testabilidade e rastreabilidade total
 
 ---
 
-## ✅ Objetivo
-Padronizar 100% dos logs Apex com base em `LoggerContext`, `LoggerQueueable` e `LoggerMock`, garantindo:
-- Rastreabilidade total (11 parâmetros obrigatórios)
-- Flexibilidade em produção e testes
-- Integração com `LoggerMock` para simulação
-- Segurança em ambientes assíncronos
+# 🧱 Guia Oficial de Logging Apex – Versão Atualizada
+
+> **Nome oficial:** `Logger`  
+> **Versão:** v2 – Arquitetura Fluent + Interface + Queueable  
+> **Status:** 🟢 Ativa em produção
 
 ---
 
-## 🧱 LoggerContext: padrão obrigatório
+## ✅ Princípios Fundamentais
 
-### 🔐 Interface única para todos os logs:
+| Ponto                     | Regra                                                                 |
+|---------------------------|-----------------------------------------------------------------------|
+| 🔁 Contexto por classe    | Definido via `Logger.className`, `Logger.triggerType`, etc.          |
+| 🧠 Logger por instância   | Declarado com `new Logger()` e mantido como `static final`            |
+| 🔧 Setters fluentes       | Usar `.setMethod()`, `.setAsync()`, etc.                              |
+| 🔄 Execução assíncrona    | Controlada com `.setAsync(true)` → usa `LoggerQueueable`              |
+| 🔕 Desativação global     | Via `Logger.isEnabled = false`                                        |
+| 🧪 Mock para testes       | Usar `LoggerMock implements ILogger`                                  |
+| 🧱 Integração total       | Logger implementa `ILogger`                                           |
+| 🧩 De onde usar           | Triggers, Flows, Batches, Controllers, Services                       |
+
+---
+
+## 📐 Formato de uso por padrão
+
+### 1. Contexto global por classe
 ```apex
-LoggerContext.getLogger().log(
-    Logger.LogLevel.INFO,
-    className,
-    methodName,
-    triggerRecordId,
-    mensagem,
-    detalheTecnico,
-    stackTrace,
-    dadosSerializados,
-    triggerType,
-    logCategory,
-    environment
-);
-```
-
-### 🎯 Campos obrigatórios (ordem fixa):
-1. `Logger.LogLevel` (DEBUG, INFO, WARNING, ERROR)
-2. `className`
-3. `methodName`
-4. `triggerRecordId` (pode ser `null`)
-5. `mensagem` (explicação legível do evento)
-6. `detalheTecnico` (SQL, input, etc)
-7. `stackTrace` (em caso de erro)
-8. `dadosSerializados` (opcional)
-9. `triggerType` (REST, Batch, Trigger, etc)
-10. `logCategory` (Apex, Service, API...)
-11. `environment` (Label.ENVIRONMENT)
-
----
-
-## 🧰 Wrappers recomendados (boas práticas)
-
-### ✅ logInfo
-```apex
-private static void logInfo(String message, String method) {
-    LoggerContext.getLogger().log(
-        Logger.LogLevel.INFO,
-        className,
-        method,
-        null,
-        message,
-        null,
-        null,
-        null,
-        triggerType,
-        logCategory,
-        environment
-    );
+static {
+    Logger.className   = 'MinhaClasse';
+    Logger.triggerType = 'Apex';
+    Logger.logCategory = 'FluxoConta';
+    Logger.environment = Label.ENVIRONMENT;
 }
 ```
 
-### ✅ logError
+### 2. Logger fixo por classe
 ```apex
-private static void logError(String message, String method, Exception ex) {
-    LoggerContext.getLogger().log(
-        Logger.LogLevel.ERROR,
-        className,
-        method,
-        null,
-        message,
-        ex.getMessage(),
-        ex.getStackTraceString(),
-        null,
-        triggerType,
-        logCategory,
-        environment
-    );
-}
+static final ILogger log = new Logger();
+```
+
+### 3. Uso no método
+```apex
+log.setMethod('executarValidador')
+   .setRecordId(conta.Id)
+   .setAsync(true)
+   .error('Erro ao validar CNPJ', ex, JSON.serialize(conta));
 ```
 
 ---
 
-## 🧪 LoggerMock (testes unitários)
+## ✅ Métodos disponíveis
 
-### ⚠️ NUNCA usar `System.enqueueJob(...)` em testes
-- Ao testar logs, use:
 ```apex
-LoggerMock logger = new LoggerMock();
-LoggerContext.setLogger(logger);
+Logger.setMethod(String)
+Logger.setRecordId(String)
+Logger.setCategory(String)
+Logger.setClass(String)
+Logger.setEnvironment(String)
+Logger.setAsync(Boolean)
+
+Logger.success(String msg, String data)
+Logger.info(String msg, String data)
+Logger.warn(String msg, String data)
+Logger.error(String msg, Exception ex, String data)
 ```
 
-### ⚠️ Não validar conteúdo do log
-- `LoggerQueueable` é assíncrono — conteúdo não é garantido
-- `LoggerMock` serve apenas para prevenir execução real
+---
+
+## 🧩 Modo Trigger
+
+```apex
+Logger.fromTrigger(sObj)
+      .setMethod('afterInsert')
+      .error('Erro no fluxo', ex, JSON.serialize(sObj));
+```
 
 ---
 
-## 🧩 Comportamento por ambiente
+## 🧪 Testes
 
-| Ambiente       | LoggerContext.getLogger() retorna          |
-|----------------|--------------------------------------------|
-| Produção       | LoggerQueueable (enfileira log)            |
-| Teste unitário | LoggerMock (evita enqueue)                 |
+### Desativar global
+```apex
+Logger.isEnabled = false;
+```
 
----
+### Usar mock
+```apex
+LoggerMock mock = new LoggerMock();
+mock.setMethod('testeUnitario').info('Simulação de log', null);
 
-## 🛑 Proibições Absolutas
-
-- ❌ `System.debug()` em produção
-- ❌ `LoggerMock.getLogs()` para validação de mensagens
-- ✅ `System.debug()` é **permitido em testes**, quando `LoggerContext` é mockado
-
-
----
-
-## 📎 Checklist de Logging por classe
-- [ ] Usa `LoggerContext.getLogger().log(...)` com 11 parâmetros?
-- [ ] Usa `logInfo(...)` e `logError(...)` como abstrações?
-- [ ] Classe define no topo:
-  - `environment`
-  - `log_level`
-  - `className`
-  - `triggerType`
-  - `logCategory`
-- [ ] Em testes, usa `LoggerMock`
-- [ ] Nunca usa `enqueueJob()` nos testes
+System.assert(mock.getCaptured().size() > 0);
+```
 
 ---
 
-> ⭐ Versão 2025 com base em integrações reais auditadas em projetos rigorosos
+## 🛡️ Boas práticas
+
+| ❌ Evitar                          | ✅ Fazer                                               |
+|-----------------------------------|--------------------------------------------------------|
+| `new Logger('MinhaClasse')`       | Usar `Logger.className = '...'` + `new Logger()`       |
+| `System.debug()` em produção      | Usar `.info()`, `.warn()` com JSON e rastreio completo |
+| Logging direto no handler         | Injetar logger e manter contexto                       |
+| `Test.isRunningTest()` nos testes | Preferir `LoggerMock` ou `Logger.isEnabled = false`    |
+
+---
+
+## 🧠 Avanços futuros possíveis
+
+- Filtragem por categoria (`LoggerCategoryManager`)
+- Fallback assíncrono para falha de insert
+- Dashboards de logs por Flow/Trigger/User
+
+---
+
+## 📦 Classes envolvidas
+
+| Classe              | Papel principal                                   |
+|---------------------|---------------------------------------------------|
+| `ILogger`           | Interface contratual                              |
+| `Logger`            | Implementação padrão                              |
+| `LoggerQueueable`   | Executor assíncrono via `Queueable`               |
+| `LoggerMock`        | Simulador de log sem insert real                  |
+| `LoggerTest`        | Testes de integração padrão                       |
+| `LoggerQueueableTest` | Testes do executor assíncrono                   |
+
+---
+
+Se quiser, posso agora:
+
+- Gerar versão `.md` ou `.pdf` para documentação técnica
+- Atualizar **outros guias**: `TestDataSetup`, `GuiaTestsApex`, `GuiaLoggerApex`
+
+Confirma prioridade dos próximos guias? Ou gera o `.md` deste?
