@@ -24,7 +24,7 @@ TestDataSetup é a **classe orquestradora principal**, usada por todas as suíte
 - ❌ **Nunca** chamar `setupCompleteEnvironment()` dentro de métodos de teste individuais
 - ✅ Cada método de teste deve fazer `SELECT` para buscar os registros criados
 - ❌ Nunca reutilizar o `Map<String, SObject>` retornado pelo setup
-- ✅ LoggerMock é obrigatório
+- ❌ Nunca usar Logger nas classes *TestDataSetup.cls e *TestDataSetupTest.cls
 - ❌ Nenhum método setup deve tentar logar mensagens com assert nos testes
 
 ### 2. A estrutura de dados criada deve cobrir:
@@ -33,7 +33,7 @@ TestDataSetup é a **classe orquestradora principal**, usada por todas as suíte
 ### 3. Toda lógica de criação de objetos deve ser delegada para `*TestDataSetup` especializados
 - Exemplo: `UserTestDataSetup`, `LeadTestDataSetup`, `GeradorTestDataSetup`
 
-### 4. Usar sempre `LoggerHelper.logInfo(...)` para rastreabilidade
+### ❌ Nunca usar Logger nas classes *TestDataSetup.cls e *TestDataSetupTest.cls. Como exceção pode ser System.dubeg() nesses casos específicos.
 
 ### 5. Todos os métodos devem ser `@TestVisible`
 
@@ -76,13 +76,7 @@ static void meuTeste() {
 ## 📄 Estrutura obrigatória da classe TestDataSetup
 
 ### 1. Topo com variáveis padrão
-```apex
-public static final String environment = 'test';
-public static final Logger.LogLevel log_level = Logger.LogLevel.DEBUG;
-public static final String className = 'TestDataSetup';
-public static final String triggerType = 'test';
-public static final String logCategory = 'test-data';
-```
+    Não necessário nos testes
 
 ### 2. Método principal de orquestração
 ```apex
@@ -107,24 +101,18 @@ public static void cleanUp(List<SObject> records) {...}
 
 ## 🧾 Checklist para `TestDataSetup.cls`
 - [ ] Possui `setupCompleteEnvironment()` anotado com `@TestVisible`
-- [ ] Usa `LoggerHelper` para todos os logs
+- [ ] Não usa `Logger`, mas como exceção pode usar System.Debug()
 - [ ] Não tem lógica de criação de objeto inline (usa `*TestDataSetup`)
 - [ ] Não é usada fora do `@TestSetup`
-- [ ] Todos os dados têm SELECT possível (sem depender de Map)
-- [ ] Classe define: `environment`, `log_level`, `className`, `triggerType`, `logCategory`
+- [ ] Todos os dados dos métodos unitários têm SELECT possível (sem depender de Map criado no @TestSetup)
 
 ---
 
 ## Conteúdo explícito da versão atual de TestDataSetup.cls (devemos sempre manter o guia atualizado)
 
-@isTest
+// @isTest
 public class TestDataSetup {
 
-    public static final String environment = 'test';
-    public static final Logger.LogLevel log_level = Logger.LogLevel.DEBUG;
-    public static final String className = 'TestDataSetup';
-    public static final String triggerType = 'test';
-    public static final String logCategory = 'test-data';
     private static final String MOCK_DOMINIO = 'https://mock-dominio.com';
     private static final String MOCK_URL     = 'https://mock-token.com/oauth';
 
@@ -137,7 +125,6 @@ public class TestDataSetup {
     @TestVisible
     public static void overrideLabel(String labelName, String value) {
         if (Test.isRunningTest()) {
-            LoggerHelper.logInfo('Substituindo Label em teste: ' + labelName + ' = ' + value, className, 'overrideLabel', logCategory);
             testLabels.put(labelName, value);
         } else {
             throw new TestSetupException('Override de Label não permitido em produção.');
@@ -151,13 +138,11 @@ public class TestDataSetup {
 
     @TestVisible
     public static Integracao__c createIntegracao() {
-        LoggerHelper.logInfo('Iniciando criação de Integracao__c', className, 'createIntegracao', logCategory);
 
         try {
             List<Integracao__c> existentes = [SELECT Id FROM Integracao__c LIMIT 1];
 
             if (!existentes.isEmpty()) {
-                LoggerHelper.logInfo('Registro existente de Integracao__c encontrado: ' + existentes[0].Id, className, 'createIntegracao', logCategory);
                 return existentes[0];
             }
 
@@ -171,19 +156,15 @@ public class TestDataSetup {
             );
 
             insert integracao;
-
-            LoggerHelper.logInfo('Integracao__c criado com sucesso: ' + integracao.Id, className, 'createIntegracao', logCategory);
             return integracao;
 
         } catch (Exception ex) {
-            LoggerHelper.logError('Erro ao criar Integracao__c', className, 'createIntegracao', ex, logCategory);
             throw ex;
         }
     }
 
     @TestVisible
     public static Map<String, SObject> setupCompleteEnvironment() {
-        LoggerHelper.logInfo('📌 [START] setupCompleteEnvironment', className, 'setupCompleteEnvironment', logCategory);
 
         Map<String, SObject> createdRecords = new Map<String, SObject>();
 
@@ -269,22 +250,18 @@ public class TestDataSetup {
             createdRecords.put('FaturaUsina', faturaUsina);
             createdRecords.put('Geracoes', geracoes[0]);
 
-            LoggerHelper.logInfo('✅ Ambiente de teste completo configurado.', className, 'setupCompleteEnvironment', logCategory);
             return createdRecords;
 
         } catch (Exception ex) {
-            LoggerHelper.logError('❌ Erro ao configurar ambiente de testes', className, 'setupCompleteEnvironment', ex, logCategory);
             throw ex;
         }
     }
 
     @TestVisible
     public static void cleanUp(List<SObject> records) {
-        LoggerHelper.logInfo('Iniciando limpeza de registros', className, 'cleanUp', logCategory);
 
         try {
             if (records == null || records.isEmpty()) {
-                LoggerHelper.logInfo('Nenhum registro fornecido para limpeza.', className, 'cleanUp', logCategory);
                 return;
             }
 
@@ -307,22 +284,17 @@ public class TestDataSetup {
                         if (!dex.getMessage().contains('ENTITY_IS_DELETED')) {
                             throw dex;
                         }
-                        LoggerHelper.logInfo('Skip deletados: ' + listToDelete.size(), className, 'cleanUp', logCategory);
                     }
                 }
             }
 
-            LoggerHelper.logInfo('Registros excluídos com sucesso: ' + totalDeleted, className, 'cleanUp', logCategory);
-
         } catch (Exception ex) {
-            LoggerHelper.logError('Erro ao limpar registros', className, 'cleanUp', ex, logCategory);
             throw ex;
         }
     }
 
     @TestVisible
     public static void fullCleanUpAllSupportedObjects() {
-        LoggerHelper.logInfo('Iniciando limpeza completa de todos os objetos suportados', className, 'fullCleanUpAllSupportedObjects', logCategory);
 
         try {
             List<List<SObject>> batches = new List<List<SObject>>();
@@ -369,15 +341,11 @@ public class TestDataSetup {
                         if (!dex.getMessage().contains('ENTITY_IS_DELETED')) {
                             throw dex;
                         }
-                        LoggerHelper.logInfo('Skip deletados: ' + listToDelete.size(), className, 'fullCleanUpAllSupportedObjects', logCategory);
                     }
                 }
             }
 
-            LoggerHelper.logInfo('Limpeza completa finalizada. Total de registros excluídos: ' + totalDeleted, className, 'fullCleanUpAllSupportedObjects', logCategory);
-
         } catch (Exception ex) {
-            LoggerHelper.logError('Erro durante a limpeza completa', className, 'fullCleanUpAllSupportedObjects', ex, logCategory);
             throw ex;
         }
     }
