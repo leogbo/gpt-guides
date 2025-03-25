@@ -1,3 +1,15 @@
+💡 Sugestão: Consolidar uma nova seção nos guias
+📂 Validação de Entradas e Assertivas em Testes
+
+Onde centralizamos todas as regras que reforçam a importância de:
+
+Validar parâmetros de entrada
+
+Gerar exceções explícitas e previsíveis
+
+Garantir que testes que esperam falha de fato cobrem essa falha
+
+
 # ✅ Confirmação de Equivalência Funcional – Apex Rigoroso v2025
 
 > _Checklist obrigatório para validação de refatorações em classes Apex críticas, com foco em integridade estrutural, contratual e comportamental._
