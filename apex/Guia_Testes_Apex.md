@@ -1,4 +1,4 @@
-************** PENDENCIAS PARA INTEGRAR ****************
+# ************** PENDENCIAS PARA INTEGRAR ****************
 
 🧠 Regra Mamba:
 É o teste que deve se adaptar à produção na fase de validação, não o contrário.
@@ -30,7 +30,7 @@ Gerar exceções explícitas e previsíveis
 
 Garantir que testes que esperam falha de fato cobrem essa falha
 
-************** FIM DAS PENDENCIAS ****************
+# ************** FIM DAS PENDENCIAS ****************
 
 
 Vamos revisar e atualizar o **`GuiaTestsApex`** para refletir:
