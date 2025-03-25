@@ -15,7 +15,7 @@ Gerar exceções explícitas e previsíveis
 
 Garantir que testes que esperam falha de fato cobrem essa falha
 
-************** FRIM DAS PENDENCIAS ****************
+************** FIM DAS PENDENCIAS ****************
 
 A seguir está a versão **refatorada e atualizada do Guia Rigoroso de TestDataSetup (2025)**, já ajustada para:
 
