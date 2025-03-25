@@ -10,6 +10,17 @@ Ser capturada e validada explicitamente no teste
 
 ✔️ Se não houver throw, o teste não pode assumir erro
 
+💡 Sugestão: Consolidar uma nova seção nos guias
+📂 Validação de Entradas e Assertivas em Testes
+
+Onde centralizamos todas as regras que reforçam a importância de:
+
+Validar parâmetros de entrada
+
+Gerar exceções explícitas e previsíveis
+
+Garantir que testes que esperam falha de fato cobrem essa falha
+
 ************** FRIM DAS PENDENCIAS ****************
 
 
