@@ -12,6 +12,17 @@ if (String.isBlank(recordId)) {
 }
 🧠 Toda exceção lançada deve ser precedida de log explícito com Logger.error (em produção).
 
+💡 Sugestão: Consolidar uma nova seção nos guias
+📂 Validação de Entradas e Assertivas em Testes
+
+Onde centralizamos todas as regras que reforçam a importância de:
+
+Validar parâmetros de entrada
+
+Gerar exceções explícitas e previsíveis
+
+Garantir que testes que esperam falha de fato cobrem essa falha
+
 ************** FRIM DAS PENDENCIAS ****************
 
 # 🧱 Guia Oficial de Logging Apex (`Logger`) – v2.0  
