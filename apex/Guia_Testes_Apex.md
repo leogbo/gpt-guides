@@ -1,5 +1,8 @@
 ************** PENDENCIAS PARA INTEGRAR ****************
 
+🧠 Regra Mamba:
+É o teste que deve se adaptar à produção na fase de validação, não o contrário.
+
 🆕 NOVA REGRA: Validação de parâmetros obrigatórios em Queueables e Services
 Adicionar em seção: “Validações obrigatórias em testes”
 
