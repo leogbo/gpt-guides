@@ -1,5 +1,3 @@
----
-
 # 📘 Guia Rigoroso de Revisão Apex – v2025  
 > _Atualizado com Logger Fluent + Async + Mock_
 
