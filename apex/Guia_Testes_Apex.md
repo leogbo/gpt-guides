@@ -1,196 +1,146 @@
-🧠🛠️ Aqui está a **versão completa, atualizada e incrementada** do **🧪 Guia Rigoroso de Testes Apex 2025**, agora incluindo:
+Vamos revisar e atualizar o **`GuiaTestsApex`** para refletir:
 
-- Reforço da obrigatoriedade de `assert` com mensagens diagnósticas contendo o valor real
-- Diretrizes refinadas com base em práticas reais aplicadas (como REST, status HTTP, contratos de resposta)
-- Seções aprimoradas de `TestDataSetup`, `LoggerMock`, estrutura de teste e checklist final
-
----
-
-# 🧪 Guia Rigoroso de Testes Apex (Versão Estendida 2025)
-
-> 🌐 Base oficial: [bit.ly/GuiaTestsApex](https://bit.ly/GuiaTestsApex)
-
-📎 Consulte também os guias complementares:
-- 📘 [Guia de Revisão Apex](https://bit.ly/GuiaApexRevisao)
-- 🧪 [Guia de Logger + LoggerContext](https://bit.ly/GuiaLoggerApex)
-- 🔁 [Template de Comparação Antes vs Depois](https://bit.ly/ComparacaoApex)
-- 🧱 [Classe TestDataSetup Central](https://bit.ly/TestDataSetup)
-- ✅ [Confirmação de Equivalência Funcional](https://bit.ly/ConfirmacaoApex)
+- Adoção oficial de `LoggerMock`  
+- Uso obrigatório de `TestDataSetup`  
+- Integração com fluxo de disable de Flow  
+- Proibições de anti-patterns como `seeAllData`, `enqueueJob`, `System.debug`
 
 ---
 
-## ✅ Objetivo
+# 🧪 Guia Oficial de Testes Apex – v2025  
+> _Cobertura real. Isolamento absoluto. Testes de elite._
 
-Padronizar a estrutura, cobertura e qualidade dos testes Apex com base na filosofia **Mamba Mentality**:
-
-- Clareza estrutural
-- Cobertura total (positivos, inválidos e exceções)
-- Rastreabilidade via logs, status e conteúdo de resposta
-- Mensagens de erro sempre com conteúdo da variável testada
-
----
-
-## ⚙️ Regras Técnicas Obrigatórias
-
-### 1. Setup de ambiente centralizado
-```apex
-@TestSetup
-static void setupTestData() {
-    TestDataSetup.setupCompleteEnvironment();
-    FlowControlManager.disableFlows();
-}
-```
-✅ Nunca reaproveitar `Map<String, SObject>` do `@TestSetup`  
-✅ Buscar dados no teste com `SELECT` direto  
-❌ Proibido usar `setupCompleteEnvironment()` em métodos de teste diretamente
+📎 Guias complementares:
+- 🪵 [Guia Logger Fluent + Mock](https://bit.ly/GuiaLoggerApex)
+- 🧱 [TestDataSetup Global](https://bit.ly/TestDataSetup)
+- 🔁 [Template Comparativo Antes vs Depois](https://bit.ly/ComparacaoApex)
+- ✅ [Checklist de Equivalência Funcional](https://bit.ly/ConfirmacaoApex)
 
 ---
 
-### 2. Uso obrigatório de `LoggerMock`
-```apex
-LoggerMock logger = new LoggerMock();
-LoggerContext.setLogger(logger);
-```
-❌ Não testar conteúdo de logs (`LoggerQueueable` é assíncrono)  
-✅ Usar `LoggerMock` apenas para prevenir efeitos colaterais
+## 🎯 Objetivo
+
+Garantir que toda classe testada atenda aos critérios de:
+- 💥 Cobertura real de lógica (e não de linhas)
+- 🔁 Independência entre testes
+- 🧱 Isolamento de dados
+- 🧠 Simulação de erros e exceções
 
 ---
 
-### 3. Proibição de chamadas assíncronas reais
-❌ `System.enqueueJob(...)`  
-✅ Simular efeito com `LoggerMock` se necessário
+## ✅ Regras Rígidas
+
+### 1. Setup de ambiente
+- ✅ Todo teste deve começar com:
+  ```apex
+  TestDataSetup.setupCompleteEnvironment();
+  FlowControlManager.disableFlows();
+  Logger.isEnabled = false;
+  ```
+
+### 2. Testes com `LoggerMock`
+- Nunca insira logs reais em testes
+- Use:
+  ```apex
+  LoggerMock mock = new LoggerMock();
+  mock.setMethod('nomeTeste').info('teste', null);
+  System.assertEquals(1, mock.getCaptured().size());
+  ```
+
+### 3. `Test.startTest()` obrigatório
+- Use sempre que houver lógica assíncrona, DML ou `enqueue`
+- Exemplo:
+  ```apex
+  Test.startTest();
+  System.enqueueJob(new MinhaClasseQueueable());
+  Test.stopTest();
+  ```
+
+### 4. Múltiplos cenários por método
+- Todo método de teste deve cobrir:
+  - ✅ Caminho feliz (positivo)
+  - ⚠️ Validação de erros
+  - 💥 Exceções simuladas
+
+### 5. Nome de classe
+- Sufixo obrigatório `Test`
+- Nome deve corresponder 1:1 à classe de produção
+  - Exemplo: `ClienteService → ClienteServiceTest`
 
 ---
 
-### 4. Cobertura obrigatória de cenários
-| Tipo de Cenário        | Exigido |
-|------------------------|---------|
-| Fluxo positivo         | ✅      |
-| Input inválido         | ✅      |
-| Erros ou exceções      | ✅      |
-| Mock de logger ativo   | ✅      |
-| Validação do status    | ✅      |
+## ⚠️ Proibições Intransigentes
+
+| Proibido                        | Motivo                                                              |
+|---------------------------------|---------------------------------------------------------------------|
+| `System.debug()`                | Não rastreável. Use `LoggerMock`                                   |
+| `System.enqueueJob(...)` direto | Deve ser encapsulado no teste e nunca validado diretamente         |
+| `LoggerQueueable` em testes     | ⚠️ Não deve ser testado via log persistido (é assíncrono)          |
+| `seeAllData=true`               | Rompe isolamento. Não usar.                                        |
+| `Test.startTest()` sem `stop`   | Pode mascarar exceções                                             |
 
 ---
 
-### 5. `RestContext.response` em testes REST
-```apex
-RestContext.response = new RestResponse();
-```
-⚠️ Sem isso, `NullPointerException` em produção
-
----
-
-### 6. Métodos internos testáveis
-✅ Usar `@TestVisible` para lógica encapsulada  
-✅ Métodos devem aceitar parâmetros isoláveis  
-❌ Evite lógica dentro de `constructors` ou `static blocks`
-
----
-
-## 🧠 7. Assertividade Cirúrgica (Mensagens com conteúdo real)
-
-> Toda mensagem de erro de assert deve conter **a variável testada**, para rastreabilidade direta
-
-### ✅ Correto:
-```apex
-System.assertEquals(200, status, '❌ Esperado status 200. Recebido: ' + status);
-System.assert(responseBody.contains('assinatura_recebida'), '❌ Corpo inválido: ' + responseBody);
-```
-
-### ❌ Errado:
-```apex
-System.assertEquals(200, status, '❌ Status inválido');
-```
-
-🔍 Sempre revele a **causa concreta da falha** no log.
-
----
-
-## 🧱 8. TestDataSetup – Setup Oficial da Org
-
-### ✅ Por que usar
-- Reutilizável, seguro e completo
-- Garante vínculos válidos: `Lead → Opp → Proposta → UC → Cobranca`
-- Mock de labels, logs e flows incluso
-- Testes mais rápidos e rastreáveis
-
-### 🧪 Exemplo:
-```apex
-LoggerContext.setLogger(new LoggerMock());
-
-Map<String, SObject> dados = TestDataSetup.setupCompleteEnvironment();
-
-UC__c uc = [SELECT Id FROM UC__c LIMIT 1];
-System.assertNotEquals(null, uc, 'UC não criada no setup');
-```
-
----
-
-### ♻️ Métodos disponíveis:
-
-| Método                             | Finalidade |
-|------------------------------------|------------|
-| `setupCompleteEnvironment()`       | Cria tudo para testes complexos |
-| `createIntegracao()`               | Garante 1 registro funcional |
-| `cleanUp(List<SObject>)`           | Best-effort delete |
-| `fullCleanUpAllSupportedObjects()` | Limpeza geral controlada |
-
----
-
-## 🔕 9. Diretrizes para Logs
-
-- ❌ Nunca validar logs via `LoggerMock.getLogs()`
-- ✅ Apenas isolar efeitos com `LoggerMock`
-- ✅ `System.debug()` permitido apenas em **testes**, e se necessário
-- ❌ `System.debug()` em produção é **proibido**
-
----
-
-## 🧩 10. Estrutura Esperada de Teste
+## 🧪 Padrão de Teste Apex
 
 ```apex
-@isTest
+@IsTest
 private class MinhaClasseTest {
 
     @TestSetup
     static void setup() {
         TestDataSetup.setupCompleteEnvironment();
         FlowControlManager.disableFlows();
+        Logger.isEnabled = false;
     }
 
-    @isTest
-    static void testePositivo() {
-        LoggerContext.setLogger(new LoggerMock());
-        Account acc = [SELECT Id FROM Account LIMIT 1];
-
+    @IsTest
+    static void testHappyPath() {
+        LoggerMock mock = new LoggerMock();
         Test.startTest();
-        MinhaClasse.metodoTestado(acc.Id);
+        // Chamada ao método testado
         Test.stopTest();
 
-        System.assertEquals(true, acc != null, '❌ Account não foi recuperada corretamente. ID: ' + acc.Id);
+        System.assertEquals(1, mock.getCaptured().size());
+    }
+
+    @IsTest
+    static void testComErro() {
+        try {
+            // Simula erro
+            System.assert(false, 'Forçar falha');
+        } catch (Exception e) {
+            System.assertEquals('Forçar falha', e.getMessage());
+        }
     }
 }
 ```
 
 ---
 
-## ✅ 11. Checklist Final
+## 🛠️ Boas práticas
 
-| Item | Obrigatório |
-|------|-------------|
-| `@TestSetup` com `setupCompleteEnvironment()` | ✅ |
-| `FlowControlManager.disableFlows()` após setup | ✅ |
-| `SELECT` explícito para buscar dados | ✅ |
-| `RestContext.response` inicializado em testes REST | ✅ |
-| `LoggerMock` e `LoggerContext.setLogger()` | ✅ |
-| `Test.startTest()` / `Test.stopTest()` | ✅ |
-| `System.assert` com mensagem detalhada | ✅ |
-| `@TestVisible` para lógica encapsulada | ✅ |
-| Nenhuma validação de conteúdo de log | ✅ |
+- Criar `TestDataBuilder` ou `TestDataSetup` por domínio
+- Validar mensagens e fluxos, não só `.size()`
+- Usar `.left(n)` para logs longos
+- Nunca usar lógica condicional fora do método de teste
 
 ---
 
-📘 Versão atualizada com base em revisões reais da sua org  
-🧠 Aprovado pelo Revisor Rigoroso | Leo Garcia  
-🖤 Mamba Mentality em cada linha de teste. Sem exceção.
+## ✅ Checklist de Revisão de Testes
+
+- [ ] Usa `TestDataSetup.setupCompleteEnvironment()`?
+- [ ] Flows desabilitados com `FlowControlManager.disableFlows()`?
+- [ ] Usa `LoggerMock` (nunca `Logger` real)?
+- [ ] Sem `System.debug()`?
+- [ ] Sem `seeAllData=true`?
+- [ ] Cobertura do happy path, erro e exceção?
+- [ ] Classe termina com `Test`?
+- [ ] Métodos testáveis são `@TestVisible`?
+
+---
+
+> 🧠 Testes são o escudo da sua org.  
+> 🐍 Teste bem. Teste com padrão. Teste como Mamba.  
+
+---
