@@ -1,4 +1,4 @@
-************** PENDENCIAS PARA INTEGRAR ****************
+# ************** PENDENCIAS PARA INTEGRAR ****************
 
 🆕 NOVA REGRA: Evite dependência de comportamento implícito em testes
 ❌ Nunca presuma que exceções serão lançadas “automaticamente”
@@ -21,7 +21,7 @@ Gerar exceções explícitas e previsíveis
 
 Garantir que testes que esperam falha de fato cobrem essa falha
 
-************** FRIM DAS PENDENCIAS ****************
+# ************** FRIM DAS PENDENCIAS ****************
 
 
 # 📘 Guia Rigoroso de Revisão Apex – v2025  
