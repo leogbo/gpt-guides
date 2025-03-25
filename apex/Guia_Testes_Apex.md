@@ -16,7 +16,18 @@ String.isBlank(...) validando recordId	✅
 recordId.startsWith(...) validando formato	✅
 Teste negativo cobrindo exceção lançada	✅
 
-************** FRIM DAS PENDENCIAS ****************
+💡 Sugestão: Consolidar uma nova seção nos guias
+📂 Validação de Entradas e Assertivas em Testes
+
+Onde centralizamos todas as regras que reforçam a importância de:
+
+Validar parâmetros de entrada
+
+Gerar exceções explícitas e previsíveis
+
+Garantir que testes que esperam falha de fato cobrem essa falha
+
+************** FIM DAS PENDENCIAS ****************
 
 
 Vamos revisar e atualizar o **`GuiaTestsApex`** para refletir:
