@@ -1,18 +1,16 @@
-A seguir está a **nova versão oficial revisada do guia `Logger`**, já refletindo:
 
-- Contexto estático por classe  
-- Logger fluente por instância  
-- Suporte a async via `LoggerQueueable`  
-- Mock isolado via `ILogger` e `LoggerMock`  
-- Testabilidade e rastreabilidade total
+# 🧱 Guia Oficial de Logging Apex (`Logger`) – v2.0  
+_Fluent Interface • Async via Queueable • Testável com Mock_
 
 ---
 
-# 🧱 Guia Oficial de Logging Apex – Versão Atualizada
+## 📎 Guias complementares
 
-> **Nome oficial:** `Logger`  
-> **Versão:** v2 – Arquitetura Fluent + Interface + Queueable  
-> **Status:** 🟢 Ativa em produção
+- 🧪 [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
+- 🪵 [Guia de Logger com Interface + Queueable](https://bit.ly/GuiaLoggerApex)
+- 🔁 [Template de Comparação Antes vs Depois](https://bit.ly/ComparacaoApex)
+- 🧱 [Classe TestDataSetup Central](https://bit.ly/TestDataSetup)
+- ✅ [Checklist de Equivalência Funcional](https://bit.ly/ConfirmacaoApex)
 
 ---
 
@@ -34,21 +32,25 @@ A seguir está a **nova versão oficial revisada do guia `Logger`**, já refleti
 ## 📐 Formato de uso por padrão
 
 ### 1. Contexto global por classe
+
 ```apex
 static {
     Logger.className   = 'MinhaClasse';
     Logger.triggerType = 'Apex';
     Logger.logCategory = 'FluxoConta';
     Logger.environment = Label.ENVIRONMENT;
+    Logger.isEnabled   = true;
 }
 ```
 
 ### 2. Logger fixo por classe
+
 ```apex
 static final ILogger log = new Logger();
 ```
 
 ### 3. Uso no método
+
 ```apex
 log.setMethod('executarValidador')
    .setRecordId(conta.Id)
@@ -60,18 +62,24 @@ log.setMethod('executarValidador')
 
 ## ✅ Métodos disponíveis
 
-```apex
-Logger.setMethod(String)
-Logger.setRecordId(String)
-Logger.setCategory(String)
-Logger.setClass(String)
-Logger.setEnvironment(String)
-Logger.setAsync(Boolean)
+### 🔧 Configuração
 
-Logger.success(String msg, String data)
-Logger.info(String msg, String data)
-Logger.warn(String msg, String data)
-Logger.error(String msg, Exception ex, String data)
+```apex
+setMethod(String)
+setRecordId(String)
+setCategory(String)
+setClass(String)
+setEnvironment(String)
+setAsync(Boolean)
+```
+
+### 📝 Ações de log
+
+```apex
+success(String message, String serializedData)
+info(String message, String serializedData)
+warn(String message, String serializedData)
+error(String message, Exception ex, String serializedData)
 ```
 
 ---
@@ -89,17 +97,20 @@ Logger.fromTrigger(sObj)
 ## 🧪 Testes
 
 ### Desativar global
+
 ```apex
 Logger.isEnabled = false;
 ```
 
 ### Usar mock
+
 ```apex
 LoggerMock mock = new LoggerMock();
 mock.setMethod('testeUnitario').info('Simulação de log', null);
-
 System.assert(mock.getCaptured().size() > 0);
 ```
+
+> ⚠️ Nunca validar insert real de `LoggerQueueable` em teste. É assíncrono e não garante persistência visível.
 
 ---
 
@@ -109,8 +120,8 @@ System.assert(mock.getCaptured().size() > 0);
 |-----------------------------------|--------------------------------------------------------|
 | `new Logger('MinhaClasse')`       | Usar `Logger.className = '...'` + `new Logger()`       |
 | `System.debug()` em produção      | Usar `.info()`, `.warn()` com JSON e rastreio completo |
-| Logging direto no handler         | Injetar logger e manter contexto                       |
-| `Test.isRunningTest()` nos testes | Preferir `LoggerMock` ou `Logger.isEnabled = false`    |
+| Logging hardcoded no handler      | Injetar `ILogger log = new Logger();`                  |
+| `Test.isRunningTest()` nos testes | Usar `LoggerMock` ou `Logger.isEnabled = false`        |
 
 ---
 
@@ -124,20 +135,17 @@ System.assert(mock.getCaptured().size() > 0);
 
 ## 📦 Classes envolvidas
 
-| Classe              | Papel principal                                   |
-|---------------------|---------------------------------------------------|
-| `ILogger`           | Interface contratual                              |
-| `Logger`            | Implementação padrão                              |
-| `LoggerQueueable`   | Executor assíncrono via `Queueable`               |
-| `LoggerMock`        | Simulador de log sem insert real                  |
-| `LoggerTest`        | Testes de integração padrão                       |
+| Classe                | Papel principal                                 |
+|-----------------------|-------------------------------------------------|
+| `ILogger`             | Interface contratual                            |
+| `Logger`              | Implementação padrão                            |
+| `LoggerQueueable`     | Executor assíncrono via `Queueable`             |
+| `LoggerMock`          | Simulador de log sem insert real                |
+| `LoggerTest`          | Testes de integração padrão                     |
 | `LoggerQueueableTest` | Testes do executor assíncrono                   |
 
 ---
 
-Se quiser, posso agora:
-
-- Gerar versão `.md` ou `.pdf` para documentação técnica
-- Atualizar **outros guias**: `TestDataSetup`, `GuiaTestsApex`, `GuiaLoggerApex`
-
-Confirma prioridade dos próximos guias? Ou gera o `.md` deste?
+🧠 Mantenha consistência.  
+🧪 Teste tudo.  
+🐍 Rastreie como um Mamba.
