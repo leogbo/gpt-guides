@@ -1,114 +1,134 @@
-# 🧱 Guia Rigoroso de TestDataSetup (Versão Estendida 2025)
+A seguir está a versão **refatorada e atualizada do Guia Rigoroso de TestDataSetup (2025)**, já ajustada para:
+
+- Padrão v2 do ecossistema Logger  
+- Uso estrito de `@TestSetup`  
+- Proibição definitiva de `Logger` dentro de setup  
+- Cache, reutilização defensiva, isolamento de dados e nomes-chave claros  
+
+---
+
+# 🧱 Guia Rigoroso de TestDataSetup – v2025
 
 > 🌐 Base: https://bit.ly/TestDataSetup
 
-📎 Consulte também:
+📎 Guias complementares:
 - 📘 [Guia de Revisão Apex](https://bit.ly/GuiaApexRevisao)
 - 🧪 [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
-- 🧪 [Guia de Logger](https://bit.ly/GuiaLoggerApex)
-- 🔁 [Guia de Refatoração](https://bit.ly/ComparacaoApex)
-- ✅ [Confirmação de Equivalência Funcional](https://bit.ly/ConfirmacaoApex)
+- 🪵 [Guia de Logger v2](https://bit.ly/GuiaLoggerApex)
+- 🔁 [Template de Refatoração](https://bit.ly/ComparacaoApex)
+- ✅ [Checklist de Equivalência](https://bit.ly/ConfirmacaoApex)
 
 ---
 
 ## ✅ Objetivo
-Definir padrões obrigatórios para criação de dados de teste reutilizáveis, centralizados e rastreáveis.
 
-TestDataSetup é a **classe orquestradora principal**, usada por todas as suítes de testes Apex para montar o ambiente mínimo e completo.
-
----
-
-## ⚙️ Regras Obrigatórias
-
-### 1. Apenas `@TestSetup` pode invocar `setupCompleteEnvironment()`
-- ❌ **Nunca** chamar `setupCompleteEnvironment()` dentro de métodos de teste individuais
-- ✅ Cada método de teste deve fazer `SELECT` para buscar os registros criados
-- ❌ Nunca reutilizar o `Map<String, SObject>` retornado pelo setup
-- ❌ Nunca usar Logger nas classes *TestDataSetup.cls e *TestDataSetupTest.cls
-- ❌ Nenhum método setup deve tentar logar mensagens com assert nos testes
-
-### 2. A estrutura de dados criada deve cobrir:
-- Usuário, Vertical, Originadores, Distribuidora, Produto, Usina, Lead, Conta, Contato, Oportunidade, Proposta, Documentos, UC, Cobrança, etc.
-
-### 3. Toda lógica de criação de objetos deve ser delegada para `*TestDataSetup` especializados
-- Exemplo: `UserTestDataSetup`, `LeadTestDataSetup`, `GeradorTestDataSetup`
-
-### ❌ Nunca usar Logger nas classes *TestDataSetup.cls e *TestDataSetupTest.cls. Como exceção pode ser System.dubeg() nesses casos específicos.
-
-### 5. Todos os métodos devem ser `@TestVisible`
+Estabelecer padrão único, seguro e reutilizável para criação de dados de teste em Apex.  
+A classe `TestDataSetup.cls` atua como **orquestradora universal de dados em `@TestSetup`**, garantindo isolamento, rastreabilidade e escalabilidade.
 
 ---
 
-## 🧪 Uso padrão nos testes
+## ⚖️ Regras Invioláveis
+
+### 1. Uso exclusivo em `@TestSetup`
+- ✅ Deve ser usada **apenas dentro de `@TestSetup`**
+- ❌ Proibido usar `setupCompleteEnvironment()` em testes individuais
+- ❌ Nunca reutilizar o `Map<String, SObject>` entre testes
+
+---
+
+### 2. Proibições críticas
+| Item                                  | Status     |
+|---------------------------------------|------------|
+| Uso de `Logger`                       | ❌ Proibido |
+| Uso de `LoggerMock`                   | ❌ Proibido |
+| Uso de `System.debug()`               | ⚠️ **Permitido somente para debug local isolado** |
+| Logging dentro de `TestDataSetupTest`| ❌ Proibido |
+
+---
+
+### 3. Toda criação de dados deve ser delegada
+- ✅ Cada entidade tem seu `*TestDataSetup` especializado
+- Exemplo:
+  - `LeadTestDataSetup`, `GeradorTestDataSetup`, `UserTestDataSetup`, etc.
+- `TestDataSetup` só orquestra — **nunca insere diretamente objetos compostos**
+
+---
+
+## 🧪 Exemplo de uso nos testes
 
 ```apex
 @TestSetup
-static void setupTestData() {
+static void setupData() {
     TestDataSetup.setupCompleteEnvironment();
     FlowControlManager.disableFlows();
+    Logger.isEnabled = false;
 }
 ```
 
 ```apex
-@isTest
+@IsTest
 static void meuTeste() {
     Account acc = [SELECT Id FROM Account LIMIT 1];
-    // seguir com lógica do teste...
+    // seguir com validação
 }
 ```
 
 ---
 
-## 🧩 Boas práticas
+## 📦 Boas práticas de uso
 
-### 🧠 Nomenclatura das chaves no `Map<String, SObject>`
-- Sempre use nomes padronizados e sem ambiguidades:
-  - `'Account'`, `'Contact'`, `'Opportunity'`, `'LeadPF'`, `'Distribuidora'`, `'Produto'`, etc.
-
-### ⚠️ `Map<String, SObject>` não deve ser reutilizado entre métodos
-- Ele só serve para validação rápida em ambiente controlado
-
-### 💡 Otimize com cache estático local em `*TestDataSetup` especializados
-- Evite `SOQL` repetitivo: cacheie `RecordType`, `Profile`, etc.
+| Tema                     | Prática recomendada                                       |
+|--------------------------|-----------------------------------------------------------|
+| 🔑 Nomes no Map          | Use `LeadPF`, `Distribuidora`, `Opportunity`, etc.        |
+| 🔄 Map transitório       | Use apenas dentro do `@TestSetup`, **nunca fora dele**     |
+| 🧠 Cache inteligente     | Em `*TestDataSetup`: cache de `RecordType`, `Profile`, etc. |
+| ♻️ Clean defensivo       | Use `TestDataSetup.cleanUp()` ou `fullCleanUpAllSupportedObjects()` |
 
 ---
 
-## 📄 Estrutura obrigatória da classe TestDataSetup
+## 📐 Estrutura obrigatória da classe `TestDataSetup`
 
-### 1. Topo com variáveis padrão
-    Não necessário nos testes
-
-### 2. Método principal de orquestração
+### 1. Método principal
 ```apex
 @TestVisible
 public static Map<String, SObject> setupCompleteEnvironment() {
-    // Criação de objetos, delegando para classes auxiliares
-    // Inserções e adições no Map<String, SObject>
+    // Orquestra chamadas a outros *TestDataSetup
     return createdRecords;
 }
 ```
 
-### 3. Métodos auxiliares (override de Label, cleanup, mocks)
+### 2. Métodos auxiliares
+
 ```apex
 @TestVisible
-public static void overrideLabel(String labelName, String value) {...}
+public static void overrideLabel(String labelName, String value)
 
 @TestVisible
-public static void cleanUp(List<SObject> records) {...}
+public static void cleanUp(List<SObject> records)
+
+@TestVisible
+public static void fullCleanUpAllSupportedObjects()
 ```
 
 ---
 
-## 🧾 Checklist para `TestDataSetup.cls`
-- [ ] Possui `setupCompleteEnvironment()` anotado com `@TestVisible`
-- [ ] Não usa `Logger`, mas como exceção pode usar System.Debug()
-- [ ] Não tem lógica de criação de objeto inline (usa `*TestDataSetup`)
-- [ ] Não é usada fora do `@TestSetup`
-- [ ] Todos os dados dos métodos unitários têm SELECT possível (sem depender de Map criado no @TestSetup)
+## ✅ Checklist Mamba para TestDataSetup.cls
+
+- [ ] Possui `setupCompleteEnvironment()` com `@TestVisible`
+- [ ] Não usa `Logger`, nem `LoggerMock`
+- [ ] Nenhum `System.debug()` fora de casos de exceção
+- [ ] Usa delegações para `*TestDataSetup`
+- [ ] Não armazena o `Map<String, SObject>` entre testes
+- [ ] Nenhum método é chamado fora do `@TestSetup`
 
 ---
 
-## Conteúdo explícito da versão atual de TestDataSetup.cls (devemos sempre manter o guia atualizado)
+## 🧠 Lembrete estratégico
+
+> `TestDataSetup` **não existe para "facilitar os testes", mas para blindar sua suíte inteira contra dependência cruzada, setup quebrado e dados injetados via seeAllData.**
+
+## Conteudo explicito da versão atual de TestDataSetup.cls
+
 
 // @isTest
 public class TestDataSetup {
