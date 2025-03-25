@@ -30,6 +30,34 @@ Garantir que toda classe testada atenda aos critérios de:
 
 ## ✅ Regras Rígidas
 
+---
+
+## 🧠 Checklist Mamba de Rigor em Testes Apex
+
+Este checklist é obrigatório. Nenhum PR de teste pode ser aprovado se violar qualquer um dos itens abaixo.
+
+| ID  | Regra Mamba                                                                                     | Status  |
+|------|------------------------------------------------------------------------------------------------|----------|
+| T01 | ❌ `testData.get(...)` **proibido** dentro de métodos `@isTest`                                | 🔒       |
+| T02 | ❌ `setupTestData()` **jamais chamado manualmente** dentro de métodos `@isTest`                | 🔒       |
+| T03 | ✅ Toda preparação de dados deve ocorrer exclusivamente em `@TestSetup`                         | ✅       |
+| T04 | ❌ `FlowControlManager.disableFlows()` deve ser chamado apenas 1x no `@TestSetup`              | 🔒       |
+| T05 | ❌ `createUser(..., true)` + `System.runAs()` externo causam exceção (`Test already started`)  | 🔒       |
+| T06 | ✅ Se `createUser(..., false)`, o `runAs + startTest/stopTest` deve ser explícito no teste     | ✅       |
+| T07 | ❌ Testes com `isParallel=true` **não podem executar DML em objetos restritos** (User, Profile) | 🔒       |
+| T08 | ✅ Sempre usar `SELECT` explícito nos métodos `@isTest` para acessar dados criados             | ✅       |
+| T09 | ✅ Asserts devem ter mensagens claras, específicas e rastreáveis                               | ✅       |
+| T10 | ❌ `LoggerMock.getLogs()` **nunca** deve ser usado para validação — apenas para neutralizar log | 🔒       |
+| T11 | ✅ Dados de teste devem vir exclusivamente do `TestDataSetup`                                  | ✅       |
+| T12 | ✅ Cada teste deve validar **comportamento funcional real**, não apenas rodar código           | ✅       |
+
+---
+
+📌 **Este checklist deve ser revisado antes da aprovação de qualquer classe de teste.**  
+📦 Padronização, previsibilidade e rastreabilidade total são inegociáveis.
+
+#MambaTestes #OrgBlindada #NadaPassa
+
 ### 1. Setup de ambiente
 - ✅ Todo teste deve começar com:
   ```apex
