@@ -1,35 +1,36 @@
-# 🔁 Template: Comparativo Antes vs Depois da Refatoração
 
-Use este template em todas as entregas de revisão/refatoração para demonstrar **equivalência funcional**, identificar melhorias estruturais e garantir que nada foi perdido no processo.
+# 🔁 Template Oficial – Comparativo Antes vs Depois da Refatoração
+
+> Use este template obrigatório em todas as entregas de revisão/refatoração para demonstrar **equivalência funcional**, identificar melhorias estruturais e garantir que nada foi perdido no processo.
 
 ---
 
 ## 📄 Classe revisada
 
 **Nome da classe:** `{{NomeDaClasse}}`  
-**Tipo:** Apex Class / Batch / REST / Trigger Handler / Queueable / Test
+**Tipo:** Apex Class / Trigger Handler / REST / Batch / Queueable / Test
 
 ---
 
 ## ✅ Código Revisado (Versão Final)
 
-> Inclua aqui o código refatorado completo, seguindo o [Guia Rigoroso de Revisão Apex](https://bit.ly/GuiaApexRevisao)
+> Inclua aqui o código refatorado completo, validado pelo [Guia Rigoroso de Revisão Apex](https://bit.ly/GuiaApexRevisao) e pelo [Guia Logger (v2)](https://bit.ly/GuiaLoggerApex)
 
 ---
 
 ## 🔍 Comparativo Técnico
 
-| Elemento                  | Antes                                      | Depois                                     | Observação Técnica                        | Status   |
-|---------------------------|---------------------------------------------|--------------------------------------------|--------------------------------------------|----------|
-| 🎯 Nome da classe         | `Cidade_Rest_API`                          | `Cidade_Rest_API`                          | Mantido conforme regra                     | ✅        |
-| 🔒 Métodos expostos       | `@InvocableMethod createUC()`             | `createUC()`                               | Sem alteração                              | ✅        |
-| 🔒 Variáveis públicas     | `@InvocableVariable prop_id`              | `prop_id`                                  | Nome mantido                               | ✅        |
-| 📦 JSON Input/Output      | `{ prop_id: "123" }`                       | `{ prop_id: "123" }`                       | Estrutura inalterada                       | ✅        |
-| 🪵 Logging                | `System.enqueueJob(...)`                  | `LoggerContext.getLogger().log(...)`       | Atualizado para padrão Rigoroso            | ✅        |
-| ⚠️ Exceções               | Sem try/catch                              | Try/Catch com `LoggerHelper.logError()`    | Tratamento seguro                          | ✅        |
-| 🧪 Testes                 | Validação de log via `LoggerMock.getLogs()` | Apenas uso de `LoggerMock` sem validação  | Conforme guia (não testar logs)            | ✅        |
-| 🧩 Modularização          | Lógica inline                              | `validaToken(...)`, `respondeErro(...)`    | Métodos auxiliares criados                 | ✅        |
-| 🧪 Testes validam logs?    | Sim (`getLogs`)                           | ❌ Removido                                |logs não devem ser validados                 |✅       |
+| Elemento                  | Antes                                      | Depois                                        | Observação Técnica                         | Status |
+|---------------------------|---------------------------------------------|-----------------------------------------------|---------------------------------------------|--------|
+| 🎯 Nome da classe         | `Cidade_Rest_API`                          | `Cidade_Rest_API`                             | Nome mantido                               | ✅     |
+| 🔒 Métodos públicos       | `@InvocableMethod createUC()`             | `createUC()`                                  | Sem alteração                              | ✅     |
+| 🔒 Variáveis públicas     | `@InvocableVariable prop_id`              | `prop_id`                                     | Nome mantido                               | ✅     |
+| 📦 JSON Input/Output      | `{ prop_id: "123" }`                       | `{ prop_id: "123" }`                          | Estrutura inalterada                       | ✅     |
+| 🪵 Logging                | `System.enqueueJob(...)`                   | `Logger.setMethod(...).error(...)`            | Migrado para padrão `Logger (v2)`          | ✅     |
+| ⚠️ Tratamento de erro     | Sem `try/catch`                            | Try/Catch com `Logger.error(...)`             | Logging de exceções incluído               | ✅     |
+| 🧪 Testes                 | Usava `LoggerMock.getLogs()`               | Usa apenas `LoggerMock` (sem validação direta) | Conforme guia de testes                    | ✅     |
+| 🧩 Modularização          | Lógica inline                              | Extraída para `validaToken()`, etc.           | Melhor legibilidade e testabilidade        | ✅     |
+| 🧪 Logs validados?        | Sim (com `.getLogs()`)                     | ❌ Removido – log não é validado em teste     | Correção crítica conforme `Logger v2`      | ✅     |
 
 ---
 
@@ -38,50 +39,49 @@ Use este template em todas as entregas de revisão/refatoração para demonstrar
 | Item                                                                 | Confirmado? |
 |----------------------------------------------------------------------|-------------|
 | 🔒 Nome da classe **não foi alterado**                               | ✅ / ❌      |
-| 🔒 Métodos expostos **não foram alterados**                          | ✅ / ❌      |
-| 🔒 Variáveis públicas/input/output **não foram alteradas**           | ✅ / ❌      |
-| 🔄 JSON de input **mantido idêntico**                                | ✅ / ❌      |
-| 🔄 JSON de output **mantido idêntico**                               | ✅ / ❌      |
+| 🔒 Métodos públicos **não foram alterados**                          | ✅ / ❌      |
+| 🔒 Campos/variáveis públicas **mantidos**                            | ✅ / ❌      |
+| 🔄 JSON de input/output **inalterado**                               | ✅ / ❌      |
 | 🧪 Todos os testes anteriores passaram                               | ✅ / ❌      |
-| 🧪 Logs **não foram validados** nos testes                           | ✅ / ❌      |
-| 🐞 `System.debug()` usado apenas dentro de testes                    | ✅ / ❌      |
-| 📄 Refatoração cobre todos fluxos anteriores                         | ✅ / ❌      |
+| 🧪 Nenhum log foi validado diretamente no teste                      | ✅ / ❌      |
+| 🪵 Logging migrou para `Logger` com `.setMethod().error(...)`        | ✅ / ❌      |
+| 🐞 `System.debug()` só em classes de teste (se houver)              | ✅ / ❌      |
+| 📄 Fluxos anteriores continuam cobertos                              | ✅ / ❌      |
 
 ---
 
-## 🧠 Justificativas para alterações (se houver)
+## 🧠 Justificativas para alterações (se aplicável)
 
-> Explique aqui qualquer melhoria além de estrutura ou log, como:
-- Inclusão de nova validação
-- Ajuste em cálculo (com evidência de equivalência)
-- Extração para método testável (`@TestVisible`)
-- Substituição de padrão de assert para `toUpperCase()` em testes
+> Descreva abaixo quaisquer mudanças **além de refatoração estrutural**:
+
+- Inclusão de tratamento de exceção com rastreamento
+- Ajuste em cálculo com validação de equivalência
+- Extração de método auxiliar com `@TestVisible`
+- Atualização de asserts para `.toUpperCase()` ou mensagens explícitas
 
 ---
 
 ## ✅ Confirmação Final
 
 ```markdown
-✅ Confirmação de Equivalência Funcional
-
-- Nenhum nome de classe, método público ou variável exposta foi alterado
-- Estruturas de JSON de entrada e saída permanecem inalteradas
-- Logs migrados para `LoggerContext.getLogger()` com 11 parâmetros
-- Testes passaram com sucesso e foram adequados ao padrão: sem validação de log
-- Toda refatoração é estrutural e segura
-
 ✔️ Refatoração validada como funcionalmente equivalente
+
+- Nenhum método público ou estrutura JSON foi alterado
+- Logging atualizado para `Logger (v2)` com contexto fluente e rastreável
+- Testes atualizados com `LoggerMock` sem validação direta de log
+- Fluxos de exceção cobertos com `Logger.error(...)`
+- Toda alteração é estrutural, segura e auditável
 ```
 
 ---
 
-## 📎 Compatibilidade com os guias oficiais
+## 📎 Compatibilidade com guias oficiais
 
 - [x] [Guia de Revisão Apex](https://bit.ly/GuiaApexRevisao)
 - [x] [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
-- [x] [Guia de Logger](https://bit.ly/GuiaLoggerApex)
-- [x] [Guia de Refatoração](https://bit.ly/ComparacaoApex)
-- [x] [Classe `TestDataSetup`](https://bit.ly/TestDataSetup)
+- [x] [Guia de Logger Apex (v2)](https://bit.ly/GuiaLoggerApex)
+- [x] [Template de Comparação](https://bit.ly/ComparacaoApex)
+- [x] [TestDataSetup Central](https://bit.ly/TestDataSetup)
 - [x] [Confirmação de Equivalência](https://bit.ly/ConfirmacaoApex)
 
 ---
