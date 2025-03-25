@@ -1,3 +1,24 @@
+************** PENDENCIAS PARA INTEGRAR ****************
+
+🆕 NOVA REGRA: Validação de parâmetros obrigatórios em Queueables e Services
+Adicionar em seção: “Validações obrigatórias em testes”
+
+✅ Toda classe Queueable, @InvocableMethod ou Service deve:
+
+Lançar IllegalArgumentException clara e rastreável para entradas nulas ou inválidas
+
+Ser coberta por testes que validem esses throw explicitamente com try/catch + System.assert(false, ...)
+
+Checklist
+
+Item	Obrigatório
+String.isBlank(...) validando recordId	✅
+recordId.startsWith(...) validando formato	✅
+Teste negativo cobrindo exceção lançada	✅
+
+************** FRIM DAS PENDENCIAS ****************
+
+
 Vamos revisar e atualizar o **`GuiaTestsApex`** para refletir:
 
 - Adoção oficial de `LoggerMock`  
