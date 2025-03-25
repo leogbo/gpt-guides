@@ -1,4 +1,4 @@
-************** PENDENCIAS PARA INTEGRAR ****************
+# ************** PENDENCIAS PARA INTEGRAR ****************
 
 ✏️ Complementar: Logs de entrada inválida
 Adicionar exemplo:
@@ -23,7 +23,7 @@ Gerar exceções explícitas e previsíveis
 
 Garantir que testes que esperam falha de fato cobrem essa falha
 
-************** FRIM DAS PENDENCIAS ****************
+# ************** FRIM DAS PENDENCIAS ****************
 
 # 🧱 Guia Oficial de Logging Apex (`Logger`) – v2.0  
 _Fluent Interface • Async via Queueable • Testável com Mock_
