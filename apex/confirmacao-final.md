@@ -1,4 +1,4 @@
-************* PENDENCIAS A INTEGRAR **********
+# ************* PENDENCIAS A INTEGRAR **********
 
 💡 Sugestão: Consolidar uma nova seção nos guias
 📂 Validação de Entradas e Assertivas em Testes
@@ -11,7 +11,7 @@ Gerar exceções explícitas e previsíveis
 
 Garantir que testes que esperam falha de fato cobrem essa falha
 
-************* FIM DAS PENDENCIAS **********
+# ************* FIM DAS PENDENCIAS **********
 
 # ✅ Confirmação de Equivalência Funcional – Apex Rigoroso v2025
 
