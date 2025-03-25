@@ -1,3 +1,5 @@
+************* PENDENCIAS A INTEGRAR **********
+
 💡 Sugestão: Consolidar uma nova seção nos guias
 📂 Validação de Entradas e Assertivas em Testes
 
@@ -8,6 +10,8 @@ Validar parâmetros de entrada
 Gerar exceções explícitas e previsíveis
 
 Garantir que testes que esperam falha de fato cobrem essa falha
+
+************* FIM DAS PENDENCIAS **********
 
 
 # 🔁 Template Oficial – Comparativo Antes vs Depois da Refatoração
