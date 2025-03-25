@@ -1,3 +1,18 @@
+************** PENDENCIAS PARA INTEGRAR ****************
+
+✏️ Complementar: Logs de entrada inválida
+Adicionar exemplo:
+
+apex
+Copiar
+Editar
+if (String.isBlank(recordId)) {
+    Logger.error('recordId vazio. Encerrando execução.');
+    throw new IllegalArgumentException('recordId obrigatório');
+}
+🧠 Toda exceção lançada deve ser precedida de log explícito com Logger.error (em produção).
+
+************** FRIM DAS PENDENCIAS ****************
 
 # 🧱 Guia Oficial de Logging Apex (`Logger`) – v2.0  
 _Fluent Interface • Async via Queueable • Testável com Mock_
