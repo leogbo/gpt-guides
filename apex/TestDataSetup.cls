@@ -15,6 +15,14 @@ Gerar exceções explícitas e previsíveis
 
 Garantir que testes que esperam falha de fato cobrem essa falha
 
+---
+
+✅ Reforçar regra já existente:
+🔒 Nunca acessar os dados de teste via Map<String, SObject> fora do @TestSetup.
+O Map é reinicializado a cada execução de método @isTest.
+
+---
+
 # ************** FIM DAS PENDENCIAS ****************
 
 A seguir está a versão **refatorada e atualizada do Guia Rigoroso de TestDataSetup (2025)**, já ajustada para:
