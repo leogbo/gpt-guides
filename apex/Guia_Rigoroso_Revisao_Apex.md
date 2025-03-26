@@ -21,6 +21,21 @@ Gerar exceções explícitas e previsíveis
 
 Garantir que testes que esperam falha de fato cobrem essa falha
 
+---
+
+✏️ Adicionar exemplo de SELECT defensivo:
+apex
+Copiar
+Editar
+List<Account> accList = [SELECT Id FROM Account WHERE Id = :lead.AccountId__c LIMIT 1];
+if (accList.isEmpty()) {
+    throw new CustomException('AccountId não encontrado.');
+}
+Account acc = accList[0];
+❗ Nunca assumir que SELECT ... WHERE Id = :algo retornará resultado — mesmo com LIMIT 1.
+
+---
+
 # ************** FRIM DAS PENDENCIAS ****************
 
 
