@@ -24,6 +24,40 @@ Estabelecer diretrizes padronizadas para:
 
 ---
 
+# 🌐 Guia Oficial de REST Services e Integrações Externas – v2025
+> _Padrão unificado para serviços REST, integrações com APIs e respostas estruturadas_
+
+---
+
+## 🌟 Guias relacionados
+- [Guia Apex - Revisão e Padrões](https://bit.ly/GuiaApexRevisao)
+- [Guia de Testes Unitários Apex](https://bit.ly/GuiaTestsApex)
+- [TestDataSetup Central](https://bit.ly/TestDataSetup)
+- [Guia Logger + Mock](https://bit.ly/GuiaLoggerApex)
+
+---
+
+## 📄 Status Code Padrão (HTTP)
+Os seguintes códigos são oficialmente utilizados em nossa arquitetura REST:
+
+| Código | Descrição                        | Uso no Helper                     |
+|--------|----------------------------------|----------------------------------|
+| 200    | OK                               | Resposta direta (pouco usado)     |
+| 202    | Accepted                         | `accepted(...)`                   |
+| 400    | Bad Request                      | `badRequest(...)`                 |
+| 401    | Unauthorized                     | `unauthorized(...)`               |
+| 404    | Not Found                        | `notFound(...)`                   |
+| 406    | Not Acceptable (Conflito)        | `notAcceptable(...)`              |
+| 500    | Internal Server Error            | `internalServerError(...)`        |
+
+> Todos esses códigos são compatíveis com [RFC 9110 - HTTP Semantics (IETF)](https://datatracker.ietf.org/doc/html/rfc9110)
+
+---
+
+(continua com o restante do conteúdo já incluso...)
+
+
+
 ## 🧱 Estrutura Padrão de Classe REST
 
 ```apex
