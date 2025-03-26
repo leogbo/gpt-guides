@@ -100,6 +100,19 @@ System.assertEquals('Mensagem esperada', MinhaClasseQueueable.lastExceptionMessa
 🧠🖤 #TesteAssíncronoCerteiro #ExceçõesVisíveis #QueueableValidadoDeVerdade
 
 
+---
+
+🆕 NOVA SEÇÃO: Uso de SELECT direto após @TestSetup
+✅ Sempre que utilizar @TestSetup, os dados criados devem ser recuperados por SELECT no método de teste — e nunca via testData.get(...).
+
+Exemplo correto:
+
+apex
+Copiar
+Editar
+Vertical__c vertical = [SELECT Id FROM Vertical__c LIMIT 1];
+
+---
 
 # ************** FIM DAS PENDENCIAS ****************
 
