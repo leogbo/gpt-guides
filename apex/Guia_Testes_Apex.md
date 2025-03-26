@@ -1,6 +1,36 @@
 # ***** PENDENCIAS A INTEGRAR *****
 
-Exatamente. Tivemos uma jornada completa com aprendizados valiosos que **merecem ser oficializados nos guias**, especialmente para Osmar, Marcio, e qualquer dev que for tocar código crítico da sua Org.
+
+🧠 **Aprendizado útil (extract pronto para colar no guia de pendências):**
+
+---
+
+### 🧩 **[PENDÊNCIA A INCORPORAR NO GUIA] – Testes com LIKE e setup resiliente**
+
+**Problema detectado:**  
+Falha de testes ao depender de dados com `Fila__c LIKE '%ultragaz parceiro domiciliar%'` sem garantir que o valor exato existia nos dados mockados.
+
+**Aprendizado incorporável:**  
+> Sempre que métodos testados fizerem `LIKE` com `contains`, o `@TestSetup` deve criar dados com valor **exato e completo** compatível com o padrão da cláusula. Não confie em `startsWith`, `endsWith` ou `parcial`.
+
+---
+
+### ✅ Regra Nova no Guia:
+
+📌 **[TESTES APEX – PADRÃO DE DADOS PARA `LIKE`]**  
+> Se o código contém filtros `LIKE '%valor%'`, **os dados criados em teste precisam conter exatamente o mesmo valor, sem depender de variações de case ou prefixo**.  
+> 
+> Exemplo obrigatório para passar:
+```apex
+Fila__c = 'ultragaz parceiro domiciliar' // corresponde ao LIKE '%ultragaz parceiro domiciliar%'
+```
+
+---
+
+# ***** FIM PENDENCIAS A INTEGRAR *****
+
+
+Tivemos uma jornada completa com aprendizados valiosos que **merecem ser oficializados nos guias**, especialmente para Osmar, Marcio, e qualquer dev que for tocar código crítico da sua Org.
 
 LINKS DE REFERENCIA
 - https://bit.ly/GuiaApexRevisao
