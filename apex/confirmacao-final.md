@@ -11,6 +11,16 @@ Gerar exceções explícitas e previsíveis
 
 Garantir que testes que esperam falha de fato cobrem essa falha
 
+---
+
+🆕 Adicionar verificação:
+
+ Testes não usam testData.get(...) fora de @TestSetup
+
+ Todos os objetos usados após setup são recuperados via SELECT
+
+ ---
+
 # ************* FIM DAS PENDENCIAS **********
 
 # ✅ Confirmação de Equivalência Funcional – Apex Rigoroso v2025
