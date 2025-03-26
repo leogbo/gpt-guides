@@ -2,6 +2,15 @@
 
 Exatamente. Tivemos uma jornada completa com aprendizados valiosos que **merecem ser oficializados nos guias**, especialmente para Osmar, Marcio, e qualquer dev que for tocar código crítico da sua Org.
 
+LINKS DE REFERENCIA
+- https://bit.ly/GuiaApexRevisao
+- https://bit.ly/GuiaLoggerApex
+- https://bit.ly/Guia_APIs_REST
+- https://bit.ly/GuiaTestsApex
+- https://bit.ly/TestDataSetup
+- https://bit.ly/ComparacaoApex
+- https://bit.ly/ConfirmacaoApex
+
 ---
 
 ## 📘 Sugestão: Seção nova no GuiaTestsApex  
