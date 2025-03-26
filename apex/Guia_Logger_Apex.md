@@ -32,11 +32,13 @@ _Fluent Interface • Async via Queueable • Testável com Mock_
 
 ## 📎 Guias complementares
 
-- 🧪 [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
-- 🪵 [Guia de Logger com Interface + Queueable](https://bit.ly/GuiaLoggerApex)
-- 🔁 [Template de Comparação Antes vs Depois](https://bit.ly/ComparacaoApex)
-- 🧱 [Classe TestDataSetup Central](https://bit.ly/TestDataSetup)
-- ✅ [Checklist de Equivalência Funcional](https://bit.ly/ConfirmacaoApex)
+- https://bit.ly/GuiaApexRevisao
+- https://bit.ly/GuiaLoggerApex
+- https://bit.ly/Guia_APIs_REST
+- https://bit.ly/GuiaTestsApex
+- https://bit.ly/TestDataSetup
+- https://bit.ly/ComparacaoApex
+- https://bit.ly/ConfirmacaoApex
 
 ---
 
