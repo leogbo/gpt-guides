@@ -1,3 +1,30 @@
+# ***** PENDENCIAS A INTEGRAR *****
+
+Exatamente. Tivemos uma jornada completa com aprendizados valiosos que **merecem ser oficializados nos guias**, especialmente para Osmar, Marcio, e qualquer dev que for tocar código crítico da sua Org.
+
+---
+
+## 📘 Sugestão: Seção nova no GuiaTestsApex  
+### 🧠 “Aprendizados aplicados em testes complexos”
+
+### ✅ Exemplos a registrar:
+
+| Tema | Regra Aprendida |
+|------|------------------|
+| `@testSetup` + flows   | Setup de dados **sempre com flows ativos**. Só depois: `FlowControlManager.disableFlows();` |
+| Queueables e exceções  | Testes que esperam exceções **devem usar try/catch + assertEquals(...)** |
+| Validações opcionais   | Relacionamentos como `UC__c → Lead` **podem ser vazios**, testes devem aceitar `size() == 0` |
+| SELECT defensivo       | Nunca usar `SELECT ... LIMIT 1` direto em `SObject`, sempre usar `List<...>` com fallback |
+| Métodos que retornam estruturas fixas | Mesmo sem dados, retornos como `List<LeadData>` devem ter `.size() == leadIds.size()` |
+| Validação de mocks     | `HttpCalloutMock` deve retornar estrutura mínima, mas rastreável (`access_token`, etc.) |
+| Dados via TestDataSetup | Nenhum uso de `testData.get(...)` em métodos de teste — **apenas `SELECT` direto** |
+| Rastreamento de falha | Toda `System.assert` com mensagem clara e contextualizada |
+
+---
+
+# ***** FIM DAS PENDENCIAS A INTEGRAR *****
+
+
 # 💪 Guia Oficial de Testes Apex – v2025 (Padrão Mamba)
 > _Cobertura real. Isolamento absoluto. Testes de elite._
 
