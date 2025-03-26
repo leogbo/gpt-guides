@@ -92,12 +92,14 @@ Garantir que testes que esperam falha de fato cobrem essa falha
 
 ## 📎 Compatibilidade com guias oficiais
 
-- [x] [Guia de Revisão Apex](https://bit.ly/GuiaApexRevisao)
-- [x] [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
-- [x] [Guia de Logger Apex (v2)](https://bit.ly/GuiaLoggerApex)
-- [x] [Template de Comparação](https://bit.ly/ComparacaoApex)
-- [x] [TestDataSetup Central](https://bit.ly/TestDataSetup)
-- [x] [Confirmação de Equivalência](https://bit.ly/ConfirmacaoApex)
+- https://bit.ly/GuiaApexRevisao
+- https://bit.ly/GuiaLoggerApex
+- https://bit.ly/Guia_APIs_REST
+- https://bit.ly/GuiaTestsApex
+- https://bit.ly/TestDataSetup
+- https://bit.ly/ComparacaoApex
+- https://bit.ly/ConfirmacaoApex
+
 
 ---
 
