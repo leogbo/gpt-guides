@@ -3,7 +3,18 @@
 
 ---
 
-## 🎯 Objetivo
+## 🌟 Guias relacionados
+- https://bit.ly/GuiaApexRevisao
+- https://bit.ly/GuiaLoggerApex
+- https://bit.ly/Guia_APIs_REST
+- https://bit.ly/GuiaTestsApex
+- https://bit.ly/TestDataSetup
+- https://bit.ly/ComparacaoApex
+- https://bit.ly/ConfirmacaoApex
+
+---
+
+## 🌟 Objetivo
 Estabelecer diretrizes padronizadas para:
 - Criação de classes REST com `@RestResource`
 - Tratamento de erros e validação de entradas
@@ -22,10 +33,8 @@ global with sharing class LeadUpdateRestService {
     @HttpPost
     global static void updateLeadFromJson() {
         try {
-            // 1. Validação de token
             RestServiceHelper.validateAccessToken('Access_token', Label.BEARER_UPDATE_LEAD);
 
-            // 2. Corpo da requisição
             Map<String, Object> body = RestServiceHelper.getRequestBody();
             String leadId = (String) body.get('Id');
             if (String.isBlank(leadId)) {
@@ -33,17 +42,14 @@ global with sharing class LeadUpdateRestService {
                 return;
             }
 
-            // 3. Recuperação e validação
             Lead lead = getLeadById(leadId);
             if (lead.IsConverted) {
                 throw new RestServiceHelper.ConflictException('Lead já qualificado.');
             }
 
-            // 4. Aplicação de campos e atualização
             RestServiceHelper.mapFieldsFromRequest(body, lead, 'Lead');
             update lead;
 
-            // 5. Retorno
             RestServiceHelper.accepted('Lead atualizado.', new Map<String, Object>{
                 'LeadId' => lead.Id,
                 'Status' => lead.Status
@@ -73,24 +79,126 @@ global with sharing class LeadUpdateRestService {
 
 ---
 
-## 🧩 Classe `RestServiceHelper`
-> Veja [versão completa aqui](#)
+## 🪩 Classe Base: `RestServiceHelper`
 
-Funções oferecidas:
-- Validação de token: `validateAccessToken(...)`
-- Parsing de JSON: `getRequestBody()`
-- Atualização via JSON: `mapFieldsFromRequest(...)`
-- Respostas estruturadas: `sendResponse(...)`, `badRequest(...)`, `accepted(...)`, etc.
-- Exceções customizadas para controle REST: `AccessException`, `NotFoundException`, etc.
+Classe reutilizável para padronizar respostas e comportamentos REST. 
+Inclui:
 
-Inclui suporte a testes com:
+### ✅ Funções principais:
+- `validateAccessToken(...)`: valida token enviado via header
+- `getRequestBody()`: converte JSON do corpo da requisição
+- `mapFieldsFromRequest(...)`: aplica campos JSON sobre um `SObject`
+- `sendResponse(...)`: gera resposta padronizada em JSON
+
+### ❌ Exceções personalizadas:
+- `AccessException`, `BadRequestException`, `NotFoundException`, `ConflictException`
+
+### 🔎 Exemplo de uso em testes:
 ```apex
 @TestVisible private static String lastExceptionMessage;
 ```
 
+### 📂 Código completo
+```apex
+public abstract class RestServiceHelper {
+
+    @TestVisible private static final String environment = Label.ENVIRONMENT;
+    @TestVisible private static final String log_level = Label.LOG_LEVEL;
+    private static final String className = 'RestServiceHelper';
+    private static final String logCategory = 'REST';
+
+    @TestVisible private static String lastExceptionMessage;
+
+    public class AccessException extends Exception {}
+    public class BadRequestException extends Exception {}
+    public class NotFoundException extends Exception {}
+    public class ConflictException extends Exception {}
+
+    public static void unauthorized(String message) {
+        sendResponse(401, message, null);
+    }
+    public static void badRequest(String message) {
+        sendResponse(400, message, null);
+    }
+    public static void notFound(String message) {
+        notFound(message, null);
+    }
+    public static void notAcceptable(String message) {
+        notAcceptable(message, null);
+    }
+    public static void internalServerError(String message) {
+        internalServerError(message, null);
+    }
+    public static void accepted(String message) {
+        accepted(message, null);
+    }
+
+    public static void notFound(String message, Object details) {
+        sendResponse(404, message, details);
+    }
+    public static void notAcceptable(String message, Object details) {
+        sendResponse(406, message, details);
+    }
+    public static void internalServerError(String message, Object details) {
+        sendResponse(500, message, details);
+    }
+    public static void accepted(String message, Object details) {
+        sendResponse(202, message, details);
+    }
+
+    public static void sendResponse(Integer statusCode, String message, Object details) {
+        RestContext.response.addHeader('Content-Type', 'application/json');
+        RestContext.response.statusCode = statusCode;
+        Map<String, Object> response = new Map<String, Object>{ 'message' => message };
+        if (details != null) {
+            response.put('details', details);
+        }
+        RestContext.response.responseBody = Blob.valueOf(JSON.serializePretty(response));
+    }
+
+    public static void validateAccessToken(String headerName, String expectedTokenPrefix) {
+        String accessToken = RestContext.request.headers.get(headerName);
+        if (accessToken == null || !accessToken.startsWith(expectedTokenPrefix)) {
+            throw new AccessException('Token de acesso inválido ou ausente.');
+        }
+    }
+
+    public static Map<String, Object> getRequestBody() {
+        RestRequest req = RestContext.request;
+        if (req.requestBody == null || String.isBlank(req.requestBody.toString())) {
+            throw new BadRequestException('O corpo da requisição está vazio.');
+        }
+        try {
+            return (Map<String, Object>) JSON.deserializeUntyped(req.requestBody.toString());
+        } catch (Exception e) {
+            throw new BadRequestException('Erro ao processar o corpo da requisição.');
+        }
+    }
+
+    public static void mapFieldsFromRequest(Map<String, Object> requestBody, SObject record, String objectName) {
+        Map<String, Schema.SObjectType> globalDescribe = Schema.getGlobalDescribe();
+        Schema.SObjectType objectType = globalDescribe.get(objectName.toLowerCase());
+        if (objectType == null) {
+            throw new IllegalArgumentException('Objeto inválido: ' + objectName);
+        }
+        Map<String, Schema.SObjectField> fieldMap = objectType.getDescribe().fields.getMap();
+        for (String fieldName : requestBody.keySet()) {
+            if (fieldMap.containsKey(fieldName)) {
+                Object fieldValue = requestBody.get(fieldName);
+                if (fieldValue != null) {
+                    record.put(fieldName, fieldValue);
+                }
+            } else {
+                System.debug('Campo ignorado: ' + fieldName + ' (não encontrado no objeto ' + objectName + ')');
+            }
+        }
+    }
+}
+```
+
 ---
 
-## 🔁 Integração com APIs externas (Outbound Callouts)
+## 🔄 Integração com APIs externas (Outbound Callouts)
 
 ### 🔒 Exemplo de chamada com tratamento de erro
 ```apex
@@ -118,9 +226,9 @@ public class ExternalApiService {
 
 ---
 
-## 🧪 Testes de Serviços REST
+## 🧰 Testes de Serviços REST
 
-### 🧪 Exemplo: Teste de POST com validação de token e status
+### 🧰 Exemplo: Teste de POST com validação de token e status
 ```apex
 @isTest
 private class LeadUpdateRestServiceTest {
@@ -163,5 +271,4 @@ private class LeadUpdateRestServiceTest {
 - Reutilize `RestServiceHelper` sempre que possível
 
 > 🧠 REST sem padrão é REST sem rastreabilidade. Aqui não. #OrgBlindada
-
 
