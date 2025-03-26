@@ -39,11 +39,13 @@ A seguir está a versão **refatorada e atualizada do Guia Rigoroso de TestDataS
 > 🌐 Base: https://bit.ly/TestDataSetup
 
 📎 Guias complementares:
-- 📘 [Guia de Revisão Apex](https://bit.ly/GuiaApexRevisao)
-- 🧪 [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
-- 🪵 [Guia de Logger v2](https://bit.ly/GuiaLoggerApex)
-- 🔁 [Template de Refatoração](https://bit.ly/ComparacaoApex)
-- ✅ [Checklist de Equivalência](https://bit.ly/ConfirmacaoApex)
+- https://bit.ly/GuiaApexRevisao
+- https://bit.ly/GuiaLoggerApex
+- https://bit.ly/Guia_APIs_REST
+- https://bit.ly/GuiaTestsApex
+- https://bit.ly/TestDataSetup
+- https://bit.ly/ComparacaoApex
+- https://bit.ly/ConfirmacaoApex
 
 ---
 
