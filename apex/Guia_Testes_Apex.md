@@ -22,6 +22,71 @@ Exatamente. Tivemos uma jornada completa com aprendizados valiosos que **merecem
 
 ---
 
+Excelente. Esse código é uma **peça central da arquitetura REST da sua Org** e deve ser tratado como tal no manual.
+
+---
+
+### 📁 Proposta: Nova seção no Guia de Padrões REST
+> ## 🔧 `RestServiceHelper`: Serviço Base de Suporte a RESTs
+
+---
+
+### 📘 Estrutura sugerida:
+
+```md
+## 🔧 RestServiceHelper – Classe Abstrata Base para Serviços REST
+
+Esta classe é usada como base padrão para todos os serviços REST desenvolvidos internamente.  
+Ela fornece:
+
+- 🛡️ Validação de tokens de segurança
+- 📦 Extração robusta do corpo da requisição
+- 💬 Métodos padronizados para respostas HTTP (200, 400, 401, 404, 406, 500, etc.)
+- 🔁 Mapeamento automático de campos de entrada JSON → SObject
+- 🧪 Suporte direto a testes (`lastExceptionMessage`, overloads curtos)
+
+---
+
+### 🧱 Estrutura padrão da classe
+
+```apex
+// código completo que você enviou aqui
+```
+
+---
+
+### 🧪 Casos de uso recomendados
+
+| Situação | Método |
+|----------|--------|
+| Token inválido | `validateAccessToken(...)` → lança `AccessException` |
+| Corpo ausente ou malformado | `getRequestBody()` → lança `BadRequestException` |
+| Responder com erro genérico | `internalServerError(...)` |
+| Confirmar update com sucesso | `accepted('Lead atualizado')` |
+| Retornar 404 com detalhes | `notFound('Lead não encontrado', mapDeDetalhes)` |
+| Aplicar JSON em SObject | `mapFieldsFromRequest(json, objeto, 'Lead')` |
+
+---
+
+### 🧱 Testes relacionados
+
+> Consulte: `RestServiceHelperTest.cls` para cobertura de:
+> - `validateAccessToken` com e sem token
+> - `getRequestBody()` com JSON válido e inválido
+> - `sendResponse` com código e mensagens
+> - `mapFieldsFromRequest` com campos válidos e ignorados
+
+---
+
+## 🧠 Observações
+
+- Todos os serviços REST novos devem extender ou usar essa classe como helper.
+- O retorno deve sempre ser JSON padronizado.
+- Testes unitários devem validar código HTTP e conteúdo da resposta.
+
+```
+
+
 # ***** FIM DAS PENDENCIAS A INTEGRAR *****
 
 
