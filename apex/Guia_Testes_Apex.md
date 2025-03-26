@@ -30,6 +30,77 @@ Gerar exceções explícitas e previsíveis
 
 Garantir que testes que esperam falha de fato cobrem essa falha
 
+
+----
+
+🧠🔥 Sim! Essa abordagem é tão poderosa quanto simples — e **merece ser oficializada** no nosso guia.
+
+---
+
+## 📘 **Sugestão de nova seção no [GuiaTestsApex](https://bit.ly/GuiaTestsApex)**  
+### 🧱 Seção: *Validação de exceções em métodos assíncronos (Queueable, @future, Batch)*
+
+---
+
+### ✅ Problema
+Métodos assíncronos como `System.enqueueJob(...)` não lançam exceções diretamente no teste — o código é enfileirado e executado fora do contexto imediato.
+
+### ❌ Portanto, blocos como:
+```apex
+try {
+    System.enqueueJob(new MinhaClasseQueueable(...));
+    System.assert(false, 'Deveria lançar exceção');
+} catch (...) { }
+```
+**não funcionam.**
+
+---
+
+### ✅ Solução Mamba Oficial
+
+**Usar uma variável `@TestVisible static` para capturar mensagens de exceção durante execução.**
+
+---
+
+### 🔁 Padrão recomendado:
+
+#### Na classe de produção (`Queueable`, `Batch`, `@future`)
+```apex
+@TestVisible private static String lastExceptionMessage;
+
+...
+
+} catch (Exception e) {
+    lastExceptionMessage = e.getMessage();
+    System.debug('Erro capturado: ' + e.getMessage());
+}
+```
+
+---
+
+#### No teste
+```apex
+Test.startTest();
+System.enqueueJob(new MinhaClasseQueueable('paramInvalido'));
+Test.stopTest();
+
+System.assertEquals('Mensagem esperada', MinhaClasseQueueable.lastExceptionMessage);
+```
+
+---
+
+### 📋 Vantagens
+- ✅ Não depende de `Test.startTest/stopTest` para capturar exceções
+- ✅ Evita `System.assert(false)` falsos
+- ✅ Compatível com execução assíncrona nativa do Salesforce
+- ✅ Mensagens ficam acessíveis e rastreáveis
+
+---
+
+🧠🖤 #TesteAssíncronoCerteiro #ExceçõesVisíveis #QueueableValidadoDeVerdade
+
+
+
 # ************** FIM DAS PENDENCIAS ****************
 
 
