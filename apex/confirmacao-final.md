@@ -41,11 +41,14 @@ Vertical__c vertical = [SELECT Id FROM Vertical__c LIMIT 1];
 > _Checklist obrigatório para validação de refatorações em classes Apex críticas, com foco em integridade estrutural, contratual e comportamental._
 
 📎 Guias relacionados:
-- 🔁 [Template Comparativo Antes vs Depois](https://bit.ly/ComparacaoApex)
-- 🧪 [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
-- 🪵 [Guia de Logger v2](https://bit.ly/GuiaLoggerApex)
-- 🧱 [TestDataSetup Central](https://bit.ly/TestDataSetup)
-- 🧠 [Guia Rigoroso de Revisão Apex](https://bit.ly/GuiaApexRevisao)
+- https://bit.ly/GuiaApexRevisao
+- https://bit.ly/GuiaLoggerApex
+- https://bit.ly/Guia_APIs_REST
+- https://bit.ly/GuiaTestsApex
+- https://bit.ly/TestDataSetup
+- https://bit.ly/ComparacaoApex
+- https://bit.ly/ConfirmacaoApex
+
 
 ---
 
