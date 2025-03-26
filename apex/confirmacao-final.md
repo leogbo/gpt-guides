@@ -21,6 +21,19 @@ Garantir que testes que esperam falha de fato cobrem essa falha
 
  ---
 
+### ✅ Uso de SELECT após @TestSetup
+
+Sempre que utilizar `@TestSetup`, acesse os dados criados com `SELECT` explícito.  
+Jamais reutilize `Map<String, SObject>` do `setupTestData()` dentro dos métodos `@isTest`.
+
+#### ❌ Errado:
+```apex
+Vertical__c vertical = (Vertical__c) testData.get('Vertical'); // ← Nulo em tempo de execução
+#### ✅ Correto:
+Vertical__c vertical = [SELECT Id FROM Vertical__c LIMIT 1];
+
+ ---
+
 # ************* FIM DAS PENDENCIAS **********
 
 # ✅ Confirmação de Equivalência Funcional – Apex Rigoroso v2025
