@@ -1,87 +1,146 @@
-# ************** PENDENCIAS PARA INTEGRAR ****************
-
-🧠 Regra Mamba:
-É o teste que deve se adaptar à produção na fase de validação, não o contrário.
-
-🆕 NOVA REGRA: Validação de parâmetros obrigatórios em Queueables e Services
-Adicionar em seção: “Validações obrigatórias em testes”
-
-✅ Toda classe Queueable, @InvocableMethod ou Service deve:
-
-Lançar IllegalArgumentException clara e rastreável para entradas nulas ou inválidas
-
-Ser coberta por testes que validem esses throw explicitamente com try/catch + System.assert(false, ...)
-
-Checklist
-
-Item	Obrigatório
-String.isBlank(...) validando recordId	✅
-recordId.startsWith(...) validando formato	✅
-Teste negativo cobrindo exceção lançada	✅
-
-💡 Sugestão: Consolidar uma nova seção nos guias
-📂 Validação de Entradas e Assertivas em Testes
-
-Onde centralizamos todas as regras que reforçam a importância de:
-
-Validar parâmetros de entrada
-
-Gerar exceções explícitas e previsíveis
-
-Garantir que testes que esperam falha de fato cobrem essa falha
-
-
-----
-
-🧠🔥 Sim! Essa abordagem é tão poderosa quanto simples — e **merece ser oficializada** no nosso guia.
+# 💪 Guia Oficial de Testes Apex – v2025 (Padrão Mamba)
+> _Cobertura real. Isolamento absoluto. Testes de elite._
 
 ---
 
-## 📘 **Sugestão de nova seção no [GuiaTestsApex](https://bit.ly/GuiaTestsApex)**  
-### 🧱 Seção: *Validação de exceções em métodos assíncronos (Queueable, @future, Batch)*
+## 📓 Guias complementares obrigatórios
+- 🩵 [Logger Fluent + Mock](https://bit.ly/GuiaLoggerApex)
+- 🪩 [TestDataSetup Global](https://bit.ly/TestDataSetup)
+- 🔄 [Template Comparativo Antes vs Depois](https://bit.ly/ComparacaoApex)
+- ✅ [Checklist de Equivalência Funcional](https://bit.ly/ConfirmacaoApex)
 
 ---
 
-### ✅ Problema
-Métodos assíncronos como `System.enqueueJob(...)` não lançam exceções diretamente no teste — o código é enfileirado e executado fora do contexto imediato.
+## 🌟 Objetivo do Guia
+Garantir que toda classe testada atenda aos critérios de:
+- 💥 Cobertura real de lógica (e não de linhas)
+- 🔄 Independência entre testes
+- 🪩 Isolamento de dados
+- 🧠 Simulação de exceções e fluxos inválidos
 
-### ❌ Portanto, blocos como:
+---
+
+## ✅ Regras Rígidas e Checklist Mamba de Rigor em Testes Apex
+
+| ID   | Regra Mamba                                                                                     | Status |
+|------|--------------------------------------------------------------------------------------------------|--------|
+| T01 | ❌ `testData.get(...)` **proibido** dentro de métodos `@isTest`                                 | 🔒     |
+| T02 | ❌ `setupTestData()` **jamais chamado manualmente** dentro de `@isTest`                       | 🔒     |
+| T03 | ✅ Toda preparação de dados deve ocorrer exclusivamente em `@TestSetup`                    | ✅     |
+| T04 | ❌ `FlowControlManager.disableFlows()` deve ser chamado apenas 1x no `@TestSetup`            | 🔒     |
+| T05 | ❌ `createUser(..., true)` + `System.runAs()` externo causa `Test already started`           | 🔒     |
+| T06 | ✅ `createUser(..., false)` + `runAs + startTest/stopTest` deve ser usado corretamente       | ✅     |
+| T07 | ❌ Testes `isParallel=true` **não podem fazer DML em objetos restritos** (User, Profile)       | 🔒     |
+| T08 | ✅ Sempre usar `SELECT` direto nos métodos `@isTest` (nunca depender de instância estática) | ✅     |
+| T09 | ✅ Asserts devem ter mensagens claras e rastreáveis                                        | ✅     |
+| T10 | ❌ `LoggerMock.getLogs()` **nunca** deve ser usado para validação (somente neutraliza log)     | 🔒     |
+| T11 | ✅ Dados de teste devem vir exclusivamente do `TestDataSetup`                                | ✅     |
+| T12 | ✅ Cada teste deve validar **comportamento funcional real**                                  | ✅     |
+
+---
+
+## 🔧 Setup de Ambiente Padrão
+
 ```apex
-try {
-    System.enqueueJob(new MinhaClasseQueueable(...));
-    System.assert(false, 'Deveria lançar exceção');
-} catch (...) { }
-```
-**não funcionam.**
-
----
-
-### ✅ Solução Mamba Oficial
-
-**Usar uma variável `@TestVisible static` para capturar mensagens de exceção durante execução.**
-
----
-
-### 🔁 Padrão recomendado:
-
-#### Na classe de produção (`Queueable`, `Batch`, `@future`)
-```apex
-@TestVisible private static String lastExceptionMessage;
-
-...
-
-} catch (Exception e) {
-    lastExceptionMessage = e.getMessage();
-    System.debug('Erro capturado: ' + e.getMessage());
+@TestSetup
+static void setup() {
+    Map<String, Object> testData = TestDataSetup.setupCompleteEnvironment();
+    System.assertNotEquals(null, testData.get('DocProposta'), 'DocProposta was not setuped.');
+    FlowControlManager.disableFlows();
 }
 ```
 
 ---
 
-#### No teste
+## 💪 Testes com Queueable + TestDataSetup + FlowControlManager
+
+### 📀 Caminho feliz (success path)
+
+```apex
+@isTest
+static void testQueueableSuccess() {
+    Test.setMock(HttpCalloutMock.class, new MockHttpResponse());
+
+    Documento_da_Proposta__c doc = [SELECT Id, Link__c FROM Documento_da_Proposta__c LIMIT 1];
+    System.assertNotEquals(null, doc, 'DocProposta was not setuped.');
+
+    Test.startTest();
+    Id jobId = System.enqueueJob(new FileUploaderQueueable(doc.Id, 'arquivo.png', 'base64xyz'));
+    Test.stopTest();
+
+    Documento_da_Proposta__c updated = [SELECT Id, Link__c FROM Documento_da_Proposta__c WHERE Id = :doc.Id];
+    System.assertEquals('https://url-esperada', updated.Link__c);
+}
+```
+
+### 🔥 Caminhos de falha (callout ou query falhando)
+
+```apex
+@isTest
+static void testQueueableCalloutFailure() {
+    Test.setMock(HttpCalloutMock.class, new MockHttpResponseForFailure());
+
+    Documento_da_Proposta__c doc = [SELECT Id FROM Documento_da_Proposta__c LIMIT 1];
+    System.assertNotEquals(null, doc, 'DocProposta was not setuped.');
+
+    Test.startTest();
+    System.enqueueJob(new FileUploaderQueueable(doc.Id, 'arquivo.png', 'base64xyz'));
+    Test.stopTest();
+
+    // Sem assertivas: validamos apenas que nenhuma exceção foi lançada
+}
+```
+
+---
+
+## 🔒 Validação de Parâmetros Obrigatórios
+
+### ✅ Classe Queueable deve validar:
+```apex
+if (String.isBlank(recordId)) {
+    throw new IllegalArgumentException('recordId não pode ser nulo ou vazio');
+}
+if (!recordId.startsWith('a0u')) {
+    throw new IllegalArgumentException('Formato de recordId inválido para Documento da Proposta');
+}
+```
+
+### ✅ Teste correspondente:
+```apex
+@isTest
+static void testQueueableParametrosInvalidos() {
+    try {
+        Test.startTest();
+        System.enqueueJob(new FileUploaderQueueable(null, 'arquivo.png', 'conteudo'));
+        Test.stopTest();
+        System.assert(false, 'Deveria lançar exceção para recordId nulo');
+    } catch (IllegalArgumentException e) {
+        System.assertEquals('recordId não pode ser nulo ou vazio', e.getMessage());
+    }
+}
+```
+
+---
+
+## 🔄 Alternativa para Queueables com exceções assíncronas
+
+### Produção
+```apex
+@TestVisible private static String lastExceptionMessage;
+
+public void execute(QueueableContext context) {
+    try {
+        // ...
+    } catch (Exception e) {
+        lastExceptionMessage = e.getMessage();
+    }
+}
+```
+
+### Teste
 ```apex
 Test.startTest();
-System.enqueueJob(new MinhaClasseQueueable('paramInvalido'));
+System.enqueueJob(new MinhaClasseQueueable('id_invalido', 'arquivo', 'base64'));
 Test.stopTest();
 
 System.assertEquals('Mensagem esperada', MinhaClasseQueueable.lastExceptionMessage);
@@ -89,205 +148,58 @@ System.assertEquals('Mensagem esperada', MinhaClasseQueueable.lastExceptionMessa
 
 ---
 
-### 📋 Vantagens
-- ✅ Não depende de `Test.startTest/stopTest` para capturar exceções
-- ✅ Evita `System.assert(false)` falsos
-- ✅ Compatível com execução assíncrona nativa do Salesforce
-- ✅ Mensagens ficam acessíveis e rastreáveis
-
----
-
-🧠🖤 #TesteAssíncronoCerteiro #ExceçõesVisíveis #QueueableValidadoDeVerdade
-
-
----
-
-🆕 NOVA SEÇÃO: Uso de SELECT direto após @TestSetup
-✅ Sempre que utilizar @TestSetup, os dados criados devem ser recuperados por SELECT no método de teste — e nunca via testData.get(...).
-
-Exemplo correto:
-
-apex
-Copiar
-Editar
-Vertical__c vertical = [SELECT Id FROM Vertical__c LIMIT 1];
-
----
-
-# ************** FIM DAS PENDENCIAS ****************
-
-
-Vamos revisar e atualizar o **`GuiaTestsApex`** para refletir:
-
-- Adoção oficial de `LoggerMock`  
-- Uso obrigatório de `TestDataSetup`  
-- Integração com fluxo de disable de Flow  
-- Proibições de anti-patterns como `seeAllData`, `enqueueJob`, `System.debug`
-
----
-
-# 🧪 Guia Oficial de Testes Apex – v2025  
-> _Cobertura real. Isolamento absoluto. Testes de elite._
-
-📎 Guias complementares:
-- 🪵 [Guia Logger Fluent + Mock](https://bit.ly/GuiaLoggerApex)
-- 🧱 [TestDataSetup Global](https://bit.ly/TestDataSetup)
-- 🔁 [Template Comparativo Antes vs Depois](https://bit.ly/ComparacaoApex)
-- ✅ [Checklist de Equivalência Funcional](https://bit.ly/ConfirmacaoApex)
-
----
-
-## 🎯 Objetivo
-
-Garantir que toda classe testada atenda aos critérios de:
-- 💥 Cobertura real de lógica (e não de linhas)
-- 🔁 Independência entre testes
-- 🧱 Isolamento de dados
-- 🧠 Simulação de erros e exceções
-
----
-
-## ✅ Regras Rígidas
-
----
-
-## 🧠 Checklist Mamba de Rigor em Testes Apex
-
-Este checklist é obrigatório. Nenhum PR de teste pode ser aprovado se violar qualquer um dos itens abaixo.
-
-| ID  | Regra Mamba                                                                                     | Status  |
-|------|------------------------------------------------------------------------------------------------|----------|
-| T01 | ❌ `testData.get(...)` **proibido** dentro de métodos `@isTest`                                | 🔒       |
-| T02 | ❌ `setupTestData()` **jamais chamado manualmente** dentro de métodos `@isTest`                | 🔒       |
-| T03 | ✅ Toda preparação de dados deve ocorrer exclusivamente em `@TestSetup`                         | ✅       |
-| T04 | ❌ `FlowControlManager.disableFlows()` deve ser chamado apenas 1x no `@TestSetup`              | 🔒       |
-| T05 | ❌ `createUser(..., true)` + `System.runAs()` externo causam exceção (`Test already started`)  | 🔒       |
-| T06 | ✅ Se `createUser(..., false)`, o `runAs + startTest/stopTest` deve ser explícito no teste     | ✅       |
-| T07 | ❌ Testes com `isParallel=true` **não podem executar DML em objetos restritos** (User, Profile) | 🔒       |
-| T08 | ✅ Sempre usar `SELECT` explícito nos métodos `@isTest` para acessar dados criados             | ✅       |
-| T09 | ✅ Asserts devem ter mensagens claras, específicas e rastreáveis                               | ✅       |
-| T10 | ❌ `LoggerMock.getLogs()` **nunca** deve ser usado para validação — apenas para neutralizar log | 🔒       |
-| T11 | ✅ Dados de teste devem vir exclusivamente do `TestDataSetup`                                  | ✅       |
-| T12 | ✅ Cada teste deve validar **comportamento funcional real**, não apenas rodar código           | ✅       |
-
----
-
-📌 **Este checklist deve ser revisado antes da aprovação de qualquer classe de teste.**  
-📦 Padronização, previsibilidade e rastreabilidade total são inegociáveis.
-
-#MambaTestes #OrgBlindada #NadaPassa
-
-### 1. Setup de ambiente
-- ✅ Todo teste deve começar com:
-  ```apex
-  TestDataSetup.setupCompleteEnvironment();
-  FlowControlManager.disableFlows();
-  Logger.isEnabled = false;
-  ```
-
-### 2. Testes com `LoggerMock`
-- Nunca insira logs reais em testes
-- Use:
-  ```apex
-  LoggerMock mock = new LoggerMock();
-  mock.setMethod('nomeTeste').info('teste', null);
-  System.assertEquals(1, mock.getCaptured().size());
-  ```
-
-### 3. `Test.startTest()` obrigatório
-- Use sempre que houver lógica assíncrona, DML ou `enqueue`
-- Exemplo:
-  ```apex
-  Test.startTest();
-  System.enqueueJob(new MinhaClasseQueueable());
-  Test.stopTest();
-  ```
-
-### 4. Múltiplos cenários por método
-- Todo método de teste deve cobrir:
-  - ✅ Caminho feliz (positivo)
-  - ⚠️ Validação de erros
-  - 💥 Exceções simuladas
-
-### 5. Nome de classe
-- Sufixo obrigatório `Test`
-- Nome deve corresponder 1:1 à classe de produção
-  - Exemplo: `ClienteService → ClienteServiceTest`
-
----
-
-## ⚠️ Proibições Intransigentes
+## ❌ Proibições Intransigentes
 
 | Proibido                        | Motivo                                                              |
-|---------------------------------|---------------------------------------------------------------------|
+|--------------------------------|---------------------------------------------------------------------|
 | `System.debug()`                | Não rastreável. Use `LoggerMock`                                   |
-| `System.enqueueJob(...)` direto | Deve ser encapsulado no teste e nunca validado diretamente         |
-| `LoggerQueueable` em testes     | ⚠️ Não deve ser testado via log persistido (é assíncrono)          |
+| `System.enqueueJob(...)` direto | Nunca validar via assert. Apenas enfileirar                        |
+| `LoggerMock.getLogs()`          | Nunca usar para validação. Apenas para evitar log persistido     |
 | `seeAllData=true`               | Rompe isolamento. Não usar.                                        |
-| `Test.startTest()` sem `stop`   | Pode mascarar exceções                                             |
+| `SELECT` por nome               | Fragíl. Sempre usar `Id` fixo no teste.                            |
 
 ---
 
-## 🧪 Padrão de Teste Apex
+## 🔢 Padrão Geral
 
 ```apex
 @IsTest
-private class MinhaClasseTest {
+private class AlgumaClasseTest {
 
     @TestSetup
     static void setup() {
-        TestDataSetup.setupCompleteEnvironment();
+        Map<String, Object> testData = TestDataSetup.setupCompleteEnvironment();
+        System.assertNotEquals(null, testData.get('DocProposta'), 'DocProposta was not setuped.');
         FlowControlManager.disableFlows();
-        Logger.isEnabled = false;
     }
 
     @IsTest
     static void testHappyPath() {
-        LoggerMock mock = new LoggerMock();
+        Test.setMock(HttpCalloutMock.class, new MockHttpResponse());
+        Documento_da_Proposta__c doc = [SELECT Id FROM Documento_da_Proposta__c LIMIT 1];
+
         Test.startTest();
-        // Chamada ao método testado
+        System.enqueueJob(new AlgumaClasseQueueable(doc.Id, 'arquivo.png', 'base64'));
         Test.stopTest();
-
-        System.assertEquals(1, mock.getCaptured().size());
-    }
-
-    @IsTest
-    static void testComErro() {
-        try {
-            // Simula erro
-            System.assert(false, 'Forçar falha');
-        } catch (Exception e) {
-            System.assertEquals('Forçar falha', e.getMessage());
-        }
     }
 }
 ```
 
 ---
 
-## 🛠️ Boas práticas
-
-- Criar `TestDataBuilder` ou `TestDataSetup` por domínio
-- Validar mensagens e fluxos, não só `.size()`
-- Usar `.left(n)` para logs longos
-- Nunca usar lógica condicional fora do método de teste
-
----
-
-## ✅ Checklist de Revisão de Testes
-
+## ✅ Checklist Final de Aprovação
 - [ ] Usa `TestDataSetup.setupCompleteEnvironment()`?
-- [ ] Flows desabilitados com `FlowControlManager.disableFlows()`?
-- [ ] Usa `LoggerMock` (nunca `Logger` real)?
-- [ ] Sem `System.debug()`?
-- [ ] Sem `seeAllData=true`?
-- [ ] Cobertura do happy path, erro e exceção?
+- [ ] Flows desabilitados com `FlowControlManager.disableFlows()` **após** setup?
+- [ ] Dados validados com `SELECT` direto no teste?
+- [ ] Sem `testData.get(...)` nos testes?
+- [ ] Nenhum uso de `LoggerMock.getLogs()`?
+- [ ] `System.debug()` completamente banido?
+- [ ] `System.assert` com mensagem clara?
+- [ ] `enqueueJob` não validado diretamente?
+- [ ] Teste cobre happy path, erro e exceção?
 - [ ] Classe termina com `Test`?
-- [ ] Métodos testáveis são `@TestVisible`?
 
 ---
-
 > 🧠 Testes são o escudo da sua org.  
-> 🐍 Teste bem. Teste com padrão. Teste como Mamba.  
+> 🐍 Teste bem. Teste com padrão. Teste como Mamba.
 
----
