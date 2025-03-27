@@ -16,22 +16,22 @@ Este documento organiza e referencia os padrões essenciais da sua base de códi
 
 ---
 
-## 📚 Guias Referenciados
+## 📓 Guias Referenciados
 
 | Tema                         | Link Sugerido / Finalidade                                      |
 |------------------------------|------------------------------------------------------------------|
 | ✅ Guia de Redação e Arquitetura Apex (Master) | [bit.ly/GuiaApexMamba](https://bit.ly/GuiaApexMamba) (**este guia**) |
 | 🔍 Revisão de Código Apex             | [bit.ly/GuiaApexRevisao](https://bit.ly/GuiaApexRevisao) |
-| 🧪 Testes Unitários                    | [bit.ly/GuiaTestsApex](https://bit.ly/GuiaTestsApex)     |
-| 🪵 Logger Estruturado                 | [bit.ly/GuiaLoggerApex](https://bit.ly/GuiaLoggerApex)   |
+| 🪪 Testes Unitários                    | [bit.ly/GuiaTestsApex](https://bit.ly/GuiaTestsApex)     |
+| 🩵 Logger Estruturado                 | [bit.ly/GuiaLoggerApex](https://bit.ly/GuiaLoggerApex)   |
 | 🌐 REST API JSON                      | [bit.ly/Guia_APIs_REST](https://bit.ly/Guia_APIs_REST)   |
-| 🧱 Test Data Builders e Setup         | [bit.ly/TestDataSetup](https://bit.ly/TestDataSetup)     |
-| 🔁 Comparações de Refatoração         | [bit.ly/ComparacaoApex](https://bit.ly/ComparacaoApex)   |
+| 🪩 Test Data Builders e Setup         | [bit.ly/TestDataSetup](https://bit.ly/TestDataSetup)     |
+| 🔄 Comparações de Refatoração         | [bit.ly/ComparacaoApex](https://bit.ly/ComparacaoApex)   |
 | ✅ Confirmação de Equivalência Funcional | [bit.ly/ConfirmacaoApex](https://bit.ly/ConfirmacaoApex) |
 
 ---
 
-## 📦 Organização do Guia Master
+## 📆 Organização do Guia Master
 
 Este guia está dividido em capítulos autônomos, com expansão contínua:
 
@@ -72,6 +72,8 @@ Este guia está dividido em capítulos autônomos, com expansão contínua:
 - Isolamento por método
 - Testes nomeados por padrão BDD (`testMetodo_QuandoCondicao_EntaoResultado`)
 - Testes com mocks claros: `HttpCalloutMock`, `TestDataSetup`
+- Assertivas obrigatoriamente com output real (ex: `obtido: ' + var`)
+- Nunca validar logs (`FlowExecutionLog__c`) em testes
 
 ### ✅ Capítulo 8: FlowExecutionLog como Log Central de Integração
 - Inbound: request + response
@@ -82,7 +84,7 @@ Este guia está dividido em capítulos autônomos, com expansão contínua:
 
 ### ✅ Capítulo 9: Custom Settings de Configuração de Ambiente
 
-**Observação:** Custom Settings não possuem regras de validação. Portanto, a validação de valores como picklists (`Log_Level__c`) deve ser feita em código Apex — preferencialmente via `CustomSettingManager.cls`. Você também pode usar os campos `Description` e `Help Text` para simular uma picklist visual e orientar o preenchimento correto no Setup.
+**Observação:** Custom Settings não possuem regras de validação. Portanto, a validação de valores como picklists (`Log_Level__c`) deve ser feita em código Apex — preferencialmente via `CustomSettingManager.cls`.
 
 **Exemplo de enforcement em código:**
 ```apex
@@ -131,8 +133,7 @@ if (!niveisPermitidos.containsIgnoreCase(config.Log_Level__c)) {
 
 ---
 
-Este é o seu **padrão institucional autoral**.
-Modularidade, rastreabilidade e clareza — do início ao deploy.
+Este é o seu **padrão institucional autoral**.  
+Modularidade, rastreabilidade e clareza — do início ao deploy.  
 
 🧠🔥
-
