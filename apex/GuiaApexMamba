@@ -1,0 +1,104 @@
+# Guia Master de Arquitetura Apex Mamba
+
+> Este é o guia principal para toda e qualquer redação, estruturação, refatoração e evolução de código Apex na sua org.
+
+📎 **Shortlink sugerido:** [bit.ly/GuiaApexMamba](https://bit.ly/GuiaApexMamba)
+
+Este documento organiza e referencia os padrões essenciais da sua base de código, unificando:
+- Arquitetura
+- Estilo
+- Modularização
+- Rastreabilidade
+- Segurança e logging
+- Estrutura REST
+- Testabilidade
+- Boas práticas para DTOs, helpers, validações, JSON, entre outros
+
+---
+
+## 📚 Guias Referenciados
+
+| Tema                         | Link Sugerido / Finalidade                                      |
+|------------------------------|------------------------------------------------------------------|
+| ✅ Guia de Redação e Arquitetura Apex (Master) | [bit.ly/GuiaApexMamba](https://bit.ly/GuiaApexMamba) (**este guia**) |
+| 🔍 Revisão de Código Apex             | [bit.ly/GuiaApexRevisao](https://bit.ly/GuiaApexRevisao) |
+| 🧪 Testes Unitários                    | [bit.ly/GuiaTestsApex](https://bit.ly/GuiaTestsApex)     |
+| 🪵 Logger Estruturado                 | [bit.ly/GuiaLoggerApex](https://bit.ly/GuiaLoggerApex)   |
+| 🌐 REST API JSON                      | [bit.ly/Guia_APIs_REST](https://bit.ly/Guia_APIs_REST)   |
+| 🧱 Test Data Builders e Setup         | [bit.ly/TestDataSetup](https://bit.ly/TestDataSetup)     |
+| 🔁 Comparações de Refatoração         | [bit.ly/ComparacaoApex](https://bit.ly/ComparacaoApex)   |
+| ✅ Confirmação de Equivalência Funcional | [bit.ly/ConfirmacaoApex](https://bit.ly/ConfirmacaoApex) |
+
+---
+
+## 📦 Organização do Guia Master
+
+Este guia está dividido em capítulos autônomos, com expansão contínua:
+
+### ✅ Capítulo 1: Estrutura de Classe Apex
+- Docstring no topo
+- Logger `.start()` obrigatório
+- Modularização com `@TestVisible`
+- Métodos com responsabilidade única
+
+### ✅ Capítulo 2: Logger como Rastreabilidade Institucional
+- Log só em início, fim ou erro relevante
+- Nada de logger em helpers, DTOs, transforms, callout internos
+- Uso padrão de `FlowExecutionLog__c`
+- Controle de nível de log por ambiente
+
+### ✅ Capítulo 3: JSON com serializePretty
+- Toda resposta REST e payload de log deve usar `JSON.serializePretty()`
+- Exceção apenas para chamadas onde tamanho ou performance forem críticos
+
+### ✅ Capítulo 4: RestServiceHelper
+- Resposta estruturada `{ success, data, message, ref }`
+- Exceções padronizadas com `.buildError(...)`
+- Total desacoplamento da lógica de serialização REST
+
+### ✅ Capítulo 5: Tipos de Classe e Roteiros
+- REST Controllers
+- Service Layers
+- Queueables & Batches
+- Validators & DTOs
+- Callout Clients
+
+### ✅ Capítulo 6: Naming Convention Institucional
+- Verbos em métodos: `buscar`, `atualizar`, `enviar`
+- Substantivos em classes: `UcService`, `PropostaClient`, `LeadValidator`
+- DTOs nomeados como `ProdutoRequestDTO`, `UcResponseDTO`
+
+### ✅ Capítulo 7: Patterns de Testes
+- Isolamento por método
+- Testes nomeados por padrão BDD (`testMetodo_QuandoCondicao_EntaoResultado`)
+- Testes com mocks claros: `HttpCalloutMock`, `TestDataSetup`
+
+### ✅ Capítulo 8: FlowExecutionLog como Log Central de Integração
+- Inbound: request + response
+- Outbound: payload + retorno
+- Serialização sempre via `.serializePretty`
+- Logs disponíveis ao time de CDI
+
+### ✅ Capítulo 9: Exemplos Reais da Org (em expansão)
+- ProdutoRestController
+- ControllerExportReports
+- FileUploaderQueueable
+- UcService
+- TriggerContaHandler
+
+---
+
+## ✍️ Contribuindo com o Guia
+
+- Toda nova classe deve ser redigida com base neste guia
+- Sugestões de melhoria devem ser documentadas e discutidas com base nos capítulos
+- Ao revisar código de terceiros, referencie o capítulo violado
+- O guia cresce junto com a sua arquitetura
+
+---
+
+Este é o seu **padrão institucional autoral**.
+Modularidade, rastreabilidade e clareza — do início ao deploy.
+
+🧠🔥
+
