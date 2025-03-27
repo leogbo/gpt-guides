@@ -1,109 +1,109 @@
-# ************* PENDENCIAS A INTEGRAR **********
+# 🔁 Guia de Comparações Apex – v2025 (Mentalidade Mamba)
 
-💡 Sugestão: Consolidar uma nova seção nos guias
-📂 Validação de Entradas e Assertivas em Testes
+📎 **Shortlink oficial:** [bit.ly/ComparacaoApex](https://bit.ly/ComparacaoApex)
 
-Onde centralizamos todas as regras que reforçam a importância de:
+> “Nenhuma refatoração é legítima sem comparação explícita, revisão formal e equivalência comprovada.” – Mentalidade Mamba 🧠🔥
 
-Validar parâmetros de entrada
-
-Gerar exceções explícitas e previsíveis
-
-Garantir que testes que esperam falha de fato cobrem essa falha
-
-# ************* FIM DAS PENDENCIAS **********
-
-
-# 🔁 Template Oficial – Comparativo Antes vs Depois da Refatoração
-
-> Use este template obrigatório em todas as entregas de revisão/refatoração para demonstrar **equivalência funcional**, identificar melhorias estruturais e garantir que nada foi perdido no processo.
+Este guia define como documentar, revisar e validar refatorações em Apex com segurança, clareza e rastreabilidade.
 
 ---
 
-## 📄 Classe revisada
+## 📚 Guias obrigatórios relacionados
 
-**Nome da classe:** `{{NomeDaClasse}}`  
-**Tipo:** Apex Class / Trigger Handler / REST / Batch / Queueable / Test
-
----
-
-## ✅ Código Revisado (Versão Final)
-
-> Inclua aqui o código refatorado completo, validado pelo [Guia Rigoroso de Revisão Apex](https://bit.ly/GuiaApexRevisao) e pelo [Guia Logger (v2)](https://bit.ly/GuiaLoggerApex)
+- 📘 [Guia Master de Arquitetura](https://bit.ly/GuiaApexMamba)
+- 🔍 [Guia de Revisão](https://bit.ly/GuiaApexRevisao)
+- 🧪 [Guia de Testes](https://bit.ly/GuiaTestsApex)
+- ✅ [Guia de Equivalência Funcional](https://bit.ly/ConfirmacaoApex)
 
 ---
 
-## 🔍 Comparativo Técnico
+## ✅ O que deve ser comparado
 
-| Elemento                  | Antes                                      | Depois                                        | Observação Técnica                         | Status |
-|---------------------------|---------------------------------------------|-----------------------------------------------|---------------------------------------------|--------|
-| 🎯 Nome da classe         | `Cidade_Rest_API`                          | `Cidade_Rest_API`                             | Nome mantido                               | ✅     |
-| 🔒 Métodos públicos       | `@InvocableMethod createUC()`             | `createUC()`                                  | Sem alteração                              | ✅     |
-| 🔒 Variáveis públicas     | `@InvocableVariable prop_id`              | `prop_id`                                     | Nome mantido                               | ✅     |
-| 📦 JSON Input/Output      | `{ prop_id: "123" }`                       | `{ prop_id: "123" }`                          | Estrutura inalterada                       | ✅     |
-| 🪵 Logging                | `System.enqueueJob(...)`                   | `Logger.setMethod(...).error(...)`            | Migrado para padrão `Logger (v2)`          | ✅     |
-| ⚠️ Tratamento de erro     | Sem `try/catch`                            | Try/Catch com `Logger.error(...)`             | Logging de exceções incluído               | ✅     |
-| 🧪 Testes                 | Usava `LoggerMock.getLogs()`               | Usa apenas `LoggerMock` (sem validação direta) | Conforme guia de testes                    | ✅     |
-| 🧩 Modularização          | Lógica inline                              | Extraída para `validaToken()`, etc.           | Melhor legibilidade e testabilidade        | ✅     |
-| 🧪 Logs validados?        | Sim (com `.getLogs()`)                     | ❌ Removido – log não é validado em teste     | Correção crítica conforme `Logger v2`      | ✅     |
+- Refatorações de qualquer método público ou `@TestVisible`
+- Alterações de estrutura interna
+- Mudança de fallback (ex: `null` → `Optional`, `LIMIT 1` → `RecordHelper`)
+- Substituições de bloco de lógica por helper externo
+- Renomeações de variáveis visíveis (salvo em escopos `private`)
 
 ---
 
-## 📋 Checklist Técnico de Equivalência
+## ✅ Estrutura mínima de uma comparação
 
-| Item                                                                 | Confirmado? |
-|----------------------------------------------------------------------|-------------|
-| 🔒 Nome da classe **não foi alterado**                               | ✅ / ❌      |
-| 🔒 Métodos públicos **não foram alterados**                          | ✅ / ❌      |
-| 🔒 Campos/variáveis públicas **mantidos**                            | ✅ / ❌      |
-| 🔄 JSON de input/output **inalterado**                               | ✅ / ❌      |
-| 🧪 Todos os testes anteriores passaram                               | ✅ / ❌      |
-| 🧪 Nenhum log foi validado diretamente no teste                      | ✅ / ❌      |
-| 🪵 Logging migrou para `Logger` com `.setMethod().error(...)`        | ✅ / ❌      |
-| 🐞 `System.debug()` só em classes de teste (se houver)              | ✅ / ❌      |
-| 📄 Fluxos anteriores continuam cobertos                              | ✅ / ❌      |
+### ❌ Antes
+```apex
+Account acc = [SELECT Id, Name FROM Account WHERE Id = :id LIMIT 1];
+```
 
----
+### ✅ Depois
+```apex
+Account acc = (Account) RecordHelper.getById(Account.SObjectType, id, 'Id, Name');
+```
 
-## 🧠 Justificativas para alterações (se aplicável)
-
-> Descreva abaixo quaisquer mudanças **além de refatoração estrutural**:
-
-- Inclusão de tratamento de exceção com rastreamento
-- Ajuste em cálculo com validação de equivalência
-- Extração de método auxiliar com `@TestVisible`
-- Atualização de asserts para `.toUpperCase()` ou mensagens explícitas
+> Toda comparação deve estar em comentário, PR, ou markdown dentro do branch.
 
 ---
 
-## ✅ Confirmação Final
+## 📝 Template sugerido para Pull Requests
 
 ```markdown
-✔️ Refatoração validada como funcionalmente equivalente
+### 🔄 Refatoração proposta
 
-- Nenhum método público ou estrutura JSON foi alterado
-- Logging atualizado para `Logger (v2)` com contexto fluente e rastreável
-- Testes atualizados com `LoggerMock` sem validação direta de log
-- Fluxos de exceção cobertos com `Logger.error(...)`
-- Toda alteração é estrutural, segura e auditável
+- Refatorado método `buscarConta()` para usar `RecordHelper.getById(...)`
+- Adicionado fallback para `null`
+- `@TestVisible` mantido para cobertura
+
+### ✅ Antes
+```apex
+Account acc = [SELECT Id FROM Account WHERE Id = :id LIMIT 1];
+```
+
+### ✅ Depois
+```apex
+Account acc = (Account) RecordHelper.getById(Account.SObjectType, id, 'Id');
+```
+
+### 🧪 Testes
+- Testes atualizados e passando com `@TestSetup`
+- Adicionado caso para `id == null`
+
+### 🔒 Equivalência funcional mantida
+✔️ Confirmado via [bit.ly/ConfirmacaoApex](https://bit.ly/ConfirmacaoApex)
 ```
 
 ---
 
-## 📎 Compatibilidade com guias oficiais
+## ✅ Quando uma comparação é obrigatória?
 
-- https://bit.ly/GuiaApexRevisao
-- https://bit.ly/GuiaLoggerApex
-- https://bit.ly/Guia_APIs_REST
-- https://bit.ly/GuiaTestsApex
-- https://bit.ly/TestDataSetup
-- https://bit.ly/ComparacaoApex
-- https://bit.ly/ConfirmacaoApex
+| Situação                             | Obrigatório? |
+|--------------------------------------|--------------|
+| Alteração em método público          | ✅            |
+| Troca de SELECT direto por helper    | ✅            |
+| Refatoração em builder de teste      | ✅            |
+| Apenas mudança de espaçamento        | ❌            |
+| Mudança em variável `private`        | ⚠️ contextual |
+| Inclusão de log                      | ⚠️ contextual |
 
+---
+
+## 📌 Dicas avançadas de comparação
+
+- Use `git diff --word-diff` para destacar mudanças sutis
+- Faça uso de ferramentas como VS Code `Side-by-Side View`
+- Compare comportamentos de log se envolveu `LoggerContext`
+- Mantenha os blocos `Antes` e `Depois` separados por tipo:
+  - SELECT
+  - Lógica condicional
+  - Serialização
 
 ---
 
-> 🟢 Versão 2025 validada pelo Apex Revisor Rigoroso  
-> 📅 Última atualização: MAR/2025
+## 🧠 Final
 
----
+> Toda melhoria precisa de prova.
+> Toda prova precisa de contexto.
+> Toda mudança precisa passar pela lupa da comparação.
+
+📌 Refatoração sem comparação é improviso.
+
+🧠🧱🧪 #RefatoraComRaiz #AntesVsDepois #NadaMudaSemRastreabilidade
+
