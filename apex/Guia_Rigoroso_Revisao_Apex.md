@@ -1,45 +1,4 @@
-# ************** PENDENCIAS PARA INTEGRAR ****************
-
-🆕 NOVA REGRA: Evite dependência de comportamento implícito em testes
-❌ Nunca presuma que exceções serão lançadas “automaticamente”
-✅ Toda exceção esperada deve:
-
-Ser lançada manualmente (throw new IllegalArgumentException(...))
-
-Ser capturada e validada explicitamente no teste
-
-✔️ Se não houver throw, o teste não pode assumir erro
-
-💡 Sugestão: Consolidar uma nova seção nos guias
-📂 Validação de Entradas e Assertivas em Testes
-
-Onde centralizamos todas as regras que reforçam a importância de:
-
-Validar parâmetros de entrada
-
-Gerar exceções explícitas e previsíveis
-
-Garantir que testes que esperam falha de fato cobrem essa falha
-
----
-
-✏️ Adicionar exemplo de SELECT defensivo:
-apex
-Copiar
-Editar
-List<Account> accList = [SELECT Id FROM Account WHERE Id = :lead.AccountId__c LIMIT 1];
-if (accList.isEmpty()) {
-    throw new CustomException('AccountId não encontrado.');
-}
-Account acc = accList[0];
-❗ Nunca assumir que SELECT ... WHERE Id = :algo retornará resultado — mesmo com LIMIT 1.
-
----
-
-# ************** FRIM DAS PENDENCIAS ****************
-
-
-# 📘 Guia Rigoroso de Revisão Apex – v2025  
+# 📘️ Guia Rigoroso de Revisão Apex – v2025
 > _Atualizado com Logger Fluent + Async + Mock_
 
 📎 Consulte os guias complementares oficiais:
@@ -53,11 +12,11 @@ Account acc = accList[0];
 
 ---
 
-## 🎯 Objetivo
+## 🌟 Objetivo
 Definir regras **intransigentes** para código Apex com foco em:
 - 🧠 Rastreabilidade via log estruturado  
 - ⚙️ Testabilidade previsível  
-- 🔁 Refatoração segura  
+- ⟳ Refatoração segura  
 - 🧪 Padrão de testes reutilizável e auditável  
 
 ---
@@ -114,7 +73,69 @@ Definir regras **intransigentes** para código Apex com foco em:
 
 ---
 
-## 🧱 Exemplo padrão de uso
+## 🪩 Boas Práticas Adicionadas
+
+### 🔐 Evite dependência de comportamento implícito em testes
+- ❌ Nunca presuma que exceções serão lançadas "automaticamente"
+- ✅ Toda exceção esperada deve:
+  - Ser lançada manualmente: `throw new IllegalArgumentException(...)`
+  - Ser capturada via `try/catch` e validada com assert dentro do teste
+- Se não houver `throw`, o teste **não pode assumir erro**
+
+### ✅ Exemplo:
+```apex
+try {
+    ClasseX.metodoComParametro(null);
+    System.assert(false, 'Exceção esperada não foi lançada');
+} catch (IllegalArgumentException e) {
+    System.assertEquals('Mensagem esperada', e.getMessage());
+}
+```
+
+### 📄 SELECT defensivo sempre
+- Nunca assuma que `SELECT ... LIMIT 1` retornou resultado
+- Use `List<...>` + validação via `.isEmpty()`
+
+#### ✅ Exemplo correto:
+```apex
+List<Account> accList = [SELECT Id FROM Account WHERE Id = :lead.AccountId__c LIMIT 1];
+if (accList.isEmpty()) {
+    throw new CustomException('AccountId não encontrado.');
+}
+Account acc = accList[0];
+```
+
+---
+
+## ✅ Checklist de Revisão
+
+- [ ] Usa `Logger` com contexto e `.setMethod(...)`
+- [ ] Evita `System.debug()` em produção
+- [ ] Testes usam `LoggerMock`
+- [ ] Nenhuma chamada direta a `enqueueJob(...)` em teste
+- [ ] Usa `TestDataSetup.setupCompleteEnvironment()`
+- [ ] Flows desabilitados nos testes com `FlowControlManager`
+- [ ] Métodos internos têm `@TestVisible`
+- [ ] Refatoração contém equivalência validada
+- [ ] Logger está no padrão `ILogger` / `Logger`
+- [ ] Testes que esperam exceção validam o erro com `try/catch`
+- [ ] SELECTs usam fallback seguro com `isEmpty()`
+
+---
+
+## 📄 Padrões de Teste
+
+| Regra                            | Aplicação                         |
+|----------------------------------|-----------------------------------|
+| Sufixo `Test` obrigatório         | Ex: `ContaValidatorTest`          |
+| Usa `@TestSetup` e `startTest()` | Para separar setup de execução    |
+| `LoggerMock` em vez de Logger    | Para evitar inserts/queue         |
+| Simulação de erros               | Deve testar erro e exceção        |
+| Assertiva com output real        | `System.assert` sempre com valor comparado na mensagem |
+
+---
+
+## ⚙️ Exemplo padrão de uso de Logger
 
 ```apex
 static final ILogger log = new Logger();
@@ -134,42 +155,5 @@ Logger.fromTrigger(newRecord)
 
 ---
 
-## ✅ Checklist de Revisão
-
-- [ ] Usa `Logger` com contexto e `.setMethod(...)`
-- [ ] Evita `System.debug()` em produção
-- [ ] Testes usam `LoggerMock`
-- [ ] Nenhuma chamada direta a `enqueueJob(...)` em teste
-- [ ] Usa `TestDataSetup.setupCompleteEnvironment()`
-- [ ] Flows desabilitados nos testes com `FlowControlManager`
-- [ ] Métodos internos têm `@TestVisible`
-- [ ] Refatoração contém equivalência validada
-- [ ] Logger está no padrão `ILogger` / `Logger`
-
----
-
-## 📄 Padrões de Teste
-
-| Regra                            | Aplicação                         |
-|----------------------------------|-----------------------------------|
-| Sufixo `Test` obrigatório         | Ex: `ContaValidatorTest`          |
-| Usa `@TestSetup` e `startTest()` | Para separar setup de execução    |
-| `LoggerMock` em vez de Logger    | Para evitar inserts/queue         |
-| Simulação de erros               | Deve testar erro e exceção        |
-
----
-
-## ⚙️ Boas práticas avançadas
-
-- Criar `XTestDataSetup` por objeto (ex: `ClienteTestDataSetup`)
-- Isolar lógica em services com injeção de `ILogger`
-- Criar wrappers internos como `.logError(...)` com mensagens padrão
-- Usar `.fromTrigger()` para preencher recordId automaticamente
-- Documentar a `className`, `logCategory`, etc. no static block de forma clara
-
----
-
 > 🧠 Versão auditada por Apex Revisor Rigoroso • Mantida por Leo Garcia  
-> 🐍 Mamba Mentality. Código Apex de elite.  
-
----
+> 🐍 Mamba Mentality. Código Apex de elite.
