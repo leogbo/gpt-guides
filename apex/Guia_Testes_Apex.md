@@ -1,134 +1,3 @@
-# ***** PENDENCIAS A INTEGRAR *****
-
-
-🧠 **Aprendizado útil (extract pronto para colar no guia de pendências):**
-
----
-
-### 🧩 **[PENDÊNCIA A INCORPORAR NO GUIA] – Testes com LIKE e setup resiliente**
-
-**Problema detectado:**  
-Falha de testes ao depender de dados com `Fila__c LIKE '%ultragaz parceiro domiciliar%'` sem garantir que o valor exato existia nos dados mockados.
-
-**Aprendizado incorporável:**  
-> Sempre que métodos testados fizerem `LIKE` com `contains`, o `@TestSetup` deve criar dados com valor **exato e completo** compatível com o padrão da cláusula. Não confie em `startsWith`, `endsWith` ou `parcial`.
-
----
-
-### ✅ Regra Nova no Guia:
-
-📌 **[TESTES APEX – PADRÃO DE DADOS PARA `LIKE`]**  
-> Se o código contém filtros `LIKE '%valor%'`, **os dados criados em teste precisam conter exatamente o mesmo valor, sem depender de variações de case ou prefixo**.  
-> 
-> Exemplo obrigatório para passar:
-```apex
-Fila__c = 'ultragaz parceiro domiciliar' // corresponde ao LIKE '%ultragaz parceiro domiciliar%'
-```
-
----
-
-# ***** FIM PENDENCIAS A INTEGRAR *****
-
-
-Tivemos uma jornada completa com aprendizados valiosos que **merecem ser oficializados nos guias**, especialmente para Osmar, Marcio, e qualquer dev que for tocar código crítico da sua Org.
-
-LINKS DE REFERENCIA
-- https://bit.ly/GuiaApexRevisao
-- https://bit.ly/GuiaLoggerApex
-- https://bit.ly/Guia_APIs_REST
-- https://bit.ly/GuiaTestsApex
-- https://bit.ly/TestDataSetup
-- https://bit.ly/ComparacaoApex
-- https://bit.ly/ConfirmacaoApex
-
----
-
-## 📘 Sugestão: Seção nova no GuiaTestsApex  
-### 🧠 “Aprendizados aplicados em testes complexos”
-
-### ✅ Exemplos a registrar:
-
-| Tema | Regra Aprendida |
-|------|------------------|
-| `@testSetup` + flows   | Setup de dados **sempre com flows ativos**. Só depois: `FlowControlManager.disableFlows();` |
-| Queueables e exceções  | Testes que esperam exceções **devem usar try/catch + assertEquals(...)** |
-| Validações opcionais   | Relacionamentos como `UC__c → Lead` **podem ser vazios**, testes devem aceitar `size() == 0` |
-| SELECT defensivo       | Nunca usar `SELECT ... LIMIT 1` direto em `SObject`, sempre usar `List<...>` com fallback |
-| Métodos que retornam estruturas fixas | Mesmo sem dados, retornos como `List<LeadData>` devem ter `.size() == leadIds.size()` |
-| Validação de mocks     | `HttpCalloutMock` deve retornar estrutura mínima, mas rastreável (`access_token`, etc.) |
-| Dados via TestDataSetup | Nenhum uso de `testData.get(...)` em métodos de teste — **apenas `SELECT` direto** |
-| Rastreamento de falha | Toda `System.assert` com mensagem clara e contextualizada |
-
----
-
-Excelente. Esse código é uma **peça central da arquitetura REST da sua Org** e deve ser tratado como tal no manual.
-
----
-
-### 📁 Proposta: Nova seção no Guia de Padrões REST
-> ## 🔧 `RestServiceHelper`: Serviço Base de Suporte a RESTs
-
----
-
-### 📘 Estrutura sugerida:
-
-```md
-## 🔧 RestServiceHelper – Classe Abstrata Base para Serviços REST
-
-Esta classe é usada como base padrão para todos os serviços REST desenvolvidos internamente.  
-Ela fornece:
-
-- 🛡️ Validação de tokens de segurança
-- 📦 Extração robusta do corpo da requisição
-- 💬 Métodos padronizados para respostas HTTP (200, 400, 401, 404, 406, 500, etc.)
-- 🔁 Mapeamento automático de campos de entrada JSON → SObject
-- 🧪 Suporte direto a testes (`lastExceptionMessage`, overloads curtos)
-
----
-
-### 🧱 Estrutura padrão da classe
-
-```apex
-// código completo que você enviou aqui
-```
-
----
-
-### 🧪 Casos de uso recomendados
-
-| Situação | Método |
-|----------|--------|
-| Token inválido | `validateAccessToken(...)` → lança `AccessException` |
-| Corpo ausente ou malformado | `getRequestBody()` → lança `BadRequestException` |
-| Responder com erro genérico | `internalServerError(...)` |
-| Confirmar update com sucesso | `accepted('Lead atualizado')` |
-| Retornar 404 com detalhes | `notFound('Lead não encontrado', mapDeDetalhes)` |
-| Aplicar JSON em SObject | `mapFieldsFromRequest(json, objeto, 'Lead')` |
-
----
-
-### 🧱 Testes relacionados
-
-> Consulte: `RestServiceHelperTest.cls` para cobertura de:
-> - `validateAccessToken` com e sem token
-> - `getRequestBody()` com JSON válido e inválido
-> - `sendResponse` com código e mensagens
-> - `mapFieldsFromRequest` com campos válidos e ignorados
-
----
-
-## 🧠 Observações
-
-- Todos os serviços REST novos devem extender ou usar essa classe como helper.
-- O retorno deve sempre ser JSON padronizado.
-- Testes unitários devem validar código HTTP e conteúdo da resposta.
-
-```
-
-
-# ***** FIM DAS PENDENCIAS A INTEGRAR *****
-
-
 # 💪 Guia Oficial de Testes Apex – v2025 (Padrão Mamba)
 > _Cobertura real. Isolamento absoluto. Testes de elite._
 
@@ -155,16 +24,16 @@ Garantir que toda classe testada atenda aos critérios de:
 
 | ID   | Regra Mamba                                                                                     | Status |
 |------|--------------------------------------------------------------------------------------------------|--------|
-| T01 | ❌ `testData.get(...)` **proibido** dentro de métodos `@isTest`                                 | 🔒     |
-| T02 | ❌ `setupTestData()` **jamais chamado manualmente** dentro de `@isTest`                       | 🔒     |
+| T01 | ❌ `testData.get(...)` **proibido** dentro de métodos `@isTest`                                 | 🔐     |
+| T02 | ❌ `setupTestData()` **jamais chamado manualmente** dentro de `@isTest`                       | 🔐     |
 | T03 | ✅ Toda preparação de dados deve ocorrer exclusivamente em `@TestSetup`                    | ✅     |
-| T04 | ❌ `FlowControlManager.disableFlows()` deve ser chamado apenas 1x no `@TestSetup`            | 🔒     |
-| T05 | ❌ `createUser(..., true)` + `System.runAs()` externo causa `Test already started`           | 🔒     |
+| T04 | ❌ `FlowControlManager.disableFlows()` deve ser chamado apenas 1x no `@TestSetup`            | 🔐     |
+| T05 | ❌ `createUser(..., true)` + `System.runAs()` externo causa `Test already started`           | 🔐     |
 | T06 | ✅ `createUser(..., false)` + `runAs + startTest/stopTest` deve ser usado corretamente       | ✅     |
-| T07 | ❌ Testes `isParallel=true` **não podem fazer DML em objetos restritos** (User, Profile)       | 🔒     |
+| T07 | ❌ Testes `isParallel=true` **não podem fazer DML em objetos restritos** (User, Profile)       | 🔐     |
 | T08 | ✅ Sempre usar `SELECT` direto nos métodos `@isTest` (nunca depender de instância estática) | ✅     |
 | T09 | ✅ Asserts devem ter mensagens claras e rastreáveis                                        | ✅     |
-| T10 | ❌ `LoggerMock.getLogs()` **nunca** deve ser usado para validação (somente neutraliza log)     | 🔒     |
+| T10 | ❌ `LoggerMock.getLogs()` **nunca** deve ser usado para validação (somente neutraliza log)     | 🔐     |
 | T11 | ✅ Dados de teste devem vir exclusivamente do `TestDataSetup`                                | ✅     |
 | T12 | ✅ Cada teste deve validar **comportamento funcional real**                                  | ✅     |
 
@@ -193,14 +62,14 @@ static void testQueueableSuccess() {
     Test.setMock(HttpCalloutMock.class, new MockHttpResponse());
 
     Documento_da_Proposta__c doc = [SELECT Id, Link__c FROM Documento_da_Proposta__c LIMIT 1];
-    System.assertNotEquals(null, doc, 'DocProposta was not setuped.');
+    System.assertNotEquals(null, doc, 'DocProposta was not setuped. Output: ' + doc);
 
     Test.startTest();
     Id jobId = System.enqueueJob(new FileUploaderQueueable(doc.Id, 'arquivo.png', 'base64xyz'));
     Test.stopTest();
 
     Documento_da_Proposta__c updated = [SELECT Id, Link__c FROM Documento_da_Proposta__c WHERE Id = :doc.Id];
-    System.assertEquals('https://url-esperada', updated.Link__c);
+    System.assertEquals('https://url-esperada', updated.Link__c, 'Link não atualizado corretamente. Output: ' + updated.Link__c);
 }
 ```
 
@@ -212,13 +81,14 @@ static void testQueueableCalloutFailure() {
     Test.setMock(HttpCalloutMock.class, new MockHttpResponseForFailure());
 
     Documento_da_Proposta__c doc = [SELECT Id FROM Documento_da_Proposta__c LIMIT 1];
-    System.assertNotEquals(null, doc, 'DocProposta was not setuped.');
+    System.assertNotEquals(null, doc, 'DocProposta was not setuped. Output: ' + doc);
 
     Test.startTest();
     System.enqueueJob(new FileUploaderQueueable(doc.Id, 'arquivo.png', 'base64xyz'));
     Test.stopTest();
 
-    // Sem assertivas: validamos apenas que nenhuma exceção foi lançada
+    // Nenhuma exceção esperada. Apenas garantir execução segura.
+    System.assert(true, 'Queueable executado sem falha.');
 }
 ```
 
@@ -246,7 +116,7 @@ static void testQueueableParametrosInvalidos() {
         Test.stopTest();
         System.assert(false, 'Deveria lançar exceção para recordId nulo');
     } catch (IllegalArgumentException e) {
-        System.assertEquals('recordId não pode ser nulo ou vazio', e.getMessage());
+        System.assertEquals('recordId não pode ser nulo ou vazio', e.getMessage(), 'Mensagem divergente: ' + e.getMessage());
     }
 }
 ```
@@ -274,7 +144,7 @@ Test.startTest();
 System.enqueueJob(new MinhaClasseQueueable('id_invalido', 'arquivo', 'base64'));
 Test.stopTest();
 
-System.assertEquals('Mensagem esperada', MinhaClasseQueueable.lastExceptionMessage);
+System.assertEquals('Mensagem esperada', MinhaClasseQueueable.lastExceptionMessage, 'Mensagem divergente: ' + MinhaClasseQueueable.lastExceptionMessage);
 ```
 
 ---
@@ -283,11 +153,11 @@ System.assertEquals('Mensagem esperada', MinhaClasseQueueable.lastExceptionMessa
 
 | Proibido                        | Motivo                                                              |
 |--------------------------------|---------------------------------------------------------------------|
-| `System.debug()`                | Não rastreável. Use `LoggerMock`                                   |
-| `System.enqueueJob(...)` direto | Nunca validar via assert. Apenas enfileirar                        |
-| `LoggerMock.getLogs()`          | Nunca usar para validação. Apenas para evitar log persistido     |
-| `seeAllData=true`               | Rompe isolamento. Não usar.                                        |
-| `SELECT` por nome               | Fragíl. Sempre usar `Id` fixo no teste.                            |
+| `System.debug()`               | Não rastreável. Use `LoggerMock`                                  |
+| `System.enqueueJob(...)` direto| Nunca validar via assert. Apenas enfileirar                        |
+| `LoggerMock.getLogs()`         | Nunca usar para validação. Apenas para evitar log persistido     |
+| `seeAllData=true`              | Rompe isolamento. Não usar.                                        |
+| `SELECT` por nome              | Frágil. Sempre usar `Id` fixo no teste.                            |
 
 ---
 
@@ -318,6 +188,45 @@ private class AlgumaClasseTest {
 
 ---
 
+## 📊 Assertivas em Testes (Padrão Mamba)
+
+> Todo `System.assert`, `System.assertEquals`, `System.assertNotEquals` em testes deve **sempre incluir o valor real (output)** na mensagem de erro.
+
+⚠️ **Essa regra se aplica apenas a validações de dados de negócio ou retorno de métodos.**
+Ela **NÃO** se aplica a logs persistidos (`FlowExecutionLog__c`), que **não devem ser validados em testes**.
+
+---
+
+### ✅ Correto:
+```apex
+System.assertEquals(1, contas.size(), 'Esperado 1 conta, obtido: ' + contas.size());
+System.assertNotEquals(null, resultado, 'Resultado inesperado: ' + resultado);
+```
+
+### ❌ Proibido:
+```apex
+FlowExecutionLog__c log = [SELECT Id FROM FlowExecutionLog__c LIMIT 1];
+System.assertEquals('INFO', log.Log_Level__c); // ❌ NUNCA validar logs em teste
+```
+
+---
+
+## 🔄 Aprendizados aplicados em testes complexos
+
+| Tema                           | Regra Aprendida                                                                                         |
+|--------------------------------|---------------------------------------------------------------------------------------------------------|
+| `@TestSetup` + flows           | Setup de dados **sempre com flows ativos**. Apenas depois: `FlowControlManager.disableFlows();`        |
+| Queueables e exceções          | Testes que esperam exceções **devem usar try/catch + assertEquals(...) com mensagem clara**          |
+| Validações opcionais         | Relacionamentos como `UC__c → Lead` **podem ser vazios**, testes devem aceitar `size() == 0`         |
+| SELECT defensivo              | Nunca usar `SELECT ... LIMIT 1` direto em `SObject`, sempre usar `List<...>` com fallback              |
+| Retorno com .size() esperado  | Mesmo sem dados, retornos como `List<LeadData>` devem ter `.size() == leadIds.size()`                 |
+| Validação de mocks            | `HttpCalloutMock` deve retornar estrutura mínima, mas rastreável (`access_token`, etc.)              |
+| Dados via TestDataSetup       | Nenhum uso de `testData.get(...)` em métodos de teste — **sempre usar `SELECT` direto**               |
+| Assertiva com output real     | Toda assertiva deve conter o valor real obtido, para rastreio preciso em caso de falha                |
+| LIKE em filtros               | Dados de teste devem conter o valor **exato** usado no `LIKE '%valor%'`, evitando match parcial        |
+
+---
+
 ## ✅ Checklist Final de Aprovação
 - [ ] Usa `TestDataSetup.setupCompleteEnvironment()`?
 - [ ] Flows desabilitados com `FlowControlManager.disableFlows()` **após** setup?
@@ -325,7 +234,7 @@ private class AlgumaClasseTest {
 - [ ] Sem `testData.get(...)` nos testes?
 - [ ] Nenhum uso de `LoggerMock.getLogs()`?
 - [ ] `System.debug()` completamente banido?
-- [ ] `System.assert` com mensagem clara?
+- [ ] `System.assert` com mensagem clara + output?
 - [ ] `enqueueJob` não validado diretamente?
 - [ ] Teste cobre happy path, erro e exceção?
 - [ ] Classe termina com `Test`?
@@ -333,4 +242,3 @@ private class AlgumaClasseTest {
 ---
 > 🧠 Testes são o escudo da sua org.  
 > 🐍 Teste bem. Teste com padrão. Teste como Mamba.
-
