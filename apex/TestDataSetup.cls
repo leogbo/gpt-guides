@@ -1,163 +1,109 @@
-# ************** PENDENCIAS PARA INTEGRAR ****************
+# 🧱 Guia Oficial de TestData Setup – v2025 (Mentalidade Mamba)
 
-🆕 Regra de reforço:
-❗ Nenhum dado em TestDataSetup pode impedir a execução de validações obrigatórias
-Exemplo: recordId em branco deve ser validado, mesmo se TestDataSetup normalmente criar tudo certo
+📎 **Shortlink oficial:** [bit.ly/TestDataSetup](https://bit.ly/TestDataSetup)
 
-💡 Sugestão: Consolidar uma nova seção nos guias
-📂 Validação de Entradas e Assertivas em Testes
+> “Setup de teste não é detalhe. É o alicerce de toda validação.” – Mentalidade Mamba 🧠🔥
 
-Onde centralizamos todas as regras que reforçam a importância de:
-
-Validar parâmetros de entrada
-
-Gerar exceções explícitas e previsíveis
-
-Garantir que testes que esperam falha de fato cobrem essa falha
+Este guia define o padrão de como preparar dados de teste reutilizáveis, rastreáveis e seguros com `TestDataSetup` e classes auxiliares associadas.
 
 ---
 
-✅ Reforçar regra já existente:
-🔒 Nunca acessar os dados de teste via Map<String, SObject> fora do @TestSetup.
-O Map é reinicializado a cada execução de método @isTest.
+## 📚 Referências cruzadas obrigatórias
+
+- 📘 [Guia Master de Arquitetura](https://bit.ly/GuiaApexMamba)
+- 🧪 [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
+- 🔍 [Guia de Revisão](https://bit.ly/GuiaApexRevisao)
 
 ---
 
-# ************** FIM DAS PENDENCIAS ****************
+## ✅ Padrões Gerais
 
-A seguir está a versão **refatorada e atualizada do Guia Rigoroso de TestDataSetup (2025)**, já ajustada para:
-
-- Padrão v2 do ecossistema Logger  
-- Uso estrito de `@TestSetup`  
-- Proibição definitiva de `Logger` dentro de setup  
-- Cache, reutilização defensiva, isolamento de dados e nomes-chave claros  
+- Dados de teste devem ser criados **somente no `@TestSetup`**
+- Nunca usar `testData.get(...)` dentro de testes – apenas `SELECT` com fallback
+- Builders devem evitar duplicidade com `SELECT LIMIT 1` antes do `insert`
 
 ---
 
-# 🧱 Guia Rigoroso de TestDataSetup – v2025
+## ✅ Setup máximo via `setupCompleteEnvironment()`
 
-> 🌐 Base: https://bit.ly/TestDataSetup
-
-📎 Guias complementares:
-- https://bit.ly/GuiaApexRevisao
-- https://bit.ly/GuiaLoggerApex
-- https://bit.ly/Guia_APIs_REST
-- https://bit.ly/GuiaTestsApex
-- https://bit.ly/TestDataSetup
-- https://bit.ly/ComparacaoApex
-- https://bit.ly/ConfirmacaoApex
-
----
-
-## ✅ Objetivo
-
-Estabelecer padrão único, seguro e reutilizável para criação de dados de teste em Apex.  
-A classe `TestDataSetup.cls` atua como **orquestradora universal de dados em `@TestSetup`**, garantindo isolamento, rastreabilidade e escalabilidade.
-
----
-
-## ⚖️ Regras Invioláveis
-
-### 1. Uso exclusivo em `@TestSetup`
-- ✅ Deve ser usada **apenas dentro de `@TestSetup`**
-- ❌ Proibido usar `setupCompleteEnvironment()` em testes individuais
-- ❌ Nunca reutilizar o `Map<String, SObject>` entre testes
-
----
-
-### 2. Proibições críticas
-| Item                                  | Status     |
-|---------------------------------------|------------|
-| Uso de `Logger`                       | ❌ Proibido |
-| Uso de `LoggerMock`                   | ❌ Proibido |
-| Uso de `System.debug()`               | ⚠️ **Permitido somente para debug local isolado** |
-| Logging dentro de `TestDataSetupTest`| ❌ Proibido |
-
----
-
-### 3. Toda criação de dados deve ser delegada
-- ✅ Cada entidade tem seu `*TestDataSetup` especializado
-- Exemplo:
-  - `LeadTestDataSetup`, `GeradorTestDataSetup`, `UserTestDataSetup`, etc.
-- `TestDataSetup` só orquestra — **nunca insere diretamente objetos compostos**
-
----
-
-## 🧪 Exemplo de uso nos testes
-
+Use sempre que o teste depender de uma cadeia completa:
 ```apex
 @TestSetup
-static void setupData() {
+static void setup() {
     TestDataSetup.setupCompleteEnvironment();
     FlowControlManager.disableFlows();
-    Logger.isEnabled = false;
-}
-```
-
-```apex
-@IsTest
-static void meuTeste() {
-    Account acc = [SELECT Id FROM Account LIMIT 1];
-    // seguir com validação
 }
 ```
 
 ---
 
-## 📦 Boas práticas de uso
-
-| Tema                     | Prática recomendada                                       |
-|--------------------------|-----------------------------------------------------------|
-| 🔑 Nomes no Map          | Use `LeadPF`, `Distribuidora`, `Opportunity`, etc.        |
-| 🔄 Map transitório       | Use apenas dentro do `@TestSetup`, **nunca fora dele**     |
-| 🧠 Cache inteligente     | Em `*TestDataSetup`: cache de `RecordType`, `Profile`, etc. |
-| ♻️ Clean defensivo       | Use `TestDataSetup.cleanUp()` ou `fullCleanUpAllSupportedObjects()` |
-
----
-
-## 📐 Estrutura obrigatória da classe `TestDataSetup`
-
-### 1. Método principal
-```apex
-@TestVisible
-public static Map<String, SObject> setupCompleteEnvironment() {
-    // Orquestra chamadas a outros *TestDataSetup
-    return createdRecords;
-}
-```
-
-### 2. Métodos auxiliares
+## 🧪 Recuperando dados criados
 
 ```apex
-@TestVisible
-public static void overrideLabel(String labelName, String value)
-
-@TestVisible
-public static void cleanUp(List<SObject> records)
-
-@TestVisible
-public static void fullCleanUpAllSupportedObjects()
+List<Account> accs = [SELECT Id FROM Account LIMIT 1];
+if (accs.isEmpty()) TestHelper.assertSetupCreated('Account');
+Account acc = accs[0];
 ```
 
 ---
 
-## ✅ Checklist Mamba para TestDataSetup.cls
+## ✅ Propriedades do `TestDataSetup`
 
-- [ ] Possui `setupCompleteEnvironment()` com `@TestVisible`
-- [ ] Não usa `Logger`, nem `LoggerMock`
-- [ ] Nenhum `System.debug()` fora de casos de exceção
-- [ ] Usa delegações para `*TestDataSetup`
-- [ ] Não armazena o `Map<String, SObject>` entre testes
-- [ ] Nenhum método é chamado fora do `@TestSetup`
+- Criado com padrão `@isTest` e métodos `@TestVisible`
+- `overrideLabel(...)` permite simular labels para testes
+- `createIntegracao()` garante idempotência
+- `setupCompleteEnvironment()` retorna um `Map<String, SObject>` com chaves padronizadas
+- `fullCleanUpAllSupportedObjects()` limpa tudo para testes de isolamento extremo
 
 ---
 
-## 🧠 Lembrete estratégico
+## ✅ Naming Padronizado dos Builders
 
-> `TestDataSetup` **não existe para "facilitar os testes", mas para blindar sua suíte inteira contra dependência cruzada, setup quebrado e dados injetados via seeAllData.**
+| Objeto                  | Builder                                      |
+|-------------------------|----------------------------------------------|
+| Account                 | `AccountTestDataSetup.createAccount()`       |
+| Contact                 | `AccountTestDataSetup.createContact()`       |
+| Lead PF                 | `LeadTestDataSetup.createLeadPfQualificando()`|
+| Lead PJ                 | `LeadTestDataSetup.createLeadPjQualificando()`|
+| UC                     | `UcTestDataSetup.createUC(...)`              |
+| Cobranca               | `CobrancaTestDataSetup.createCobranca(...)`  |
 
-## Conteudo explicito da versão atual de TestDataSetup.cls
+---
 
+## 🧱 Utilitário `cleanUp()`
+
+Use quando quiser deletar um conjunto específico de registros criados:
+```apex
+List<Opportunity> opps = [SELECT Id FROM Opportunity];
+TestDataSetup.cleanUp(new List<SObject>{ opps[0] });
+```
+
+---
+
+## 🔁 Utilitário `fullCleanUpAllSupportedObjects()`
+
+Deleta tudo, em ordem reversa e segura. Útil para testes end-to-end ou de isolamento absoluto.
+
+> ⚠️ Não usar em ambientes com dados reais. Uso exclusivo para classes `@IsTest`.
+
+---
+
+## 🧠 Checklist para Builders e Setup
+
+| Item                                                       | Verificado? |
+|------------------------------------------------------------|-------------|
+| Builder verifica duplicidade com `SELECT LIMIT 1`          | [ ]         |
+| Builder insere apenas se `isEmpty()`                       | [ ]         |
+| Dados de teste são inseridos no `@TestSetup`               | [ ]         |
+| Nenhum `testData.get(...)` usado em testes                 | [ ]         |
+| `assertSetupCreated(...)` usado quando `SELECT` retorna vazio | [ ]         |
+
+---
+
+🧠🧱🧪 #SetupMamba #BuildersComRaiz #NadaDuplicado #MapComChavePadronizada
+
+
+---  CONTEUDO EXPLICITO DA CLASSE
 
 // @isTest
 public class TestDataSetup {
@@ -241,7 +187,7 @@ public class TestDataSetup {
             Lead leadPF = LeadTestDataSetup.createLeadPfQualificando(originadorPai.Id, distribuidora.Id);
             Lead leadPJ = LeadTestDataSetup.createLeadPjQualificando(originadorFilho.Id, distribuidora.Id, null);
 
-            Account account = AccountTestDataSetup.createAccount(vertical.Id, originadorFilho.Id, null, '34.363.771/0001-65');
+            Account account = AccountTestDataSetup.createAccount(vertical.Id, originadorFilho.Id, null, '76.999.774/0001-30');
             Contact contact = AccountTestDataSetup.createContact(account.Id, null, null, null, null, null);
 
             Opportunity opportunity = OpportunityTestDataSetup.createOpportunity(account.Id, produto.Id, contact.Id);
@@ -256,7 +202,7 @@ public class TestDataSetup {
             Signatario_da_Oportunidade__c signOpp = SignatarioTestDataSetup.createSignatarioOportunidade(docOportunidade.Id, contact.Id);
             
             Contrato_de_Adesao__c contrato = UcTestDataSetup.createContratoDeAdesao(account.Id, contact.Id, veiculo.Id);
-            UC__c uc = UcTestDataSetup.createUC(contrato.Id, produto.Id, proposta.Id);
+            UC__c uc = UcTestDataSetup.createUC(contrato.Id, produto.Id, proposta.Id, user.Id);
             Contato_da_UC__c contatoDaUc = UcTestDataSetup.createContatoDaUC(uc.Id, uc.Rep_Legal__c, null);
             
             Fatura__c faturaUc = UcTestDataSetup.createFatura(uc.Id, Date.today().toStartOfMonth());
