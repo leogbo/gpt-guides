@@ -1,36 +1,9 @@
-# ************** PENDENCIAS PARA INTEGRAR ****************
-
-✏️ Complementar: Logs de entrada inválida
-Adicionar exemplo:
-
-apex
-Copiar
-Editar
-if (String.isBlank(recordId)) {
-    Logger.error('recordId vazio. Encerrando execução.');
-    throw new IllegalArgumentException('recordId obrigatório');
-}
-🧠 Toda exceção lançada deve ser precedida de log explícito com Logger.error (em produção).
-
-💡 Sugestão: Consolidar uma nova seção nos guias
-📂 Validação de Entradas e Assertivas em Testes
-
-Onde centralizamos todas as regras que reforçam a importância de:
-
-Validar parâmetros de entrada
-
-Gerar exceções explícitas e previsíveis
-
-Garantir que testes que esperam falha de fato cobrem essa falha
-
-# ************** FIM DAS PENDENCIAS ****************
-
-# 🧱 Guia Oficial de Logging Apex (`Logger`) – v2.0  
+# 🪩 Guia Oficial de Logging Apex (`Logger`) – v2.0
 _Fluent Interface • Async via Queueable • Testável com Mock_
 
 ---
 
-## 📎 Guias complementares
+## 📌 Guias complementares obrigatórios
 
 - https://bit.ly/GuiaApexRevisao
 - https://bit.ly/GuiaLoggerApex
@@ -46,21 +19,37 @@ _Fluent Interface • Async via Queueable • Testável com Mock_
 
 | Ponto                     | Regra                                                                 |
 |---------------------------|-----------------------------------------------------------------------|
-| 🔁 Contexto por classe    | Definido via `Logger.className`, `Logger.triggerType`, etc.          |
+| ♻️ Contexto por classe    | Definido via `Logger.className`, `Logger.triggerType`, etc.          |
 | 🧠 Logger por instância   | Declarado com `new Logger()` e mantido como `static final`            |
-| 🔧 Setters fluentes       | Usar `.setMethod()`, `.setAsync()`, etc.                              |
-| 🔄 Execução assíncrona    | Controlada com `.setAsync(true)` → usa `LoggerQueueable`              |
+| ⚖️ Setters fluentes       | Usar `.setMethod()`, `.setAsync()`, etc.                              |
+| ⟳ Execução assíncrona    | Controlada com `.setAsync(true)` → usa `LoggerQueueable`              |
 | 🔕 Desativação global     | Via `Logger.isEnabled = false`                                        |
 | 🧪 Mock para testes       | Usar `LoggerMock implements ILogger`                                  |
 | 🧱 Integração total       | Logger implementa `ILogger`                                           |
-| 🧩 De onde usar           | Triggers, Flows, Batches, Controllers, Services                       |
+| 🪩 De onde usar           | Triggers, Flows, Batches, Controllers, Services                       |
 
 ---
 
-## 📐 Formato de uso por padrão
+## 🔄 Validação de Entradas com Logger
+
+> Toda exceção lançada manualmente **deve ser precedida de um `log.error(...)`**.
+
+### ✅ Exemplo:
+```apex
+if (String.isBlank(recordId)) {
+    log.setMethod('execute').error('recordId vazio. Encerrando execução.');
+    throw new IllegalArgumentException('recordId obrigatório');
+}
+```
+
+- A exceção será registrada no log
+- A mensagem fica rastreável mesmo que o sistema faça retry
+
+---
+
+## 📀 Formato de uso por padrão
 
 ### 1. Contexto global por classe
-
 ```apex
 static {
     Logger.className   = 'MinhaClasse';
@@ -72,13 +61,11 @@ static {
 ```
 
 ### 2. Logger fixo por classe
-
 ```apex
 static final ILogger log = new Logger();
 ```
 
 ### 3. Uso no método
-
 ```apex
 log.setMethod('executarValidador')
    .setRecordId(conta.Id)
@@ -90,8 +77,7 @@ log.setMethod('executarValidador')
 
 ## ✅ Métodos disponíveis
 
-### 🔧 Configuração
-
+### ⚖️ Configuração
 ```apex
 setMethod(String)
 setRecordId(String)
@@ -101,8 +87,7 @@ setEnvironment(String)
 setAsync(Boolean)
 ```
 
-### 📝 Ações de log
-
+### 📄 Ações de log
 ```apex
 success(String message, String serializedData)
 info(String message, String serializedData)
@@ -112,8 +97,7 @@ error(String message, Exception ex, String serializedData)
 
 ---
 
-## 🧩 Modo Trigger
-
+## 📝 Modo Trigger
 ```apex
 Logger.fromTrigger(sObj)
       .setMethod('afterInsert')
@@ -124,20 +108,17 @@ Logger.fromTrigger(sObj)
 
 ## 🧪 Testes
 
-### Desativar global
-
+### 🔕 Desativar global
 ```apex
 Logger.isEnabled = false;
 ```
 
-### Usar mock
-
+### 🧠 Usar mock
 ```apex
 LoggerMock mock = new LoggerMock();
 mock.setMethod('testeUnitario').info('Simulação de log', null);
 System.assert(mock.getCaptured().size() > 0);
 ```
-
 > ⚠️ Nunca validar insert real de `LoggerQueueable` em teste. É assíncrono e não garante persistência visível.
 
 ---
