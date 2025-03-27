@@ -1,160 +1,173 @@
-# 🪩 Guia Oficial de Logging Apex (`Logger`) – v2.0
-_Fluent Interface • Async via Queueable • Testável com Mock_
+# 🪵 Guia Oficial de Logger Apex (v2025) – Mentalidade Mamba
+
+📎 **Shortlink oficial:** [bit.ly/GuiaLoggerApex](https://bit.ly/GuiaLoggerApex)
+
+> “Logar não é opcional. É sua única fonte de verdade em produção.” – Mentalidade Mamba 🧠🔥
+
+Este guia define o padrão de **log estruturado, rastreável e persistente** da sua org Salesforce.
+Todo sistema crítico, API, trigger, batch ou callout **deve seguir esta arquitetura**.
 
 ---
 
-## 📌 Guias complementares obrigatórios
+## 📚 Referência cruzada com guias complementares
 
-- https://bit.ly/GuiaApexRevisao
-- https://bit.ly/GuiaLoggerApex
-- https://bit.ly/Guia_APIs_REST
-- https://bit.ly/GuiaTestsApex
-- https://bit.ly/TestDataSetup
-- https://bit.ly/ComparacaoApex
-- https://bit.ly/ConfirmacaoApex
-
----
-
-## ✅ Princípios Fundamentais
-
-| Ponto                     | Regra                                                                 |
-|---------------------------|-----------------------------------------------------------------------|
-| ♻️ Contexto por classe    | Definido via `Logger.className`, `Logger.triggerType`, etc.          |
-| 🧠 Logger por instância   | Declarado com `new Logger()` e mantido como `static final`            |
-| ⚖️ Setters fluentes       | Usar `.setMethod()`, `.setAsync()`, etc.                              |
-| ⟳ Execução assíncrona    | Controlada com `.setAsync(true)` → usa `LoggerQueueable`              |
-| 🔕 Desativação global     | Via `Logger.isEnabled = false`                                        |
-| 🧪 Mock para testes       | Usar `LoggerMock implements ILogger`                                  |
-| 🧱 Integração total       | Logger implementa `ILogger`                                           |
-| 🪩 De onde usar           | Triggers, Flows, Batches, Controllers, Services                       |
+- 📘 [Guia Master de Arquitetura](https://bit.ly/GuiaApexMamba)
+- 🔍 [Guia de Revisão Apex](https://bit.ly/GuiaApexRevisao)
+- 🧪 [Guia de Testes](https://bit.ly/GuiaTestsApex)
+- 🧱 [Guia de TestData Setup](https://bit.ly/TestDataSetup)
+- 🔁 [Comparações de Refatoração](https://bit.ly/ComparacaoApex)
+- ✅ [Equivalência Funcional](https://bit.ly/ConfirmacaoApex)
 
 ---
 
-## 🔄 Validação de Entradas com Logger
+## ✅ Fundamentos do Logger Mamba
 
-> Toda exceção lançada manualmente **deve ser precedida de um `log.error(...)`**.
+- Nunca usar `System.debug()` fora de testes.
+- Logger deve:
+  - Identificar a classe/método
+  - Registrar input/output
+  - Ser rastreável por usuário, registro e execução
+  - Gerar logs estruturados e auditáveis
+- Logs **são persistidos no objeto `FlowExecutionLog__c`** e/ou enviados via `LoggerQueueable`
 
-### ✅ Exemplo:
+---
+
+## ✅ Componentes padrão
+
+| Componente               | Descrição                                                                 |
+|--------------------------|---------------------------------------------------------------------------|
+| `LoggerContext`          | Classe principal de logging (fluent interface)                            |
+| `FlowExecutionLog__c`    | Objeto de persistência auditável de logs                                  |
+| `LoggerQueueable`        | Persistência assíncrona via fila                                           |
+| `ILogger`                | Interface para Logger e LoggerMock                                        |
+| `LoggerMock`             | Evita persistência real durante testes                                    |
+| `LoggerTest`             | Classe de teste do comportamento do logger                                 |
+
+---
+
+## ✅ Uso padrão do LoggerContext
+
 ```apex
-if (String.isBlank(recordId)) {
-    log.setMethod('execute').error('recordId vazio. Encerrando execução.');
-    throw new IllegalArgumentException('recordId obrigatório');
+LoggerContext.getLogger()
+    .setMethod('executarAcao')
+    .setRecordId(recordId)
+    .setAsync(true)
+    .error('Falha crítica ao validar dados', e, JSON.serializePretty(input));
+```
+
+---
+
+## ✅ Formatos suportados
+
+| Método         | Uso típico                                     |
+|----------------|-------------------------------------------------|
+| `.info(...)`   | Logs de operação normal                         |
+| `.warn(...)`   | Algo incompleto mas não bloqueante              |
+| `.error(...)`  | Falhas funcionais, exceções                     |
+| `.success(...)`| Resultado esperado de operação importante       |
+
+---
+
+## ❌ Nunca usar:
+
+```apex
+System.debug('Algo quebrou: ' + ex.getMessage()); // ❌
+```
+
+🔁 Use:
+```apex
+LoggerContext.getLogger().setMethod('executar').error('Erro', ex);
+```
+
+---
+
+## ✅ Logger em Trigger
+
+```apex
+LoggerContext.getLogger()
+    .fromTrigger(newRecord)
+    .setMethod('beforeInsert')
+    .warn('Validação parcial', JSON.serializePretty(newRecord));
+```
+
+---
+
+## 🧪 Regras de teste para loggers
+
+- Use `LoggerMock` em todos os testes unitários
+- Nunca valide se o log foi persistido (é assíncrono!)
+- Use `LoggerMock` apenas para impedir persistência:
+```apex
+LoggerContext.overrideLogger(new LoggerMock());
+```
+
+---
+
+## 🧩 Integração com FlowExecutionLog__c
+
+| Campo                  | Descrição                                     |
+|------------------------|-----------------------------------------------|
+| `Class__c`             | Nome da classe Apex                          |
+| `Origin_Method__c`     | Método que originou o log                    |
+| `Log_Level__c`         | DEBUG, INFO, WARNING, ERROR                 |
+| `Log_Category__c`      | Domínio do log (Ex: Proposta, UC, API)      |
+| `Serialized_Data__c`   | Payload serializado com `serializePretty()` |
+| `Trigger_Type__c`      | Trigger, Queueable, REST, Batch             |
+| `Error_Message__c`     | Mensagem da exceção                         |
+| `Stack_Trace__c`       | Stack trace da exceção                      |
+
+> 🔁 Referência completa: [bit.ly/FlowExecutionLog](https://bit.ly/FlowExecutionLog)
+
+---
+
+## 🧪 Exemplo de LoggerMock aplicado
+
+```apex
+@IsTest
+static void test_erro_com_logger_mock() {
+    LoggerContext.overrideLogger(new LoggerMock());
+
+    Test.startTest();
+    MinhaClasse.executarAlgo();
+    Test.stopTest();
+
+    System.assert(true, 'Logger executado com mock – não persistiu');
 }
 ```
 
-- A exceção será registrada no log
-- A mensagem fica rastreável mesmo que o sistema faça retry
+---
+
+## ❌ Logs não devem ser validados em testes
+
+| Item                     | Proibido       | Justificativa                               |
+|--------------------------|----------------|---------------------------------------------|
+| `FlowExecutionLog__c`    | ❌ não validar  | log é assíncrono                            |
+| `LoggerQueueable`        | ❌ não esperar  | é fila, não sincroniza com o teste          |
+| `LoggerMock.getLogs()`   | ❌ inválido     | logs são side-effect, não garantem ordenação|
 
 ---
 
-## 📀 Formato de uso por padrão
+## 📌 Boas práticas adicionais
 
-### 1. Contexto global por classe
-```apex
-static {
-    Logger.className   = 'MinhaClasse';
-    Logger.triggerType = 'Apex';
-    Logger.logCategory = 'FluxoConta';
-    Logger.environment = Label.ENVIRONMENT;
-    Logger.isEnabled   = true;
-}
-```
-
-### 2. Logger fixo por classe
-```apex
-static final ILogger log = new Logger();
-```
-
-### 3. Uso no método
-```apex
-log.setMethod('executarValidador')
-   .setRecordId(conta.Id)
-   .setAsync(true)
-   .error('Erro ao validar CNPJ', ex, JSON.serialize(conta));
-```
+- `LoggerContext.getLogger().setAsync(true)` deve ser usado em chamadas críticas
+- Logs pesados devem usar `JSON.serializePretty()`
+- Nunca logar senhas, tokens, headers, dados pessoais sem anonimizar
+- Em REST, use `RestServiceHelper` com `.buildError(...)` que já loga internamente
 
 ---
 
-## ✅ Métodos disponíveis
+## ✅ Checklist final para revisão de uso de Logger
 
-### ⚖️ Configuração
-```apex
-setMethod(String)
-setRecordId(String)
-setCategory(String)
-setClass(String)
-setEnvironment(String)
-setAsync(Boolean)
-```
-
-### 📄 Ações de log
-```apex
-success(String message, String serializedData)
-info(String message, String serializedData)
-warn(String message, String serializedData)
-error(String message, Exception ex, String serializedData)
-```
+| Item                                             | Verificado? |
+|--------------------------------------------------|-------------|
+| `.setMethod(...)` aplicado                       | [ ]         |
+| `.setRecordId(...)` incluído se aplicável        | [ ]         |
+| `.error(...)` com stack trace serializado        | [ ]         |
+| `.success(...)` em finais de fluxo REST          | [ ]         |
+| `LoggerMock` nos testes                          | [ ]         |
+| `FlowExecutionLog__c` usado (se necessário)      | [ ]         |
 
 ---
 
-## 📝 Modo Trigger
-```apex
-Logger.fromTrigger(sObj)
-      .setMethod('afterInsert')
-      .error('Erro no fluxo', ex, JSON.serialize(sObj));
-```
+🧠🧱🧪 #LoggerMamba #SemDebug #PersistênciaEstruturada #FalhaComRastro
 
----
-
-## 🧪 Testes
-
-### 🔕 Desativar global
-```apex
-Logger.isEnabled = false;
-```
-
-### 🧠 Usar mock
-```apex
-LoggerMock mock = new LoggerMock();
-mock.setMethod('testeUnitario').info('Simulação de log', null);
-System.assert(mock.getCaptured().size() > 0);
-```
-> ⚠️ Nunca validar insert real de `LoggerQueueable` em teste. É assíncrono e não garante persistência visível.
-
----
-
-## 🛡️ Boas práticas
-
-| ❌ Evitar                          | ✅ Fazer                                               |
-|-----------------------------------|--------------------------------------------------------|
-| `new Logger('MinhaClasse')`       | Usar `Logger.className = '...'` + `new Logger()`       |
-| `System.debug()` em produção      | Usar `.info()`, `.warn()` com JSON e rastreio completo |
-| Logging hardcoded no handler      | Injetar `ILogger log = new Logger();`                  |
-| `Test.isRunningTest()` nos testes | Usar `LoggerMock` ou `Logger.isEnabled = false`        |
-
----
-
-## 🧠 Avanços futuros possíveis
-
-- Filtragem por categoria (`LoggerCategoryManager`)
-- Fallback assíncrono para falha de insert
-- Dashboards de logs por Flow/Trigger/User
-
----
-
-## 📦 Classes envolvidas
-
-| Classe                | Papel principal                                 |
-|-----------------------|-------------------------------------------------|
-| `ILogger`             | Interface contratual                            |
-| `Logger`              | Implementação padrão                            |
-| `LoggerQueueable`     | Executor assíncrono via `Queueable`             |
-| `LoggerMock`          | Simulador de log sem insert real                |
-| `LoggerTest`          | Testes de integração padrão                     |
-| `LoggerQueueableTest` | Testes do executor assíncrono                   |
-
----
-
-🧠 Mantenha consistência.  
-🧪 Teste tudo.  
-🐍 Rastreie como um Mamba.
