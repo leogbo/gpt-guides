@@ -2,7 +2,7 @@
 
 > Este é o guia principal para toda e qualquer redação, estruturação, refatoração e evolução de código Apex na sua org.
 
-📎 **Shortlink sugerido:** [bit.ly/GuiaApexMamba](https://bit.ly/GuiaApexMamba)
+📎 **Shortlink oficial:** [bit.ly/GuiaApexMamba](https://bit.ly/GuiaApexMamba)
 
 Este documento organiza e referencia os padrões essenciais da sua base de código, unificando:
 - Arquitetura
@@ -78,8 +78,31 @@ Este guia está dividido em capítulos autônomos, com expansão contínua:
 - Outbound: payload + retorno
 - Serialização sempre via `.serializePretty`
 - Logs disponíveis ao time de CDI
+- Uso diferenciado por nível de log: `ERROR`, `INFO`, `DEBUG`
 
-### ✅ Capítulo 9: Exemplos Reais da Org (em expansão)
+### ✅ Capítulo 9: Custom Settings de Configuração de Ambiente
+- **Nome:** `ConfiguracaoSistema__c` (tipo Hierarchy)
+- **Campos sugeridos:**
+  - `Log_Ativo__c` (Checkbox)
+  - `Log_Level__c` (Picklist: `ERROR`, `INFO`, `DEBUG`)
+  - `Habilita_Mock__c` (Checkbox)
+  - `Ambiente__c` (Text)
+  - `Modo_Teste_Ativo__c` (Checkbox)
+  - `Habilita_Log_JSON__c` (Checkbox)
+  - `Timeout_Callout__c` (Number)
+  - `Endpoint_GCP__c` (URL/Text)
+  - `Notificar_Erros__c` (Checkbox)
+  - `Desabilitar_Flows__c` (Checkbox)
+
+#### ✅ Valores recomendados:
+- **Log_Level__c:** `ERROR`, `INFO`, `DEBUG`
+- **Ambiente__c:** `Production`, `Sandbox`, `Scratch`, `QA`, `UAT`, `Dev`
+- **Timeout_Callout__c:** `120000` (ms)
+- **Endpoint_GCP__c:** `https://storage.googleapis.com/client-docs`
+
+> Esses campos controlam dinamicamente o comportamento do Logger, mocks, callouts e rastreamento de integrações em todos os ambientes.
+
+### ✅ Capítulo 10: Exemplos Reais da Org (em expansão)
 - ProdutoRestController
 - ControllerExportReports
 - FileUploaderQueueable
