@@ -1,159 +1,118 @@
-# 📘️ Guia Rigoroso de Revisão Apex – v2025
-> _Atualizado com Logger Fluent + Async + Mock_
+# 🔍 Guia Rigoroso de Revisão Apex – v2025 (Mentalidade Mamba)
 
-📎 Consulte os guias complementares oficiais:
-- https://bit.ly/GuiaApexRevisao
-- https://bit.ly/GuiaLoggerApex
-- https://bit.ly/Guia_APIs_REST
-- https://bit.ly/GuiaTestsApex
-- https://bit.ly/TestDataSetup
-- https://bit.ly/ComparacaoApex
-- https://bit.ly/ConfirmacaoApex
+📎 **Shortlink oficial:** [bit.ly/GuiaApexRevisao](https://bit.ly/GuiaApexRevisao)
+
+> “A revisão é o filtro final da excelência. Nenhuma linha sobrevive sem propósito.” – 🧠 Mentalidade Mamba
+
+Este guia define os critérios obrigatórios para revisar código Apex com excelência institucional. Toda nova feature, refatoração ou bugfix **passa obrigatoriamente** por esse crivo.
 
 ---
 
-## 🌟 Objetivo
-Definir regras **intransigentes** para código Apex com foco em:
-- 🧠 Rastreabilidade via log estruturado  
-- ⚙️ Testabilidade previsível  
-- ⟳ Refatoração segura  
-- 🧪 Padrão de testes reutilizável e auditável  
+## 📚 Referência cruzada com demais guias
+
+- 📘 [Guia Master Apex Mamba](https://bit.ly/GuiaApexMamba)
+- 🧪 [Guia de Testes Apex](https://bit.ly/GuiaTestsApex)
+- 🪵 [Guia de Logger Apex](https://bit.ly/GuiaLoggerApex)
+- 🧱 [Guia de Setup de Dados de Teste](https://bit.ly/TestDataSetup)
+- 🔁 [Guia de Comparações de Código](https://bit.ly/ComparacaoApex)
+- ✅ [Guia de Equivalência Funcional](https://bit.ly/ConfirmacaoApex)
 
 ---
 
-## ⚖️ Regras Invioláveis
+## ✅ Fundamentos da Revisão Mamba
 
-### 1. Logger obrigatório
-- ❌ Proibido `System.debug()` (exceto dentro de classes de teste)
-- ✅ Sempre usar `Logger` implementando `ILogger`
-- Padrão recomendado:
-  ```apex
-  static final ILogger log = new Logger();
-  log.setMethod('nomeMetodo').info('Mensagem', JSON.serialize(obj));
-  ```
-
-### 2. Contexto de execução
-- Toda classe Apex **deve conter no topo**:
-  ```apex
-  static {
-      Logger.className   = 'MinhaClasse';
-      Logger.triggerType = 'Apex';
-      Logger.logCategory = 'Validador';
-      Logger.environment = Label.ENVIRONMENT;
-  }
-  ```
-
-### 3. Equivalência obrigatória em refatoração
-- Refatorações devem vir com:
-  - ✅ Novo código 100%
-  - ✅ Comparativo Antes vs Depois
-  - ✅ Confirmação formal de equivalência
-
-### 4. Testes rigorosos
-- Usar: `TestDataSetup.setupCompleteEnvironment()`
-- Desabilitar flows: `FlowControlManager.disableFlows()`
-- ❌ Não usar `System.enqueueJob()` diretamente
-- ❌ Não validar logs assíncronos (`LoggerQueueable`)
-- ✅ Use `LoggerMock` como substituto
-
-### 5. Proibições explícitas
-
-| Sintaxe Proibida                     | Motivo                                                                 |
-|-------------------------------------|------------------------------------------------------------------------|
-| `System.debug()` (fora de teste)    | Não rastreável. Log não auditável                                     |
-| `System.enqueueJob(...)` direto     | Queueable é tratado dentro do `Logger`                                |
-| `LoggerMock.getLogs()`              | 🚫 Logs não são sincronizados. Use `capturedMessages`                 |
-| Arrow functions (`=>`)              | Não suportadas em Apex                                                |
-| `seeAllData=true`                   | Dados reais poluem testes e reduzem isolamento                        |
-
-### 6. Métodos internos `@TestVisible`
-- Todo método de lógica interna **deve ter `@TestVisible`**
-- Assinatura simples, sem dependência de contexto externo
-- Visando cobertura clara, simulável, 100% controlada
+- **Rastreabilidade vem antes da performance.**
+- **Boilerplate nunca é desperdício quando traz previsibilidade.**
+- **Testes que “passam” não significam que cobrem.**
+- **O código deve se explicar sozinho – o log, confirmar.**
 
 ---
 
-## 🪩 Boas Práticas Adicionadas
+## ✔️ Checklist Mamba para Revisão
 
-### 🔐 Evite dependência de comportamento implícito em testes
-- ❌ Nunca presuma que exceções serão lançadas "automaticamente"
-- ✅ Toda exceção esperada deve:
-  - Ser lançada manualmente: `throw new IllegalArgumentException(...)`
-  - Ser capturada via `try/catch` e validada com assert dentro do teste
-- Se não houver `throw`, o teste **não pode assumir erro**
+### 🔒 Arquitetura & Estrutura
+- [ ] Classe possui `@TestVisible`, `className`, `logCategory`, `triggerType`
+- [ ] `RecordHelper.getById(...)` aplicado nos `SELECT Id WHERE ...`
+- [ ] `FlowExecutionLog__c` presente se for lógica de negócio crítica
+- [ ] Nenhum `System.debug()` fora de teste
 
-### ✅ Exemplo:
+### 🧪 Testes
+- [ ] Possui `@TestSetup` com `TestDataSetup.setupCompleteEnvironment()`
+- [ ] `SELECT LIMIT 1` defensivo (sem QueryException)
+- [ ] `System.assert(...)` com mensagem real
+- [ ] Nenhum uso de `testData.get(...)` dentro dos métodos de teste
+- [ ] `fakeIdForSafe(...)` aplicado em cenários de ausência
+
+### 🔁 Refatoração
+- [ ] Antes vs Depois disponível ([link](https://bit.ly/ComparacaoApex))
+- [ ] Equivalência funcional formalizada ([link](https://bit.ly/ConfirmacaoApex))
+- [ ] Fallbacks adicionados em campos `null`, `blank`, `invalid`
+- [ ] Métodos que retornam objetos garantem `null-safe` com `RecordHelper` ou `List<T>` + `isEmpty()`
+
+---
+
+## 🚫 Proibições intransigentes
+
+| Item                        | Proibido                      | Alternativa Mamba                           |
+|-----------------------------|-------------------------------|----------------------------------------------|
+| `System.debug(...)`         | ❌ Fora de testes              | `LoggerContext` ou `FlowExecutionLog__c`     |
+| `SELECT ... LIMIT 1` direto| ❌ Sem fallback                | `RecordHelper.getById(...)` ou `List<T>`     |
+| `testData.get(...)`        | ❌ Dentro de @IsTest           | Sempre usar `SELECT` após `@TestSetup`       |
+| `%` em números             | ❌ `a % b` inválido em Apex    | `Math.mod(a, b)`                             |
+| `padLeft/padRight`         | ❌ Não suportado               | `String.format` ou concat manual             |
+
+---
+
+## 🔁 Exemplo de Refatoração Antes vs Depois
+
+### ❌ Antes:
 ```apex
-try {
-    ClasseX.metodoComParametro(null);
-    System.assert(false, 'Exceção esperada não foi lançada');
-} catch (IllegalArgumentException e) {
-    System.assertEquals('Mensagem esperada', e.getMessage());
+Account acc = [SELECT Id, Name FROM Account WHERE Id = :id LIMIT 1];
+```
+
+### ✅ Depois:
+```apex
+Account acc = (Account) RecordHelper.getById(Account.SObjectType, id, 'Id, Name');
+```
+
+---
+
+## 📌 Exemplo de assertiva mamba:
+```apex
+System.assertEquals(1, contas.size(), 'Esperado 1 conta. Obtido: ' + contas.size());
+```
+
+### ❌ Nunca use:
+```apex
+System.assert(conta != null);
+```
+🔁 Use:
+```apex
+System.assertNotEquals(null, conta, 'Conta retornada foi null');
+```
+
+---
+
+## 🧪 Exemplo de teste rastreável com fallback
+```apex
+List<UC__c> ucs = [SELECT Id FROM UC__c LIMIT 1];
+if (ucs.isEmpty()) {
+    TestHelper.assertSetupCreated('UC__c');
 }
-```
-
-### 📄 SELECT defensivo sempre
-- Nunca assuma que `SELECT ... LIMIT 1` retornou resultado
-- Use `List<...>` + validação via `.isEmpty()`
-
-#### ✅ Exemplo correto:
-```apex
-List<Account> accList = [SELECT Id FROM Account WHERE Id = :lead.AccountId__c LIMIT 1];
-if (accList.isEmpty()) {
-    throw new CustomException('AccountId não encontrado.');
-}
-Account acc = accList[0];
+UC__c uc = ucs[0];
 ```
 
 ---
 
-## ✅ Checklist de Revisão
+## 🧠 Final
 
-- [ ] Usa `Logger` com contexto e `.setMethod(...)`
-- [ ] Evita `System.debug()` em produção
-- [ ] Testes usam `LoggerMock`
-- [ ] Nenhuma chamada direta a `enqueueJob(...)` em teste
-- [ ] Usa `TestDataSetup.setupCompleteEnvironment()`
-- [ ] Flows desabilitados nos testes com `FlowControlManager`
-- [ ] Métodos internos têm `@TestVisible`
-- [ ] Refatoração contém equivalência validada
-- [ ] Logger está no padrão `ILogger` / `Logger`
-- [ ] Testes que esperam exceção validam o erro com `try/catch`
-- [ ] SELECTs usam fallback seguro com `isEmpty()`
+Revisar código não é só aprovar. É confirmar que:
+- Rastreia
+- Registra
+- Funciona em produção
+- Passa por testes agressivos
 
----
+📌 **Nada é considerado revisado sem checklist preenchido.**
 
-## 📄 Padrões de Teste
+🧠🧱🧪 #RevisaoMamba #FiltroDeExcecao #NadaEntraSemValidacao
 
-| Regra                            | Aplicação                         |
-|----------------------------------|-----------------------------------|
-| Sufixo `Test` obrigatório         | Ex: `ContaValidatorTest`          |
-| Usa `@TestSetup` e `startTest()` | Para separar setup de execução    |
-| `LoggerMock` em vez de Logger    | Para evitar inserts/queue         |
-| Simulação de erros               | Deve testar erro e exceção        |
-| Assertiva com output real        | `System.assert` sempre com valor comparado na mensagem |
-
----
-
-## ⚙️ Exemplo padrão de uso de Logger
-
-```apex
-static final ILogger log = new Logger();
-
-log.setMethod('validarCPF')
-   .setRecordId(account.Id)
-   .setAsync(true)
-   .error('Erro ao validar CPF', ex, JSON.serialize(account));
-```
-
-### Ou em trigger:
-```apex
-Logger.fromTrigger(newRecord)
-      .setMethod('beforeInsert')
-      .warn('Validação parcial', JSON.serialize(newRecord));
-```
-
----
-
-> 🧠 Versão auditada por Apex Revisor Rigoroso • Mantida por Leo Garcia  
-> 🐍 Mamba Mentality. Código Apex de elite.
