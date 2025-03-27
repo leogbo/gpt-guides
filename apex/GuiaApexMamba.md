@@ -1,4 +1,4 @@
-# Guia Master de Arquitetura Apex Mamba
+# 🧱 Guia Master de Arquitetura Apex Mamba
 
 > Este é o guia principal para toda e qualquer redação, estruturação, refatoração e evolução de código Apex na sua org.
 
@@ -13,6 +13,35 @@ Este documento organiza e referencia os padrões essenciais da sua base de códi
 - Estrutura REST
 - Testabilidade
 - Boas práticas para DTOs, helpers, validações, JSON, entre outros
+
+---
+
+# 🛡️ Padrão Universal de Consulta com Fallback Seguro
+
+```apex
+public class RecordHelper {
+    public static SObject getById(Schema.SObjectType sobjectType, Id recordId, String queryFields) {
+        if (recordId == null || String.isBlank(queryFields) || sobjectType == null) {
+            return null;
+        }
+
+        String objectName = sobjectType.getDescribe().getName();
+        String query = 'SELECT ' + queryFields + ' FROM ' + objectName + ' WHERE Id = :recordId LIMIT 1';
+
+        List<SObject> records = Database.query(query);
+        return records.isEmpty() ? null : records[0];
+    }
+}
+```
+
+✅ Elimina exceções de `List has no rows for assignment to SObject`  
+✅ Compatível com qualquer objeto SObject  
+✅ Reutilizável e rastreável  
+✅ Padrão oficial para consultas por ID em todos os serviços  
+✅ Recomendado: em testes de ID inválido, sempre use um ID **válido em morfologia**, mas inexistente na org:  
+```apex
+Id idInvalido = Id.valueOf('001000000000000AAA');
+```
 
 ---
 
