@@ -81,6 +81,17 @@ Este guia está dividido em capítulos autônomos, com expansão contínua:
 - Uso diferenciado por nível de log: `ERROR`, `INFO`, `DEBUG`
 
 ### ✅ Capítulo 9: Custom Settings de Configuração de Ambiente
+
+**Observação:** Custom Settings não possuem regras de validação. Portanto, a validação de valores como picklists (`Log_Level__c`) deve ser feita em código Apex — preferencialmente via `CustomSettingManager.cls`. Você também pode usar os campos `Description` e `Help Text` para simular uma picklist visual e orientar o preenchimento correto no Setup.
+
+**Exemplo de enforcement em código:**
+```apex
+Set<String> niveisPermitidos = new Set<String>{ 'ERROR', 'INFO', 'WARNING', 'DEBUG' };
+if (!niveisPermitidos.containsIgnoreCase(config.Log_Level__c)) {
+    throw new CustomException('Log_Level__c inválido: ' + config.Log_Level__c);
+}
+```
+
 - **Nome:** `ConfiguracaoSistema__c` (tipo Hierarchy)
 - **Campos sugeridos:**
   - `Log_Ativo__c` (Checkbox)
@@ -92,10 +103,10 @@ Este guia está dividido em capítulos autônomos, com expansão contínua:
   - `Timeout_Callout__c` (Number)
   - `Endpoint_GCP__c` (URL/Text)
   - `Notificar_Erros__c` (Checkbox)
-  - `Desabilitar_Flows__c` (Checkbox)
+  - `Desativar_Flows__c` (Checkbox): controla se os flows devem ser desativados logicamente, usado em testes e ambiente QA.
 
 #### ✅ Valores recomendados:
-- **Log_Level__c:** `ERROR`, `INFO`, `DEBUG`
+- **Log_Level__c:** `ERROR`, `INFO`, `WARNING`, `DEBUG`
 - **Ambiente__c:** `Production`, `Sandbox`, `Scratch`, `QA`, `UAT`, `Dev`
 - **Timeout_Callout__c:** `120000` (ms)
 - **Endpoint_GCP__c:** `https://storage.googleapis.com/client-docs`
