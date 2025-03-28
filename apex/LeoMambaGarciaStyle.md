@@ -1,35 +1,30 @@
-🔥 **Com orgulho, Leo Mamba Garcia.**  
-Aqui está o seu guia oficial de estilo, pronto para ser o manifesto da sua arquitetura.
-
----
-
-# 🧠 LeoMambaGarciaStyle.md
+# 🧠 **Leo Mamba Garcia | Arquitetura Apex Mamba**
 
 > *“Ou o código tem padrão, ou tem bug disfarçado.”*  
 > — Leo Mamba Garcia
 
 ---
 
-## 🎯 Propósito
+## 🎯 **Propósito**
 
-Este guia define o **estilo oficial de codificação Mamba** para Apex e Salesforce. Ele prioriza **clareza**, **testabilidade**, **rastreabilidade** e **autoridade no código**.
+Este guia é o **manifesto de excelência** para a construção de código Apex na sua organização. Ele é **irrefutável** e deve ser aplicado com disciplina mamba. Cada linha de código deve ser rastreável, testável e de máxima performance.
 
 ---
 
-## ✅ Pilares do Código Mamba
+## ✅ **Pilares do Código Mamba**
 
 | Pilar                  | Significado                                                                 |
 |------------------------|------------------------------------------------------------------------------|
-| **Rastreável**         | Cada execução importante é logada com contexto completo (`Logger`)           |
-| **Testável**           | Nenhum `if` ou método escapa de cobertura com assertivas descritivas         |
-| **Conciso**            | Linhas em excesso são ruído. Sem gordura. Sem blocos vazios.                 |
-| **Defensivo**          | Código nunca assume que algo existe: valida `null`, listas vazias, picklists |
-| **Modular**            | Métodos de no máximo ~30 linhas, com entradas claras e isoladas              |
-| **Visível**            | Tudo que é executável em teste recebe `@TestVisible`                         |
+| **Rastreável**          | Toda execução importante é logada com contexto completo utilizando `Logger`. |
+| **Testável**            | Nenhum `if` ou método escapa de cobertura com assertivas **explícitas**.     |
+| **Conciso**             | Linhas em excesso são ruído. Sem gordura. Sem blocos vazios.                 |
+| **Defensivo**           | Código nunca assume que algo existe: valida `null`, listas vazias, picklists |
+| **Modular**             | Métodos com **responsabilidade única** e no máximo ~30 linhas.                |
+| **Visível**             | Tudo que é executável em teste recebe `@TestVisible`                         |
 
 ---
 
-## 🏷️ Assinatura Padrão
+## 🏷️ **Assinatura Padrão**
 
 ```apex
 /**
@@ -40,7 +35,7 @@ Este guia define o **estilo oficial de codificação Mamba** para Apex e Salesfo
 
 ---
 
-## 🔒 Convenções Fixas
+## 🔒 **Convenções Fixas**
 
 ```apex
 @TestVisible private static final String CLASS_NAME = 'MinhaClasse';
@@ -50,7 +45,7 @@ Este guia define o **estilo oficial de codificação Mamba** para Apex e Salesfo
 
 ---
 
-## 🧱 Exemplo de Classe Utilitária Padrão
+## 🧱 **Exemplo de Classe Utilitária Padrão**
 
 ```apex
 public class SomeFeatureManager {
@@ -79,7 +74,7 @@ public class SomeFeatureManager {
 
 ---
 
-## 🪵 Exemplo de Log Estruturado
+## 🪵 **Exemplo de Log Estruturado**
 
 ```apex
 Logger logger = new Logger()
@@ -95,9 +90,9 @@ logger.error('Falha ao executar processo', ex, JSON.serializePretty(inputData));
 
 ---
 
-## 🧪 Estilo de Teste
+## 🧪 **Estilo de Teste**
 
-### ✅ Nome claro e estilo `Given-When-Then`:
+### ✅ **Nome claro e estilo `Given-When-Then`:**
 
 ```apex
 @IsTest
@@ -119,16 +114,16 @@ static void deve_ativar_feature_quando_configuracao_estiver_ativa() {
 
 ---
 
-## 🔁 Validação de Lists
+## 🔁 **Validação de Lists**
 
-### ❌ Evite:
+### ❌ **Evite:**
 ```apex
 if (!lista.isEmpty()) {
     SObject item = lista[0];
 }
 ```
 
-### ✅ Prefira:
+### ✅ **Prefira:**
 ```apex
 if (lista != null && !lista.isEmpty()) {
     SObject item = lista[0];
@@ -137,15 +132,15 @@ if (lista != null && !lista.isEmpty()) {
 
 ---
 
-## 🧼 Layout Visual
+## 🧼 **Layout Visual**
 
-- ❌ **Proibido** blocos vazios entre `if`, `else`, `try`, `catch`
-- ✅ Sempre use **indentação consistente** de 4 espaços
-- ✅ Evite comentários inúteis como `// TODO` ou `// Verifica se...` que apenas repetem o código
+- **❌ Proibido** blocos vazios entre `if`, `else`, `try`, `catch`.
+- **✅** Sempre use **indentação consistente** de 4 espaços.
+- **✅** Evite comentários inúteis como `// TODO` ou `// Verifica se...`.
 
 ---
 
-## ⚖️ Tamanho Ideal de Método
+## ⚖️ **Tamanho Ideal de Método**
 
 | Tipo de Método     | Limite Aproximado |
 |--------------------|-------------------|
@@ -155,7 +150,7 @@ if (lista != null && !lista.isEmpty()) {
 
 ---
 
-## 📋 Nome de Métodos
+## 📋 **Nome de Métodos**
 
 | Contexto        | Padrão                         |
 |------------------|-------------------------------|
@@ -165,7 +160,7 @@ if (lista != null && !lista.isEmpty()) {
 
 ---
 
-## 🔐 Segurança em produção
+## 🔐 **Segurança em Produção**
 
 Toda execução perigosa deve ser bloqueada em produção:
 
@@ -178,64 +173,65 @@ if (![SELECT IsSandbox FROM Organization LIMIT 1].IsSandbox) {
 
 ---
 
-## 🚨 Anti-padrões Mamba (Proibido!)
+## 🚨 **Anti-padrões Mamba (Proibido!)**
 
-- `System.debug()` fora de `@IsTest`
-- `SELECT ... LIMIT 1` sem `ORDER BY`
-- `new Map<Id, SObject>([SELECT ...])` sem defensiva
-- Métodos grandes, com lógica aninhada e sem segmentação
-- `assertEquals(true, resultado)` sem mensagem
-- `@TestVisible` em método nunca testado
+- `System.debug()` fora de `@IsTest`.
+- `SELECT ... LIMIT 1` sem `ORDER BY`.
+- `new Map<Id, SObject>([SELECT ...])` sem defensiva.
+- Métodos grandes, com lógica aninhada e sem segmentação.
+- `assertEquals(true, resultado)` sem mensagem explicativa.
+- `@TestVisible` em método nunca testado.
 
 ---
 
-## ✅ Checklist Mamba
+## ✅ **Checklist Mamba**
 
 > Aplique este checklist em todo PR, revisão de código ou push para produção.
 
-### 🧩 Organização & Estrutura
-- [ ] Classe possui `docstring` no topo com descrição e exemplos
-- [ ] Assinatura obrigatória: `@since` e `@author Leo Mamba Garcia`
+### 🧩 **Organização & Estrutura**
+- [ ] Classe possui `docstring` no topo com descrição e exemplos.
+- [ ] Assinatura obrigatória: `@since` e `@author Leo Mamba Garcia`.
 
-### 🔎 Visibilidade & Testabilidade
-- [ ] Todos os métodos com lógica possuem `@TestVisible`
-- [ ] Cada `@TestVisible` é testado por método específico
-- [ ] Métodos com mais de 30 linhas foram modularizados (exceto DTOs)
-- [ ] Nenhum método utilitário está acoplado em lógica de teste
+### 🔎 **Visibilidade & Testabilidade**
+- [ ] Todos os métodos com lógica possuem `@TestVisible`.
+- [ ] Cada `@TestVisible` é testado por método específico.
+- [ ] Métodos com mais de 30 linhas foram modularizados (exceto DTOs).
+- [ ] Nenhum método utilitário está acoplado em lógica de teste.
 
-### 🪵 Logging
-- [ ] `Logger` é usado apenas para exceções, auditoria ou rastreamento real
-- [ ] `System.debug()` aparece **apenas** em `@IsTest`
-- [ ] Logs importantes usam `JSON.serializePretty(...)`
+### 🪵 **Logging**
+- [ ] `Logger` é usado apenas para exceções, auditoria ou rastreamento real.
+- [ ] `System.debug()` aparece **apenas** em `@IsTest`.
+- [ ] Logs importantes usam `JSON.serializePretty(...)`.
 
-### 🔐 Código Defensivo
-- [ ] Todas as listas são validadas com `!= null && !isEmpty()`
-- [ ] Todos os SObjects opcionais são validados antes do uso
-- [ ] `LIMIT 1` só é usado com `ORDER BY` ou contexto de teste
-- [ ] Nenhum campo é assumido sem `String.isNotBlank()` ou equivalentes
+### 🔐 **Código Defensivo**
+- [ ] Todas as listas são validadas com `!= null && !isEmpty()`.
+- [ ] Todos os SObjects opcionais são validados antes do uso.
+- [ ] `LIMIT 1` só é usado com `ORDER BY` ou contexto de teste.
+- [ ] Nenhum campo é assumido sem `String.isNotBlank()` ou equivalentes.
 
-### 🧪 Testes Mamba
-- [ ] `@TestSetup` configura tudo uma vez só
-- [ ] Nenhum dado é criado dentro dos métodos de teste
-- [ ] Todos os dados são consultados com `SELECT` em tempo real
-- [ ] Cada `System.assert*()` tem uma **mensagem explícita** com o valor esperado
-- [ ] Cada teste cobre **1 cenário isolado e bem nomeado**
+### 🧪 **Testes Mamba**
+- [ ] `@TestSetup` configura tudo uma vez só.
+- [ ] Nenhum dado é criado dentro dos métodos de teste.
+- [ ] Todos os dados são consultados com `SELECT` em tempo real.
+- [ ] Cada `System.assert*()` tem uma **mensagem explícita** com o valor esperado.
+- [ ] Cada teste cobre **1 cenário isolado e bem nomeado**.
 
-### 💅 Estilo e Padrão
-- [ ] Sem linhas vazias desnecessárias
-- [ ] Sem `// TODO`, `// DEBUG`, `// Verifica se...`
-- [ ] Identação consistente (4 espaços)
-- [ ] Nomes de métodos descritivos (ex: `deve_retornar_algo_quando_XYZ`)
+### 💅 **Estilo e Padrão**
+- [ ] Sem linhas vazias desnecessárias.
+- [ ] Sem `// TODO`, `// DEBUG`, `// Verifica se...`.
+- [ ] Identação consistente (4 espaços).
+- [ ] Nomes de métodos descritivos (ex: `deve_retornar_algo_quando_XYZ`).
 
 ---
 
-✅ Se tudo acima estiver aplicado, você está pronto para o merge.
+## 🚀 **Entregando Código Mamba**
+
+### **Se tudo acima estiver aplicado**, você está pronto para o **merge**.
 
 🧠🖤  
 **Leo Mamba Garcia**  
 _Estilo não é vaidade. É rastreabilidade em tempo real._  
 #ChecklistMamba #QualidadeBlindada #TestaOuRefatora
-
 
 ---
 
@@ -243,6 +239,3 @@ _Estilo não é vaidade. É rastreabilidade em tempo real._
 **Leo Mamba Garcia**  
 _Estilo não é vaidade. É previsibilidade em código de guerra._  
 #MambaSemSurpresa #TestaOuNãoEntrega #LoggingComAlma
-``` 
-
-Esta versão está otimizada para ser clara, direta e eficaz, além de seguir rigorosamente os padrões de codificação de alta qualidade.
