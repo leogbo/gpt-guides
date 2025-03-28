@@ -1,8 +1,13 @@
+Perfeito! Aqui está a **versão expandida** do seu guia oficial com a nova seção dedicada ao padrão Mamba para testes RESTful, conforme discutido:
+
+---
+
 # 🌐 Guia Oficial de APIs REST em Apex (v2025) – Mentalidade Mamba
 
 📎 **Shortlink oficial:** [bit.ly/Guia_APIs_REST](https://bit.ly/Guia_APIs_REST)
 
-> “Toda API carrega a reputação da sua plataforma. Ela deve ser clara, previsível e rastreável.” – Mentalidade Mamba 🧠🔥
+> “Toda API carrega a reputação da sua plataforma. Ela deve ser clara, previsível e rastreável.”  
+> — Leo Mamba Garcia 🧠🔥
 
 Este guia define os **padrões obrigatórios** para criar, testar e versionar APIs REST internas na sua org Salesforce.
 
@@ -45,11 +50,11 @@ global with sharing class LeadRestController {
 
 Classe utilitária padrão com os seguintes propósitos:
 
-- Valida token de autenticação (se aplicado)
-- Faz parse seguro do corpo da requisição
-- Gera respostas com código HTTP + mensagem padronizada
-- Gera logs via `FlowExecutionLog__c`
-- Aplica JSON nos campos do objeto com `mapFieldsFromRequest(...)`
+- ✅ Valida token de autenticação
+- ✅ Faz parse seguro do corpo da requisição
+- ✅ Gera respostas com código HTTP + mensagem padronizada
+- ✅ Gera logs via `FlowExecutionLog__c`
+- ✅ Aplica JSON nos campos do objeto com `mapFieldsFromRequest(...)`
 
 > 🧠 Todas APIs REST devem depender desse helper. Nunca crie uma do zero.
 
@@ -91,19 +96,73 @@ Classe utilitária padrão com os seguintes propósitos:
 | `JSON.deserializeUntyped()` | ❌ Use `RestServiceHelper.getRequestBody()`                |
 | `throw new Exception(...)`  | ❌ Use `return RestServiceHelper.internalServerError(...)` |
 | `return 'ok';`              | ❌ Sempre retorne um DTO completo com status               |
-| `System.debug(...)`         | ❌ Proibido. Use LoggerContext                             |
+| `System.debug(...)`         | ❌ Proibido. Use Logger estruturado                       |
 
 ---
 
 ## 🧪 Testes obrigatórios para APIs REST
 
-- `@IsTest` com `@TestSetup` que cria registros reais (Lead, Account, etc.)
-- Mocks para chamadas externas se houver (`HttpCalloutMock`)
-- LoggerMock aplicado:
+- ✅ `@IsTest` com `@TestSetup` que cria registros reais (Lead, Account, etc.)
+- ✅ LoggerMock aplicado com:
 ```apex
 LoggerContext.overrideLogger(new LoggerMock());
 ```
-- Teste de happy path + bad request + not found
+- ✅ Testes para:
+  - Happy path
+  - Bad request
+  - Token ausente
+  - Recurso não encontrado (404)
+
+---
+
+## ✅ NOVO: Testes RESTful com padrão Mamba
+
+### 🔁 Separação obrigatória entre camada REST e lógica de negócio
+
+| Tipo de Método         | Como testar?                           | Observação                                            |
+|------------------------|----------------------------------------|-------------------------------------------------------|
+| `@RestResource`        | Verificar `RestContext.response`       | ❗ Nunca capturar exceção diretamente                  |
+| Métodos `validateX()`  | Usar `try/catch`, validar mensagem     | ✅ Lançam exceções como `BadRequestException`         |
+| `handleException()`    | Verifica apenas se resposta foi montada| ❗ Não propaga exceção – apenas converte p/ HTTP       |
+
+---
+
+### 🧪 Exemplo – Teste correto para método REST
+
+```apex
+@isTest
+static void testReceivePost_invalidInput() {
+    RestContext.request = new RestRequest();
+    RestContext.response = new RestResponse();
+    RestContext.request.httpMethod = 'POST';
+    RestContext.request.requestBody = Blob.valueOf('{ "campo_obrigatorio": "" }');
+    RestContext.request.addHeader('Access_token', Label.BEARER_API);
+
+    Test.startTest();
+    MinhaClasseREST.receivePost();
+    Test.stopTest();
+
+    System.assertEquals(400, RestContext.response.statusCode);
+    System.assert(RestContext.response.responseBody.toString().contains('*campo_obrigatorio*'));
+}
+```
+
+---
+
+### ✅ Exemplo – Teste correto para método interno
+
+```apex
+@isTest
+static void test_validateRequiredFields() {
+    Map<String, Object> body = new Map<String, Object>{ 'email' => '' };
+    try {
+        RestServiceHelper.validateRequiredFields(body, new List<String>{ 'email' });
+        System.assert(false, 'Deveria lançar exceção');
+    } catch (RestServiceHelper.BadRequestException e) {
+        System.assert(e.getMessage().contains('*email*'), 'Mensagem: ' + e.getMessage());
+    }
+}
+```
 
 ---
 
@@ -116,10 +175,14 @@ LoggerContext.overrideLogger(new LoggerMock());
 | Logger aplicado (`LoggerContext` ou `FlowExecutionLog`)     | [ ]    |
 | `JSON.serializePretty(...)` para logs                       | [ ]    |
 | `@IsTest` com `LoggerMock`                                  | [ ]    |
-| Teste com entrada válida e erro de entrada (400)             | [ ]    |
-| Nunca usar `System.debug(...)`                              | [ ]    |
+| Teste com entrada válida e erro de entrada (400)            | [ ]    |
+| Testes REST validam `response.statusCode`                   | [ ]    |
+| Testes lógicos capturam exceções com `try/catch`            | [ ]    |
+| Nenhum `System.debug(...)` fora de `@IsTest`                | [ ]    |
 
 ---
 
-🧠🧱🧪 #APIMamba #RestComRaiz #RespostasPadronizadas #SemDebugNunca #TraceSemprePresente
-
+🧠🖤  
+**Leo Mamba Garcia**  
+_Estilo não é vaidade. É previsibilidade em APIs sob pressão._  
+#APIMamba #RESTSemSurpresas #ErroComStatus #NadaEscapa #TestaOuVoltaPraBase 🚀
