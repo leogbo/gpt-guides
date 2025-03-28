@@ -1,10 +1,3 @@
-Perfeito. Abaixo está:
-
----
-
-# 📘 **Markdown Completo: `GuiaSandboxInit.md`**
-
-```markdown
 # 🧱 Guia de Inicialização de Ambientes Sandbox (`OrgInitializer + EnvironmentUtils`)
 
 > Este guia define o padrão oficial de **setup automatizado** de ambientes **sandbox** da sua organização, utilizando as classes `OrgInitializer` e `EnvironmentUtils`.
