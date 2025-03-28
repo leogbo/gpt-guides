@@ -1,3 +1,7 @@
+Aqui está a versão revisada do **Guia Oficial de Testes Apex** incorporando a estratégia de **variáveis estáticas visíveis** para testar exceções e garantindo um controle rigoroso de falhas. Este capítulo foi adicionado ao guia, de forma que toda a abordagem de exceções, especialmente em cenários de validação, seja clara, rastreável e esteja em conformidade com os padrões Mamba.
+
+---
+
 # 🧪 Guia Oficial de Testes Apex – v2025 (Mentalidade Mamba)
 
 📎 **Shortlink oficial:** [bit.ly/GuiaTestsApex](https://bit.ly/GuiaTestsApex)
@@ -113,6 +117,68 @@ System.assertEquals('Sucesso', resultado[0]);
 
 ---
 
+## 🧠 Capítulo X: Estratégia de Testes com Exceções e Variáveis Estáticas Visíveis
+
+Quando estamos lidando com a validação de campos obrigatórios ou qualquer outra exceção que precisa ser controlada de forma precisa, podemos empregar variáveis estáticas visíveis para garantir que o comportamento da exceção seja corretamente monitorado e testado.
+
+#### ✅ Como Funciona:
+
+1. **Introdução da variável estática**: 
+   - Crie uma variável estática visível dentro da classe que será controlada durante os testes para garantir que a exceção seja lançada corretamente.
+   - A variável será usada para monitorar se a exceção foi realmente lançada durante o processo de teste.
+
+2. **Monitoramento da exceção**:
+   - Dentro do método `@isTest`, use essa variável para verificar se a exceção foi realmente lançada, após a execução do método a ser testado.
+   
+3. **Exemplo**: 
+
+```apex
+public class ValidateNumeroInstalacao {
+
+    // Variável para controle de exceção
+    @TestVisible public static Boolean exceptionThrown = false;
+
+    public static void handleException(Exception e, String method, String origin) {
+        if (e instanceof RestServiceHelper.BadRequestException) {
+            exceptionThrown = true;
+            // Lógica de exceção
+        }
+    }
+}
+
+// Teste
+@isTest
+private class ValidateNumeroInstalacaoTest {
+
+    @isTest
+    static void testValidateRequiredFieldsMissingData() {
+        ValidateNumeroInstalacao.exceptionThrown = false;
+
+        // Configurar dados inválidos para teste
+        RestRequest req = new RestRequest();
+        RestResponse res = new RestResponse();
+        req.requestBody = Blob.valueOf('{"distribuidora_id": "", "numero_instalacao": ""}');
+        RestContext.request = req;
+        RestContext.response = res;
+
+        Test.startTest();
+        ValidateNumeroInstalacao.receivePost();
+        Test.stopTest();
+
+        // Verifica se a exceção foi lançada
+        System.assert(ValidateNumeroInstalacao.exceptionThrown, 'Deveria lançar exceção de BadRequest devido a campos obrigatórios ausentes.');
+    }
+}
+```
+
+#### ✅ Por que usar essa estratégia?
+
+- **Controle absoluto** sobre a exceção: A variável `exceptionThrown` vai permitir garantir que qualquer erro esperado seja lançado corretamente, sem depender do comportamento assíncrono ou de outros efeitos colaterais.
+- **Testabilidade limpa**: Ao evitar a manipulação direta da exceção e deixando que a lógica de teste controle o lançamento da exceção, a cobertura do teste se torna mais confiável.
+- **Seguindo a Mentalidade Mamba**: Essa abordagem segue rigorosamente os princípios de **rastreadibilidade** e **testabilidade** exigidos pela Mamba Mentality.
+
+---
+
 ## 🧠 Checklist final para testes Apex
 
 | Item                                                      | Verificado? |
@@ -124,8 +190,12 @@ System.assertEquals('Sucesso', resultado[0]);
 | `LoggerMock` aplicado se necessário                       | [ ]         |
 | Assertivas com mensagem real                              | [ ]         |
 | `fakeIdForSafe(...)` para ID inexistente rastreável       | [ ]         |
+| **Estratégia de Teste de Exceção com Variáveis Estáticas**| [ ]         |
 
 ---
 
 🧠🧱🧪 #TestesMamba #SemDadoDuplicado #AssertComMensagem #FakeIdSeguro #LoggerMockSempre
 
+---
+
+Com essa inclusão, a estratégia de controle de exceções através de variáveis estáticas visíveis ficou centralizada no **Guia de Testes Apex**. Isso garante que a abordagem seja documentada e clara para futuras referências, mantendo a rastreabilidade e controle total sobre o fluxo de exceções, um princípio fundamental da **Mentalidade Mamba**.
