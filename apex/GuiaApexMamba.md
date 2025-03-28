@@ -1,19 +1,14 @@
-# 🧱 **Guia Master de Arquitetura Apex Mamba**  
+# 🧱 Guia Master de Arquitetura Apex Mamba
+
+> Este é o guia principal e centralizador de **todos os padrões institucionais Apex da sua org**.
 
 📎 **Shortlink oficial:** [bit.ly/GuiaApexMamba](https://bit.ly/GuiaApexMamba)
 
-> **"Exige-se excelência. Código não é só código – é rastreabilidade, clareza e poder."** – Mentalidade Mamba 🧠🔥
+> “Exige-se excelência. Código não é só código – é rastreabilidade, clareza e poder.” – Mentalidade Mamba 🧠🔥
 
 ---
 
-## 🧠 **Mentalidade Mamba (Sempre Ativa)**
-
-Mamba Mentality não é apenas sobre **entregar código funcional** – é sobre **perfeição rastreável**, **excelência contínua** e **testes robustos** que **denunciam falhas** antes que elas aconteçam.  
-Se você está aqui, você já sabe que cada linha de código é uma oportunidade de **exibir o seu melhor**, sem desculpas, sem atalhos.
-
----
-
-## 📚 **Referência Cruzada com Guias Oficiais**
+## 📚 Referência Cruzada com Guias Oficiais
 
 | Área                      | Guia Oficial                                                    |
 |---------------------------|------------------------------------------------------------------|
@@ -26,27 +21,26 @@ Se você está aqui, você já sabe que cada linha de código é uma oportunidad
 | 🌐 APIs REST & JSON        | [bit.ly/Guia_APIs_REST](https://bit.ly/Guia_APIs_REST)           |
 | 🧾 Logs de Flows e Auditoria| [bit.ly/FlowExecutionLog](https://bit.ly/FlowExecutionLog)       |
 
-> ✅ **Este guia se conecta a todos os outros** e deve ser **revisitado** a cada refatoração, revisão ou criação de novo padrão.
+> ✅ Este guia se conecta a todos os outros e deve ser revisitado a cada refatoração, revisão ou criação de novo padrão.
 
 ---
 
-## ✅ **Mentalidade Mamba: Não Aceitamos Menos que a Perfeição**
+## ✅ Mentalidade Mamba (Sempre Ativa)
 
-**"Não aceitamos código que 'funciona'. Aceitamos código que é perfeito e rastreável."** – Mamba Mentality
+- **Não aceitamos código que “funciona”. Aceitamos código que é rastreável.**
+- **Não entregamos testes que “passam”. Entregamos testes que denunciam falhas.**
+- **Refatoração não termina na primeira melhoria. Só termina quando é irrefutavelmente melhor.**
+- **Checklist não é burocracia. É disciplina Mamba.**
 
-### **Padrões Imutáveis:**
-- **Refatoração contínua** até que o código seja imbatível.
-- **Testes não são opcionais**, são obrigatórios e devem ser sempre **robustos, isolados e auditáveis**.
-- **Logs completos e rastreáveis** são uma **necessidade absoluta**, nunca use `System.debug()` no código de produção.
-- **Clareza absoluta** no código e nos testes: sem espaço para ambiguidades.
+> 🧠 “Tudo o que você faz deve ser deliberado e rastreável. Inclusive o que você apaga.”
 
 ---
 
-## 🧩 **Fundamentos do Guia de Arquitetura Apex**
+## 🧱 Estrutura do Guia Master
 
-### ✅ **Capítulo 1: Estrutura de Classe Apex**
+### ✅ Capítulo 1: Estrutura de Classe Apex
 
-- Toda classe deve conter **metadados de rastreabilidade** no topo da classe, incluindo o nome da classe, categoria de log e tipo de trigger:
+- Toda classe deve conter os seguintes blocos:
 ```apex
 @TestVisible private static final String className   = 'MinhaClasse';
 @TestVisible private static final String logCategory = 'Domínio';
@@ -54,50 +48,68 @@ Se você está aqui, você já sabe que cada linha de código é uma oportunidad
 private static final String triggerType = 'Service | Trigger | Batch | Queueable';
 ```
 
-### ✅ **Capítulo 2: Logger como Ferramenta de Rastreabilidade**
+### ✅ Capítulo 2: Logger como ferramenta de rastreabilidade
 
-- **Nunca use `System.debug()` fora de testes unitários**. Em produção, a única forma de logar é através do **LoggerContext**.
-- **FlowExecutionLog__c** é **obrigatório** em REST APIs, Triggers, Integrações e Lógicas de Negócio de alto impacto.
+- Nunca usar `System.debug()` fora de testes unitários
+- `FlowExecutionLog__c` é obrigatório em:
+  - REST APIs
+  - Triggers
+  - Integrações
+  - Lógica de negócio de alto impacto
+- Exemplo correto:
 ```apex
-LoggerContext.getLogger()
-    .setMethod('nomeMetodo')
-    .setRecordId(obj.Id)
-    .error('Falha crítica', e, JSON.serializePretty(obj));
+Logger logger = new Logger()
+    .setClass(className)
+    .setMethod('executar')
+    .setCategory(logCategory);
+
+logger.error('Falha crítica ao processar registro', e, JSON.serializePretty(input));
 ```
 
-### ✅ **Capítulo 3: JSON & Serialização**
+> 📘 Veja [GuiaLoggerApex](https://bit.ly/GuiaLoggerApex) para padrão completo.
 
-- **Sempre use `JSON.serializePretty()`** para logs e respostas, nunca logue JSON parcial ou truncado.
-- **Exceções** só devem ser usadas quando o campo for **extremamente grande** e afetar o log.
+### ✅ Capítulo 3: JSON & Serialização
 
-### ✅ **Capítulo 4: `RecordHelper.getById(...)` com Fallback**
+- Sempre usar `JSON.serializePretty()` para logs e responses
+- Nunca logar JSON parcial ou truncado
+- Exceções só se o campo for muito pesado e afetar o log
 
-- **Nunca use `SELECT ... WHERE Id = :id LIMIT 1`** sem fallback.
-- **Uso correto**:
+### ✅ Capítulo 4: `RecordHelper.getById(...)` com fallback
+
+- Substitui qualquer `SELECT ... WHERE Id = :id LIMIT 1` sem fallback
+- Exemplo correto:
 ```apex
-Account acc = (Account) RecordHelper.getById(
-    Account.SObjectType,
-    id,
-    'Id, Name'
-);
+Account acc = (Account) RecordHelper.getById(Account.SObjectType, id, 'Id, Name');
 ```
-- Evite o erro `System.QueryException: List has no rows for assignment to SObject`.
+- Evita `System.QueryException: List has no rows for assignment to SObject`
 
 ---
 
-## ✅ **Capítulo 5: TestHelper – Utilitário Oficial**
+## ✅ Capítulo 5: TestHelper – Utilitário Oficial
 
-- Use **`TestHelper`** para dados simulados (ID, e-mail, telefone).
+Classe base para geração de dados simulados, validações internas e IDs controlados para testes negativos.
+
+> 📘 Veja implementação completa: `TestHelper.cls`
+
+### Exemplos de uso:
 ```apex
-Id fakeId = TestHelper.fakeIdForSafe(UC__c.SObjectType);
-String email = TestHelper.randomEmail();
-String tel = TestHelper.fakePhone();
+Id idInvalido = TestHelper.fakeIdForSafe(UC__c.SObjectType);
+String emailFalso = TestHelper.randomEmail();
+String telefone = TestHelper.fakePhone();
 ```
-- Use **`fakeIdForSafe(...)`** quando precisar de um ID válido mas **inexistente**.
+
+### Forçando falha por ausência de setup:
+```apex
+List<Account> accs = [SELECT Id FROM Account];
+if (accs.isEmpty()) {
+    TestHelper.assertSetupCreated('Account');
+}
+```
+> 💡 Evita `null pointer`, `System.QueryException` e dados ambíguos.
 
 ---
 
-## 🔁 **Capítulo 6: Evite Erros Comuns de Sintaxe Apex vs Java**
+## 🔁 Capítulo 6: Evite Erros Comuns de Sintaxe Apex vs Java
 
 | Erro Comum       | Correto em Apex                      | Errado (Java Style)        |
 |------------------|---------------------------------------|-----------------------------|
@@ -108,25 +120,25 @@ String tel = TestHelper.fakePhone();
 
 ---
 
-## ✅ **Capítulo 7: Checklists Obrigatórios**
+## ✅ Capítulo 7: Checklists Obrigatórios
 
-### ✔️ **Checklist para Nova Classe**:
-- [ ] **`@TestVisible`** e **`triggerType`** definidos
-- [ ] **LogCategory** definido
-- [ ] **Logger** estruturado (`LoggerContext` ou `FlowExecutionLog__c`)
-- [ ] Teste com **cobertura real** (sem mocks ou dados simulados)
-- [ ] Método com **responsabilidade única** (responsabilidade única sempre!)
+### ✔️ Checklist para nova classe:
+- [ ] Possui `@TestVisible` e `triggerType`
+- [ ] LogCategory definido
+- [ ] Logger estruturado (`LoggerContext` ou `FlowExecutionLog__c`)
+- [ ] Teste com cobertura real
+- [ ] Método com responsabilidade única
 
-### ✔️ **Checklist de Refatoração**:
-- [ ] **Antes vs Depois** documentado → [ComparacaoApex](https://bit.ly/ComparacaoApex)
-- [ ] **Equivalência funcional** confirmada → [ConfirmacaoApex](https://bit.ly/ConfirmacaoApex)
-- [ ] **Selects defensivos** adicionados
-- [ ] **`RecordHelper.getById()`** aplicado para consultas seguras
-- [ ] **Testes atualizados e rastreáveis**
+### ✔️ Checklist de refatoração:
+- [ ] Antes vs Depois documentado ([ComparacaoApex](https://bit.ly/ComparacaoApex))
+- [ ] Confirmada equivalência funcional ([ConfirmacaoApex](https://bit.ly/ConfirmacaoApex))
+- [ ] Selects defensivos adicionados
+- [ ] `RecordHelper.getById()` aplicado
+- [ ] Testes atualizados e rastreáveis
 
 ---
 
-## ✅ **Capítulo 8: Exemplo de Padrão Completo Mamba**
+## ✅ Capítulo 8: Exemplo de Padrão Completo Mamba
 
 ```apex
 public class ProdutoService {
@@ -147,25 +159,38 @@ public class ProdutoService {
 
 ---
 
-## 🧠 **Mentalidade Mamba no Desenvolvimento e Refatoração**
+## ✅ Capítulo 9: Logger + TestHelper no Ciclo Mamba
 
-- **Não aceitamos código improvisado**, entregamos **código rastreável** e **perfeito**.
-- **Refatoração contínua** até o código ser **irrefutavelmente melhor**.
-- **Testes não são apenas "padrões"**, são uma **parte do código** e devem ser auditados com a mesma dedicação.
-- **Nada é aceitável sem documentação**. Cada classe, método e função devem ser **claramente descritos**.
+Todo teste com exceção controlada deve usar o padrão:
+
+```apex
+@TestVisible private static Boolean exceptionThrown = false;
+
+// No método original
+if (Test.isRunningTest()) exceptionThrown = true;
+```
+
+No teste:
+```apex
+Test.startTest();
+ClasseAlvo.metodoExecutado();
+Test.stopTest();
+System.assert(ClasseAlvo.exceptionThrown, 'Exceção esperada não foi sinalizada.');
+```
+
+Isso garante **testes de endpoints que convertem exceções sem lançar diretamente**, como handlers REST.
 
 ---
 
-## 📜 **Rastreabilidade e Responsabilidade**
+## 🧠 Final
 
-> **“A única falha que você pode ter é a falta de vontade de ser excelente.”** – Mamba Mentality
+> Revisar este guia é obrigatório antes de qualquer:
+> - Pull Request
+> - Refatoração
+> - Aprovação de PR de terceiros
+> - Geração de novos padrões institucionais
 
-- **Refatoração contínua** até alcançar a **excelência imbatível**.
-- **Testes e logs de alta qualidade** para evitar que falhas passem despercebidas.
-- **Sem exceções** no código ou nos testes.
+🧠🧱🧪 #MentalidadeMamba #RefatoracaoComRaiz #GuiaCentralSempreAtualizado
 
 ---
 
-🧠🧱 **Seja Mamba. Seja Mamba Mentality.**
-
-#ApexMamba #RefatoracaoComRaiz #RastreabilidadeSempre #MentalidadeMamba #ExcecaoComRastreabilidade
