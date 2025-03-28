@@ -1,7 +1,3 @@
-Perfeito! Aqui está a **versão expandida** do seu guia oficial com a nova seção dedicada ao padrão Mamba para testes RESTful, conforme discutido:
-
----
-
 # 🌐 Guia Oficial de APIs REST em Apex (v2025) – Mentalidade Mamba
 
 📎 **Shortlink oficial:** [bit.ly/Guia_APIs_REST](https://bit.ly/Guia_APIs_REST)
