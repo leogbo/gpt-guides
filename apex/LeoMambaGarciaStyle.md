@@ -189,15 +189,55 @@ if (![SELECT IsSandbox FROM Organization LIMIT 1].IsSandbox) {
 
 ---
 
-## ✅ Checklist Mamba (resumo)
+---
 
-- [ ] `@TestVisible` aplicado em todos os métodos testáveis
-- [ ] `Logger` usado apenas em exceções ou contexto crítico
-- [ ] Todos os métodos `@TestVisible` cobertos por teste
-- [ ] Cada assert tem uma mensagem explícita
-- [ ] Nenhum método ultrapassa 30 linhas (exceto DTOs/wrappers)
-- [ ] Código defensivo: `null`, `isEmpty()`, validações
-- [ ] Sem blocos vazios e sem `System.debug()` fora de teste
+## ✅ Checklist Mamba
+
+> Aplique este checklist em todo PR, revisão de código ou push para produção.
+
+### 🧩 Organização & Estrutura
+- [ ] Classe possui `docstring` no topo com descrição e exemplos
+- [ ] Assinatura obrigatória: `@since` e `@author Leo Mamba Garcia`
+
+### 🔎 Visibilidade & Testabilidade
+- [ ] Todos os métodos com lógica possuem `@TestVisible`
+- [ ] Cada `@TestVisible` é testado por método específico
+- [ ] Métodos com mais de 30 linhas foram modularizados (exceto DTOs)
+- [ ] Nenhum método utilitário está acoplado em lógica de teste
+
+### 🪵 Logging
+- [ ] `Logger` é usado apenas para exceções, auditoria ou rastreamento real
+- [ ] `System.debug()` aparece **apenas** em `@IsTest`
+- [ ] Logs importantes usam `JSON.serializePretty(...)`
+
+### 🔐 Código Defensivo
+- [ ] Todas as listas são validadas com `!= null && !isEmpty()`
+- [ ] Todos os SObjects opcionais são validados antes do uso
+- [ ] `LIMIT 1` só é usado com `ORDER BY` ou contexto de teste
+- [ ] Nenhum campo é assumido sem `String.isNotBlank()` ou equivalentes
+
+### 🧪 Testes Mamba
+- [ ] `@TestSetup` configura tudo uma vez só
+- [ ] Nenhum dado é criado dentro dos métodos de teste
+- [ ] Todos os dados são consultados com `SELECT` em tempo real
+- [ ] Cada `System.assert*()` tem uma **mensagem explícita** com o valor esperado
+- [ ] Cada teste cobre **1 cenário isolado e bem nomeado**
+
+### 💅 Estilo e Padrão
+- [ ] Sem linhas vazias desnecessárias
+- [ ] Sem `// TODO`, `// DEBUG`, `// Verifica se...`
+- [ ] Identação consistente (4 espaços)
+- [ ] Nomes de métodos descritivos (ex: `deve_retornar_algo_quando_XYZ`)
+
+---
+
+✅ Se tudo acima estiver aplicado, você está pronto para o merge.
+
+🧠🖤  
+**Leo Mamba Garcia**  
+_Estilo não é vaidade. É rastreabilidade em tempo real._  
+#ChecklistMamba #QualidadeBlindada #TestaOuRefatora
+
 
 ---
 
