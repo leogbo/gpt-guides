@@ -387,3 +387,26 @@ public class LoggerMock implements ILogger {
     }
 }
 
+
+public interface ILogger {
+
+    // ===== CONFIGURAÇÃO FLUENTE =====
+    ILogger withMethod(String methodName);
+    ILogger withRecordId(String recordId);
+    ILogger withCategory(String category);
+    ILogger withTriggerType(String triggerType);
+    ILogger withEnvironment(String environment);
+    ILogger withClass(String className);
+    ILogger withAsync(Boolean value);
+
+    // ===== MÉTODOS DE LOG =====
+    void success(String message, String serializedData);
+    void info(String message, String serializedData);
+    void warn(String message, String serializedData);
+    void error(String message, Exception ex, String serializedData);
+
+    // ===== OPCIONAIS PARA MOCKS/VALIDAÇÃO =====
+    void logRaw(String message);
+    Map<String, Object> debugSnapshot();
+}
+
