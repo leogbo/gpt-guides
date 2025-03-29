@@ -171,3 +171,219 @@ static void test_erro_com_logger_mock() {
 
 🧠🧱🧪 #LoggerMamba #SemDebug #PersistênciaEstruturada #FalhaComRastro
 
+**classes .cls**
+
+/**
+ * @since 2025-03-28
+ * @author Leo Mamba Garcia
+ * 
+ * Classe `Logger`
+ * 
+ * Responsável por registrar logs de execução, erros e dados de auditoria com rastreabilidade completa.
+ * A classe também oferece controle sobre o armazenamento de logs em produção ou testes.
+ * 
+ * ### Funcionalidade:
+ * - **Logger** permite criar entradas de log com níveis de severidade (INFO, WARN, ERROR, SUCCESS).
+ * - Os logs podem ser armazenados de forma síncrona ou assíncrona, conforme a configuração.
+ * - Todos os dados de log são serializados para fácil análise.
+ */
+public class Logger {
+
+    public enum LogLevel { INFO, WARN, ERROR, SUCCESS }
+
+    @TestVisible public static String environment       = Label.ENVIRONMENT;
+    @TestVisible public static String logLevelDefault   = 'INFO';
+    @TestVisible public static Integer MAX_DEBUG_LENGTH = 3000;
+    @TestVisible public static String className;
+    @TestVisible public static String triggerType;
+    @TestVisible public static String logCategory;
+    @TestVisible public static Boolean isEnabled        = true;
+
+    private String methodName;
+    private String triggerRecordId;
+    private String stackTrace;
+    private String serializedData;
+    private String instanceEnvironment;
+    private String instanceClassName;
+    private String instanceTriggerType;
+    private String instanceLogCategory;
+    private Boolean async = false;
+
+    // Construtor padrão, que inicializa a classe com informações de contexto
+    public Logger() {
+        this.instanceClassName   = Logger.className;
+        this.instanceTriggerType = Logger.triggerType;
+        this.instanceLogCategory = Logger.logCategory;
+        this.instanceEnvironment = Logger.environment;
+    }
+
+    // Métodos setters com @TestVisible para permitir a configuração e validação dos dados
+    @TestVisible public Logger setMethod(String methodName) { this.methodName = methodName; return this; }
+    @TestVisible public Logger setRecordId(String recordId) { this.triggerRecordId = recordId; return this; }
+    @TestVisible public Logger setCategory(String category) { this.instanceLogCategory = category; return this; }
+    @TestVisible public Logger setTriggerType(String triggerType) { this.instanceTriggerType = triggerType; return this; }
+    @TestVisible public Logger setEnvironment(String environment) { this.instanceEnvironment = environment; return this; }
+    @TestVisible public Logger setClass(String className) { this.instanceClassName = className; return this; }
+    @TestVisible public Logger setAsync(Boolean value) { this.async = value; return this; }
+
+    // Método de log para SUCCESS, com controle de dados e contexto
+    @TestVisible public void success(String message, String data) {
+        log(LogLevel.SUCCESS, message, null, data);
+    }
+
+    // Método de log para INFO, com controle de dados e contexto
+    @TestVisible public void info(String message, String data) {
+        log(LogLevel.INFO, message, null, data);
+    }
+
+    // Método de log para WARN, com controle de dados e contexto
+    @TestVisible public void warn(String message, String data) {
+        log(LogLevel.WARN, message, null, data);
+    }
+
+    // Método de log para ERROR, incluindo stack trace e dados do erro
+    @TestVisible public void error(String message, Exception ex, String data) {
+        String stack = (ex != null) ? ex.getStackTraceString() : null;
+        log(LogLevel.ERROR, message, stack, data);
+    }
+
+    // Método privado para gerenciar o registro dos logs
+    @TestVisible private void log(LogLevel level, String message, String stack, String data) {
+        if (!isEnabled && !Test.isRunningTest()) return;
+
+        FlowExecutionLog__c logEntry = new FlowExecutionLog__c(
+            Log_Level__c           = level.name(),
+            Class__c               = safeLeft(instanceClassName, 255),
+            Origin_Method__c       = safeLeft(methodName, 255),
+            Trigger_Record_ID__c   = triggerRecordId,
+            Error_Message__c       = safeLeft(message, 255),
+            Debug_Information__c   = safeLeft(message, MAX_DEBUG_LENGTH),
+            Stack_Trace__c         = safeLeft(stack, 30000),
+            Serialized_Data__c     = safeLeft(data, 30000),
+            Trigger_Type__c        = instanceTriggerType,
+            Log_Category__c        = instanceLogCategory,
+            Environment__c         = instanceEnvironment,
+            Execution_Timestamp__c = System.now()
+        );
+
+        // Registra o log de forma assíncrona ou síncrona conforme configuração
+        if (async) {
+            System.enqueueJob(new LoggerQueueable(logEntry));
+        } else {
+            insert logEntry;
+        }
+    }
+
+    // Método privado para garantir que os valores não ultrapassem o limite de comprimento
+    @TestVisible private String safeLeft(String value, Integer max) {
+        return (value == null) ? null : value.left(max);
+    }
+
+    // Método para inicializar o Logger a partir de um registro SObject
+    @TestVisible public static Logger fromTrigger(SObject record) {
+        Logger logger = new Logger();
+        if (record != null && record.Id != null) {
+            logger.setRecordId(record.Id);
+        }
+        return logger;
+    }
+}
+
+
+
+public class LoggerQueueable implements Queueable, Database.AllowsCallouts {
+    private final List<FlowExecutionLog__c> logs;
+
+    public LoggerQueueable(FlowExecutionLog__c log) {
+        this(new List<FlowExecutionLog__c>{ log });
+    }
+
+    public LoggerQueueable(List<FlowExecutionLog__c> logs) {
+        this.logs = (logs == null) ? new List<FlowExecutionLog__c>() : logs;
+    }
+
+    public void execute(QueueableContext context) {
+        if (logs.isEmpty()) {
+            System.debug('⚠️ Nenhum log recebido.');
+            return;
+        }
+
+        // DEBUG COMPLETO PARA DIAGNÓSTICO
+        for (FlowExecutionLog__c log : logs) {
+            System.debug('🧪 LoggerQueueable > Log: ' + JSON.serializePretty(log));
+        }
+
+        // REMOVA O CATCH TEMPORARIAMENTE PARA PERMITIR QUE O TESTE FAÇA FAIL E MOSTRE A CAUSA
+        insert logs;
+    }
+}
+
+public class LoggerMock implements ILogger {
+    public List<String> capturedMessages = new List<String>();
+    private Map<String, Object> context = new Map<String, Object>();
+
+    public ILogger withMethod(String methodName) {
+        context.put('method', methodName);
+        return this;
+    }
+
+    public ILogger withRecordId(String recordId) {
+        context.put('recordId', recordId);
+        return this;
+    }
+
+    public ILogger withCategory(String category) {
+        context.put('category', category);
+        return this;
+    }
+
+    public ILogger withTriggerType(String triggerType) {
+        context.put('triggerType', triggerType);
+        return this;
+    }
+
+    public ILogger withEnvironment(String environment) {
+        context.put('environment', environment);
+        return this;
+    }
+
+    public ILogger withClass(String className) {
+        context.put('class', className);
+        return this;
+    }
+
+    public ILogger withAsync(Boolean value) {
+        context.put('async', value);
+        return this;
+    }
+
+    public void success(String message, String serializedData) {
+        capturedMessages.add('[SUCCESS] ' + message + ' | ' + serializedData);
+    }
+
+    public void info(String message, String serializedData) {
+        capturedMessages.add('[INFO] ' + message + ' | ' + serializedData);
+    }
+
+    public void warn(String message, String serializedData) {
+        capturedMessages.add('[WARN] ' + message + ' | ' + serializedData);
+    }
+
+    public void error(String message, Exception ex, String serializedData) {
+        String msg = message + (ex != null ? ' | ' + ex.getMessage() : '');
+        capturedMessages.add('[ERROR] ' + msg + ' | ' + serializedData);
+    }
+
+    public void logRaw(String message) {
+        capturedMessages.add('[RAW] ' + message);
+    }
+
+    public Map<String, Object> debugSnapshot() {
+        return context.clone();
+    }
+
+    public List<String> getCaptured() {
+        return capturedMessages;
+    }
+}
+
