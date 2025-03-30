@@ -35,19 +35,24 @@ Este guia define os critérios obrigatórios para revisar código Apex com excel
 - [ ] `RecordHelper.getById(...)` aplicado nos `SELECT Id WHERE ...`
 - [ ] `FlowExecutionLog__c` presente se for lógica de negócio crítica
 - [ ] Nenhum `System.debug()` fora de teste
+- [ ] Métodos públicos mantêm compatibilidade após refatoração
+- [ ] Versionamento aplicado em handlers REST (`v2`, `v3`, ...)
 
 ### 🧪 Testes
 - [ ] Possui `@TestSetup` com `TestDataSetup.setupCompleteEnvironment()`
 - [ ] `SELECT LIMIT 1` defensivo (sem QueryException)
-- [ ] `System.assert(...)` com mensagem real
+- [ ] `System.assert(...)` com mensagem real e conteúdo testado
 - [ ] Nenhum uso de `testData.get(...)` dentro dos métodos de teste
 - [ ] `fakeIdForSafe(...)` aplicado em cenários de ausência
+- [ ] Teste com `exceptionThrown` ou rastreio de efeitos colaterais
+- [ ] Teste de comportamento assíncrono (se houver `Queueable`, `Future`)
 
 ### 🔁 Refatoração
-- [ ] Antes vs Depois disponível ([link](https://bit.ly/ComparacaoApex))
-- [ ] Equivalência funcional formalizada ([link](https://bit.ly/ConfirmacaoApex))
+- [ ] Antes vs Depois disponível ([Comparação](https://bit.ly/ComparacaoApex))
+- [ ] Equivalência funcional formalizada ([Confirmação](https://bit.ly/ConfirmacaoApex))
 - [ ] Fallbacks adicionados em campos `null`, `blank`, `invalid`
-- [ ] Métodos que retornam objetos garantem `null-safe` com `RecordHelper` ou `List<T>` + `isEmpty()`
+- [ ] Métodos garantem `null-safe` com `RecordHelper` ou `List<T>.isEmpty()`
+- [ ] Nenhum breaking change em retorno de métodos REST ou públicos
 
 ---
 
@@ -55,7 +60,7 @@ Este guia define os critérios obrigatórios para revisar código Apex com excel
 
 | Item                        | Proibido                      | Alternativa Mamba                           |
 |-----------------------------|-------------------------------|----------------------------------------------|
-| `System.debug(...)`         | ❌ Fora de testes              | `LoggerContext` ou `FlowExecutionLog__c`     |
+| `System.debug(...)`         | ❌ Fora de testes              | `Logger` ou `FlowExecutionLog__c`            |
 | `SELECT ... LIMIT 1` direto| ❌ Sem fallback                | `RecordHelper.getById(...)` ou `List<T>`     |
 | `testData.get(...)`        | ❌ Dentro de @IsTest           | Sempre usar `SELECT` após `@TestSetup`       |
 | `%` em números             | ❌ `a % b` inválido em Apex    | `Math.mod(a, b)`                             |
@@ -80,14 +85,6 @@ Account acc = (Account) RecordHelper.getById(Account.SObjectType, id, 'Id, Name'
 ## 📌 Exemplo de assertiva mamba:
 ```apex
 System.assertEquals(1, contas.size(), 'Esperado 1 conta. Obtido: ' + contas.size());
-```
-
-### ❌ Nunca use:
-```apex
-System.assert(conta != null);
-```
-🔁 Use:
-```apex
 System.assertNotEquals(null, conta, 'Conta retornada foi null');
 ```
 
@@ -101,6 +98,14 @@ if (ucs.isEmpty()) {
 }
 UC__c uc = ucs[0];
 ```
+
+---
+
+## 📎 Checklists relacionados
+
+- ✅ [Checklist de Testes Apex](https://bit.ly/GuiaTestsApex#✅-checklist-mamba-para-testes)
+- ✅ [Checklist de Equivalência Funcional](https://bit.ly/ConfirmacaoApex#🧠-checklist-de-confirmação-mamba)
+- ✅ [Checklist de Comparação de Código](https://bit.ly/ComparacaoApex)
 
 ---
 
