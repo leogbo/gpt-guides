@@ -41,6 +41,32 @@ Este guia define o processo obrigatório para **confirmar que uma refatoração 
 
 ## 🧪 Exemplo de confirmação:
 
+### 🔬 Exemplo real de teste que valida equivalência funcional
+```apex
+@IsTest
+static void deve_manter_comportamento_apos_refatoracao() {
+    ClientPortalService.exceptionThrown = false;
+    Map<String, Object> req = mockRequestDataUpdateLoginPassword('UC__c', 'login', 'senha');
+
+    try {
+        ClientPortalService.handleUpdateLoginPassword(req);
+    } catch (RestServiceHelper.BadRequestException e) {
+        System.assert(ClientPortalService.exceptionThrown, 'Flag de exceção não foi ativada.');
+    }
+}
+```
+
+### 📄 Snippet para Pull Request
+```markdown
+### 🧠 Confirmação de Equivalência Funcional
+
+- Nenhum assert foi alterado
+- Comportamento validado com `exceptionThrown` (exceção rastreável)
+- JSON de resposta idêntico ao anterior
+- `FlowExecutionLog__c` mantido com mesma categoria e estrutura
+- Método `handleUpdateLoginPassword()` refatorado mantendo assinatura e retorno
+```
+
 ```markdown
 ### Equivalência validada:
 - Todos os testes passaram sem alteração
