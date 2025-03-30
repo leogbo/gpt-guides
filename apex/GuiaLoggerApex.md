@@ -289,105 +289,6 @@ public class Logger {
     }
 }
 
-
-
-public class LoggerQueueable implements Queueable, Database.AllowsCallouts {
-    private final List<FlowExecutionLog__c> logs;
-
-    public LoggerQueueable(FlowExecutionLog__c log) {
-        this(new List<FlowExecutionLog__c>{ log });
-    }
-
-    public LoggerQueueable(List<FlowExecutionLog__c> logs) {
-        this.logs = (logs == null) ? new List<FlowExecutionLog__c>() : logs;
-    }
-
-    public void execute(QueueableContext context) {
-        if (logs.isEmpty()) {
-            System.debug('⚠️ Nenhum log recebido.');
-            return;
-        }
-
-        // DEBUG COMPLETO PARA DIAGNÓSTICO
-        for (FlowExecutionLog__c log : logs) {
-            System.debug('🧪 LoggerQueueable > Log: ' + JSON.serializePretty(log));
-        }
-
-        // REMOVA O CATCH TEMPORARIAMENTE PARA PERMITIR QUE O TESTE FAÇA FAIL E MOSTRE A CAUSA
-        insert logs;
-    }
-}
-
-public class LoggerMock implements ILogger {
-    public List<String> capturedMessages = new List<String>();
-    private Map<String, Object> context = new Map<String, Object>();
-
-    public ILogger withMethod(String methodName) {
-        context.put('method', methodName);
-        return this;
-    }
-
-    public ILogger withRecordId(String recordId) {
-        context.put('recordId', recordId);
-        return this;
-    }
-
-    public ILogger withCategory(String category) {
-        context.put('category', category);
-        return this;
-    }
-
-    public ILogger withTriggerType(String triggerType) {
-        context.put('triggerType', triggerType);
-        return this;
-    }
-
-    public ILogger withEnvironment(String environment) {
-        context.put('environment', environment);
-        return this;
-    }
-
-    public ILogger withClass(String className) {
-        context.put('class', className);
-        return this;
-    }
-
-    public ILogger withAsync(Boolean value) {
-        context.put('async', value);
-        return this;
-    }
-
-    public void success(String message, String serializedData) {
-        capturedMessages.add('[SUCCESS] ' + message + ' | ' + serializedData);
-    }
-
-    public void info(String message, String serializedData) {
-        capturedMessages.add('[INFO] ' + message + ' | ' + serializedData);
-    }
-
-    public void warn(String message, String serializedData) {
-        capturedMessages.add('[WARN] ' + message + ' | ' + serializedData);
-    }
-
-    public void error(String message, Exception ex, String serializedData) {
-        String msg = message + (ex != null ? ' | ' + ex.getMessage() : '');
-        capturedMessages.add('[ERROR] ' + msg + ' | ' + serializedData);
-    }
-
-    public void logRaw(String message) {
-        capturedMessages.add('[RAW] ' + message);
-    }
-
-    public Map<String, Object> debugSnapshot() {
-        return context.clone();
-    }
-
-    public List<String> getCaptured() {
-        return capturedMessages;
-    }
-}
-
-
 public interface ILogger {
 
     // ===== CONFIGURAÇÃO FLUENTE =====
@@ -408,5 +309,89 @@ public interface ILogger {
     // ===== OPCIONAIS PARA MOCKS/VALIDAÇÃO =====
     void logRaw(String message);
     Map<String, Object> debugSnapshot();
+}
+
+
+public class LoggerMock implements ILogger {
+    public List<String> capturedMessages = new List<String>();
+    private Map<String, Object> context = new Map<String, Object>();
+    
+    @TestVisible
+    public ILogger withMethod(String methodName) {
+        context.put('method', methodName);
+        return this;
+    }
+    
+    @TestVisible
+    public ILogger withRecordId(String recordId) {
+        context.put('recordId', recordId);
+        return this;
+    }
+
+    @TestVisible
+    public ILogger withCategory(String category) {
+        context.put('category', category);
+        return this;
+    }
+
+    @TestVisible
+    public ILogger withTriggerType(String triggerType) {
+        context.put('triggerType', triggerType);
+        return this;
+    }
+
+    @TestVisible
+    public ILogger withEnvironment(String environment) {
+        context.put('environment', environment);
+        return this;
+    }
+
+    @TestVisible
+    public ILogger withClass(String className) {
+        context.put('class', className);
+        return this;
+    }
+
+    @TestVisible
+    public ILogger withAsync(Boolean value) {
+        context.put('async', value);
+        return this;
+    }
+
+    @TestVisible
+    public void success(String message, String serializedData) {
+        capturedMessages.add('[SUCCESS] ' + message + ' | ' + serializedData);
+    }
+
+    @TestVisible
+    public void info(String message, String serializedData) {
+        capturedMessages.add('[INFO] ' + message + ' | ' + serializedData);
+    }
+
+    @TestVisible
+    public void warn(String message, String serializedData) {
+        capturedMessages.add('[WARN] ' + message + ' | ' + serializedData);
+    }
+
+    @TestVisible
+    public void error(String message, Exception ex, String serializedData) {
+        String msg = message + (ex != null ? ' | ' + ex.getMessage() : '');
+        capturedMessages.add('[ERROR] ' + msg + ' | ' + serializedData);
+    }
+
+    @TestVisible
+    public void logRaw(String message) {
+        capturedMessages.add('[RAW] ' + message);
+    }
+
+    @TestVisible
+    public Map<String, Object> debugSnapshot() {
+        return context.clone();
+    }
+
+    @TestVisible
+    public List<String> getCaptured() {
+        return capturedMessages;
+    }
 }
 
