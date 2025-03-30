@@ -23,7 +23,8 @@ Este guia define como documentar, revisar e validar refatorações em Apex com s
 - Alterações de estrutura interna
 - Mudança de fallback (ex: `null` → `Optional`, `LIMIT 1` → `RecordHelper`)
 - Substituições de bloco de lógica por helper externo
-- Renomeações de variáveis visíveis (salvo em escopos `private`)
+- Renomeações de variáveis visíveis (exceto `private` sem impacto externo)
+- Conversão de blocos `System.debug()` para `Logger.info()` ou `Logger.error()`
 
 ---
 
@@ -63,7 +64,7 @@ Account acc = (Account) RecordHelper.getById(Account.SObjectType, id, 'Id');
 ```
 
 ### 🧪 Testes
-- Testes atualizados e passando com `@TestSetup`
+- Testes atualizados com `@TestSetup` e cobertura específica
 - Adicionado caso para `id == null`
 
 ### 🔒 Equivalência funcional mantida
@@ -79,31 +80,44 @@ Account acc = (Account) RecordHelper.getById(Account.SObjectType, id, 'Id');
 | Alteração em método público          | ✅            |
 | Troca de SELECT direto por helper    | ✅            |
 | Refatoração em builder de teste      | ✅            |
+| Alteração em lógica de log (`Logger`) | ✅            |
 | Apenas mudança de espaçamento        | ❌            |
 | Mudança em variável `private`        | ⚠️ contextual |
-| Inclusão de log                      | ⚠️ contextual |
+| Inclusão de assert em teste          | ⚠️ contextual |
 
 ---
 
 ## 📌 Dicas avançadas de comparação
 
 - Use `git diff --word-diff` para destacar mudanças sutis
-- Faça uso de ferramentas como VS Code `Side-by-Side View`
-- Compare comportamentos de log se envolveu `LoggerContext`
-- Mantenha os blocos `Antes` e `Depois` separados por tipo:
-  - SELECT
-  - Lógica condicional
-  - Serialização
+- Use `Side-by-Side` no VS Code para analisar refatorações longas
+- Compare logs se alterou chamadas a `Logger` ou `RestServiceHelper`
+- Mantenha os blocos separados por tipo:
+  - `SELECT`
+  - `Logger`
+  - `Branch / if`
+  - `Serialização`
+
+---
+
+## 🔗 Integrações úteis
+
+| Guia                           | Contribuição                                  |
+|--------------------------------|-----------------------------------------------|
+| [GuiaLoggerApex](https://bit.ly/GuiaLoggerApex)   | Alvo comum de refatoração                     |
+| [GuiaTestsApex](https://bit.ly/GuiaTestsApex)     | Validação de equivalência após mudanças       |
+| [GuiaRestAPI](https://bit.ly/Guia_APIs_REST)      | Mudanças nos handlers precisam ser comparadas |
 
 ---
 
 ## 🧠 Final
 
-> Toda melhoria precisa de prova.
-> Toda prova precisa de contexto.
+> Toda melhoria precisa de prova.  
+> Toda prova precisa de contexto.  
 > Toda mudança precisa passar pela lupa da comparação.
 
-📌 Refatoração sem comparação é improviso.
+📌 Refatoração sem comparação é improviso.  
+🧱🧠🧪 #RefatoraComRaiz #AntesVsDepois #NadaMudaSemRastreabilidade
 
-🧠🧱🧪 #RefatoraComRaiz #AntesVsDepois #NadaMudaSemRastreabilidade
+
 
