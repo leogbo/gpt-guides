@@ -109,6 +109,40 @@ UC__c uc = ucs[0];
 
 ---
 
+## 📄 Exemplo de Pull Request com validação de revisão
+```markdown
+### 🧠 Revisão Executada
+
+- Checklist Mamba totalmente preenchido
+- Logs estruturados com `Logger`
+- Testes atualizados com `exceptionThrown` e validação de fallback
+- `FlowExecutionLog__c` presente com categoria `Service`
+- Nenhuma quebra de assinatura pública
+- Refatoração validada: [ComparacaoApex](https://bit.ly/ComparacaoApex)
+- Equivalência funcional confirmada: [ConfirmacaoApex](https://bit.ly/ConfirmacaoApex)
+```
+
+---
+
+## 🔍 Exemplo de revisão rejeitada (anti-pattern)
+```diff
+- public Map<String, Object> buscarConta(String id) {
+-     Account acc = [SELECT Id, Name FROM Account WHERE Id = :id LIMIT 1];
+-     return new Map<String, Object>{ 'Id' => acc.Id, 'Nome' => acc.Name };
+- }
++ public Map<String, Object> buscarContaComDocumento(String id) {
++     Account acc = [SELECT Id, Name, Documento__c FROM Account WHERE Id = :id LIMIT 1];
++     return new Map<String, Object>{ 'Id' => acc.Id, 'Documento' => acc.Documento__c };
++ }
+```
+
+❌ **Problema:** método anterior foi suprimido
+✅ **Correto:** manter `buscarConta(...)` e criar `buscarContaComDocumento(...)` como evolução
+
+> Nunca quebre contrato público. Apenas estenda, sobrecarregue ou versiona.
+
+---
+
 ## 🧠 Final
 
 Revisar código não é só aprovar. É confirmar que:
@@ -120,4 +154,7 @@ Revisar código não é só aprovar. É confirmar que:
 📌 **Nada é considerado revisado sem checklist preenchido.**
 
 🧠🧱🧪 #RevisaoMamba #FiltroDeExcecao #NadaEntraSemValidacao
+
+
+**classes .cls**
 
