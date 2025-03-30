@@ -16,26 +16,31 @@ Este guia define os **padrões obrigatórios** para criar, testar e versionar AP
 - 🪵 [Guia de Logging](https://bit.ly/GuiaLoggerApex)
 - 🧪 [Guia de Testes](https://bit.ly/GuiaTestsApex)
 - 🧱 [Guia de TestData Setup](https://bit.ly/TestDataSetup)
+- ✅ [Guia de Equivalência Funcional](https://bit.ly/ConfirmacaoApex)
 
 ---
 
 ## ✅ Estrutura de uma classe REST Apex
-
 ```apex
 @RestResource(urlMapping='/lead/v1')
 global with sharing class LeadRestController {
 
     @HttpPost
-    global static RestResponseDTO createLead() {
+    global static void createLead() {
         try {
             Map<String, Object> payload = RestServiceHelper.getRequestBody();
             Lead newLead = new Lead();
-            RestServiceHelper.mapFieldsFromRequest(payload, newLead, 'Lead');
+            newLead = applyFields(payload, newLead); // método interno da própria classe
             insert newLead;
-            return RestServiceHelper.created('Lead criado com sucesso', newLead);
+            RestServiceHelper.sendResponse(201, 'Lead criado com sucesso', newLead);
         } catch (Exception ex) {
-            return RestServiceHelper.internalServerError('Erro ao criar Lead', ex);
+            RestServiceHelper.internalServerError('Erro ao criar Lead', ex);
         }
+    }
+
+    @TestVisbile private static Lead applyFields(Map<String, Object> payload, Lead newLead) {
+        // método interno da própria classe em funcao do payload recebido ....
+        return newLead; // newLead com carga adicional do payload recebido.
     }
 }
 ```
@@ -48,25 +53,22 @@ Classe utilitária padrão com os seguintes propósitos:
 
 - ✅ Valida token de autenticação
 - ✅ Faz parse seguro do corpo da requisição
-- ✅ Gera respostas com código HTTP + mensagem padronizada
-- ✅ Gera logs via `FlowExecutionLog__c`
+- ✅ Gera respostas com status HTTP + mensagem padronizada
+- ✅ Gera logs estruturados via `Logger`
 - ✅ Aplica JSON nos campos do objeto com `mapFieldsFromRequest(...)`
 
-> 🧠 Todas APIs REST devem depender desse helper. Nunca crie uma do zero.
+> 🧠 Todas APIs REST devem depender desse helper. Nunca crie tratamento de request/response manual.
 
 ---
 
 ## ✅ Formato padrão de resposta REST
-
 ```json
 {
-  "success": true,
   "message": "Lead criado com sucesso",
-  "data": {
+  "details": {
     "Id": "00Q...",
     "Name": "Nome Teste"
-  },
-  "ref": "trace-id"
+  }
 }
 ```
 
@@ -78,7 +80,7 @@ Classe utilitária padrão com os seguintes propósitos:
 |----------------------------------|--------|--------------------------------------------------------|
 | `ok(data)`                       | 200    | Sucesso com dados                                      |
 | `created(msg, data)`            | 201    | Recurso criado com sucesso                            |
-| `badRequest(msg)`               | 400    | Erro de validação de entrada                         |
+| `badRequest(msg)`               | 400    | Erro de validação de entrada                          |
 | `unauthorized(msg)`             | 401    | Token ausente ou inválido                             |
 | `notFound(msg)`                 | 404    | Recurso não encontrado                                 |
 | `internalServerError(msg, ex)`  | 500    | Erro inesperado com log                                |
@@ -90,93 +92,66 @@ Classe utilitária padrão com os seguintes propósitos:
 | Erro                         | Correto                                                   |
 |------------------------------|------------------------------------------------------------|
 | `JSON.deserializeUntyped()` | ❌ Use `RestServiceHelper.getRequestBody()`                |
-| `throw new Exception(...)`  | ❌ Use `return RestServiceHelper.internalServerError(...)` |
-| `return 'ok';`              | ❌ Sempre retorne um DTO completo com status               |
-| `System.debug(...)`         | ❌ Proibido. Use Logger estruturado                       |
+| `throw new Exception(...)`  | ❌ Use `RestServiceHelper.internalServerError(...)`        |
+| `return 'ok';`              | ❌ Sempre use DTO completo com statusCode                  |
+| `System.debug(...)`         | ❌ Proibido. Use `Logger` estruturado                     |
 
 ---
 
 ## 🧪 Testes obrigatórios para APIs REST
 
-- ✅ `@IsTest` com `@TestSetup` que cria registros reais (Lead, Account, etc.)
-- ✅ LoggerMock aplicado com:
+- ✅ `@IsTest` com `@TestSetup` que cria registros reais
+- ✅ `LoggerMock` aplicado:
 ```apex
-LoggerContext.overrideLogger(new LoggerMock());
+Logger.overrideLogger(new LoggerMock());
 ```
-- ✅ Testes para:
-  - Happy path
-  - Bad request
-  - Token ausente
+- ✅ Testes obrigatórios:
+  - Happy path (200 ou 201)
+  - Bad request (400)
+  - Token ausente ou inválido (401)
   - Recurso não encontrado (404)
+  - Erro interno (500) com rastreabilidade
 
 ---
 
-## ✅ NOVO: Testes RESTful com padrão Mamba
-
-### 🔁 Separação obrigatória entre camada REST e lógica de negócio
-
-| Tipo de Método         | Como testar?                           | Observação                                            |
-|------------------------|----------------------------------------|-------------------------------------------------------|
-| `@RestResource`        | Verificar `RestContext.response`       | ❗ Nunca capturar exceção diretamente                  |
-| Métodos `validateX()`  | Usar `try/catch`, validar mensagem     | ✅ Lançam exceções como `BadRequestException`         |
-| `handleException()`    | Verifica apenas se resposta foi montada| ❗ Não propaga exceção – apenas converte p/ HTTP       |
-
----
-
-### 🧪 Exemplo – Teste correto para método REST
-
+## 🧪 Exemplo – Teste para erro 400
 ```apex
-@isTest
-static void testReceivePost_invalidInput() {
+@IsTest
+static void test_invalid_payload_returns_400() {
     RestContext.request = new RestRequest();
     RestContext.response = new RestResponse();
     RestContext.request.httpMethod = 'POST';
-    RestContext.request.requestBody = Blob.valueOf('{ "campo_obrigatorio": "" }');
-    RestContext.request.addHeader('Access_token', Label.BEARER_API);
+    RestContext.request.requestBody = Blob.valueOf('{ "email": "" }');
+    RestContext.request.addHeader('Access_token', 'Bearer INVALID');
 
     Test.startTest();
     MinhaClasseREST.receivePost();
     Test.stopTest();
 
     System.assertEquals(400, RestContext.response.statusCode);
-    System.assert(RestContext.response.responseBody.toString().contains('*campo_obrigatorio*'));
+    System.assert(RestContext.response.responseBody.toString().contains('email'));
 }
 ```
 
 ---
 
-### ✅ Exemplo – Teste correto para método interno
+## ✅ Checklist Mamba para APIs REST
 
-```apex
-@isTest
-static void test_validateRequiredFields() {
-    Map<String, Object> body = new Map<String, Object>{ 'email' => '' };
-    try {
-        RestServiceHelper.validateRequiredFields(body, new List<String>{ 'email' });
-        System.assert(false, 'Deveria lançar exceção');
-    } catch (RestServiceHelper.BadRequestException e) {
-        System.assert(e.getMessage().contains('*email*'), 'Mensagem: ' + e.getMessage());
-    }
-}
-```
-
----
-
-## ✅ Checklist de API REST Mamba
-
-| Item                                                        | Status |
-|-------------------------------------------------------------|--------|
-| Classe REST com `@RestResource(...)`                        | [ ]    |
-| Uso exclusivo de `RestServiceHelper`                        | [ ]    |
-| Logger aplicado (`LoggerContext` ou `FlowExecutionLog`)     | [ ]    |
-| `JSON.serializePretty(...)` para logs                       | [ ]    |
-| `@IsTest` com `LoggerMock`                                  | [ ]    |
-| Teste com entrada válida e erro de entrada (400)            | [ ]    |
-| Testes REST validam `response.statusCode`                   | [ ]    |
-| Testes lógicos capturam exceções com `try/catch`            | [ ]    |
-| Nenhum `System.debug(...)` fora de `@IsTest`                | [ ]    |
+| Item                                                        | Verificado? |
+|-------------------------------------------------------------|-------------|
+| Classe REST com `@RestResource`                            | [ ]         |
+| Uso exclusivo de `RestServiceHelper`                       | [ ]         |
+| Logs estruturados com `Logger`                             | [ ]         |
+| JSON serializado com `serializePretty()`                   | [ ]         |
+| `FlowExecutionLog__c` presente se for crítico              | [ ]         |
+| `LoggerMock` ativado em testes                             | [ ]         |
+| Testes REST validam `response.statusCode`                  | [ ]         |
+| Testes lógicos capturam `BadRequestException` corretamente | [ ]         |
+| Nenhum `System.debug(...)` no código produtivo             | [ ]         |
 
 ---
+
+🧠🧱🧪 #APIMamba #RESTSemSurpresas #ErroComStatus #NadaEscapa #TestaOuVoltaPraBase
 
 🧠🖤  
 **Leo Mamba Garcia**  
