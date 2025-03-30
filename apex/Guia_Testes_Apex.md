@@ -22,7 +22,7 @@ static void nome_do_teste() {
     // execução
     Test.stopTest();
 
-    System.assertEquals('esperado', retorno.get('campo'), 'O resultado inesperado: '+retorno.get('campo'));
+    System.assertEquals('esperado', retorno.get('campo'));
 }
 ```
 
@@ -64,8 +64,8 @@ System.assert(result.get('mensagem').toUpperCase().contains('SUCESSO'), 'Mensage
 - Mensagens de erro nos asserts são obrigatórias
 
 ```apex
-System.assertEquals(200, response.statusCode, 'Código HTTP inesperado: ': + response.statusCode);
-System.assert(response.get('data') != null, 'Dados devem estar presentes: response.get('data') é nulo');
+System.assertEquals(200, response.statusCode, 'Código HTTP inesperado');
+System.assert(response.get('data') != null, 'Dados devem estar presentes');
 ```
 
 ---
@@ -117,6 +117,7 @@ static void deve_lancar_excecao_quando_id_invalido() {
     try {
         ClientPortalService.handleUpdateLoginPassword(req);
     } catch (RestServiceHelper.BadRequestException e) {
+        // Valida não apenas a exceção lançada, mas o comportamento colateral esperado
         System.assert(ClientPortalService.exceptionThrown, 'Flag de exceção não foi ativada.');
     }
 }
@@ -152,23 +153,37 @@ static void configurarSistema() {
 ### 🧪 Uso de `XXXTestSetupData.cls`
 ```apex
 @IsTest
-static void deve_criar_proposta_com_integridade() {
-    Map<String, SObject> mapa = PropostaTestSetupData.createProposa(); // toda proposta cria uma oportunidade por integridade
-    Opportunity opp = (Opportunity) mapa.get('Opportunity');
-    System.assertNotEquals(null, Opportunity.Id, 'Oportunidade não foi criada corretamente');
-}
-
-@IsTest
 static void deve_criar_uc_com_integridade() {
-    Map<String, SObject> mapa = UcTestSetupData.createUC(); // toda UC cria uma Account por integridade
-    Account acc = (Account) mapa.get('Account');
-    System.assertNotEquals(null, acc.Id, 'Account não foi criada corretamente');
+    Map<String, SObject> mapa = PropostaTestSetupData.criarPropostaComUC();
+    UC__c uc = (UC__c) mapa.get('UC');
+    System.assertNotEquals(null, uc.Id, 'UC não foi criada corretamente');
 }
 ```
 
 ---
 
 ## 🧪 Tipos de Testes
+
+### 🧬 Refatoração com equivalência funcional
+Testa um método refatorado garantindo que:
+- Os `asserts` antigos continuam passando
+- O comportamento não mudou para entradas conhecidas
+- Variáveis como `exceptionThrown` (quando houver) confirmam o mesmo comportamento interno
+
+Exemplo:
+```apex
+@IsTest
+static void deve_manter_comportamento_apos_refatoracao() {
+    ClientPortalService.exceptionThrown = false;
+    Map<String, Object> req = mockRequestDataUpdateLoginPassword('UC__c', 'login', 'senha');
+
+    try {
+        ClientPortalService.handleUpdateLoginPassword(req);
+    } catch (RestServiceHelper.BadRequestException e) {
+        System.assert(ClientPortalService.exceptionThrown, 'Flag de exceção não foi ativada.');
+    }
+}
+```
 
 ### 🔹 Happy Path
 Testa o fluxo ideal com dados válidos. Deve haver pelo menos 1 por classe.
@@ -196,10 +211,12 @@ Para cada handler ou classe de serviço:
 
 ## ✅ Checklist Mamba para Testes
 
+> Inclui validação de equivalência funcional quando aplicável (conforme [GuiaConfirmacaoApex](https://bit.ly/ConfirmacaoApex))
+
 - [x] Usa `@IsTest` e `@TestSetup`
 - [x] Sem validação de log
-- [x] Asserts com mensagens explícitas incluindo o resultado do teste para facilitar debug
-- [x] Testa individualmente cada metodo global, public e private @TestVisible da classe orginal
+- [x] Asserts com mensagens explícitas
+- [x] Testa indivualmente cada método da classe original (global, public, @TestVisible private) 
 - [x] Testa cada ramificação da lógica
 - [x] Valida estrutura de retorno, não o debug
 - [x] Usa `TestHelper` e `TestDataSetup`
