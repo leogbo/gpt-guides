@@ -1,88 +1,46 @@
-# 🧠 GPT Guides — Base Oficial para Revisão e Refatoração
+# Mamba Coding Guide
 
-Este repositório contém os **Guias Rigorosos** para revisão, refatoração e padronização de código Apex.  
-Ele serve como **base de verdade** para desenvolvedores e GPTs personalizados usados em revisões técnicas.
+Bem-vindo ao **Mamba Coding Guide**, uma coleção de recursos projetados para desenvolvedores que buscam **alta performance** e **excelência** no mundo da tecnologia. Inspirado na filosofia **Mamba Mentality**, este guia é dedicado àqueles que desejam aprimorar continuamente suas habilidades e alcançar resultados excepcionais.
 
-> **Todo código Apex novo ou revisado deve seguir este guia.**
+## Filosofia Mamba Mentality
 
----
+A **Mamba Mentality** é sobre estar comprometido com o processo de se tornar a melhor versão de si mesmo. Aplicada ao desenvolvimento de software, significa:
 
-## 📌 Como usar este repositório
+- **Dedicação**: Comprometimento total com o aprendizado e aprimoramento contínuo.
+- **Disciplina**: Manter o foco nos objetivos, mesmo diante de desafios.
+- **Resiliência**: Superar obstáculos e aprender com os erros.
+- **Paixão**: Amar o que faz e buscar sempre a excelência.
 
-1️⃣ **Leia e siga os guias disponíveis** na pasta `apex/`.  
-2️⃣ **Use GPTs personalizados** configurados para seguir este repositório.  
-3️⃣ **Utilize os templates** para padronizar revisões e confirmações.  
-4️⃣ **Siga o fluxo correto** de testes, logs e equivalência funcional.  
+## Índice dos Guias
 
----
+Abaixo, você encontrará uma lista dos guias disponíveis, cada um focado em uma área específica do desenvolvimento de software:
 
-## 📚 Guias disponíveis
+1. **Prompting Eficaz**
+   - *Descrição*: Aprenda a criar prompts eficientes para interagir com modelos de linguagem e obter os melhores resultados.
+   - *Link*: [Prompting Eficaz](https://mambadev.io/prompting)
 
-| Área         | Guia                                | Link |
-|--------------|-------------------------------------|------|
-| Apex         | Guia Rigoroso de Revisão            | [📖 Acessar](./apex/Guia_Rigoroso_Revisao_Apex.md) |
-| Apex         | Guia de Testes Unitários            | [🧪 Acessar](./apex/Guia_Testes_Apex.md) |
-| Apex         | Guia de Logging com LoggerContext  | [📝 Acessar](./apex/Guia_Logger_Apex.md) |
+2. **Automação com IA**
+   - *Descrição*: Descubra como automatizar tarefas utilizando inteligência artificial para aumentar a produtividade.
+   - *Link*: [Automação com IA](https://mambadev.io/automation)
 
----
+3. **Agentes Inteligentes**
+   - *Descrição*: Explore o desenvolvimento e implementação de agentes inteligentes em diversos contextos.
+   - *Link*: [Agentes Inteligentes](https://mambadev.io/agents)
 
-## 🤖 Uso com GPTs Personalizados
+4. **Integração com Salesforce**
+   - *Descrição*: Guia completo sobre como integrar soluções com a plataforma Salesforce de forma eficiente.
+   - *Link*: [Integração com Salesforce](https://mambadev.io/salesforce)
 
-### **GPT Apex Revisor Rigoroso**
+5. **Desenvolvimento Apex**
+   - *Descrição*: Aprofunde-se na linguagem Apex para desenvolvimento na plataforma Salesforce.
+   - *Link*: [Desenvolvimento Apex](https://mambadev.io/apex)
 
-💡 **Configuração recomendada para GPTs customizados**:  
+6. **Marketing Cloud**
+   - *Descrição*: Estratégias e técnicas para potencializar o uso do Salesforce Marketing Cloud.
+   - *Link*: [Marketing Cloud](https://mambadev.io/marketingcloud)
 
-> **Instruções:**  
-> Use exclusivamente o guia abaixo para revisar qualquer código Apex.  
-> Todas as respostas devem seguir 100% das regras, sem exceção.  
->  
-> [🔗 Guia Rigoroso](https://raw.githubusercontent.com/seu-org/gpt-guides/main/apex/Guia_Rigoroso_Revisao_Apex.md)
+## Como Utilizar Este Guia
 
-### **GPTs de Testes Apex**
+Cada seção acima direciona para um guia detalhado sobre o respectivo tópico. Recomenda-se seguir a ordem apresentada para uma compreensão progressiva dos conceitos. No entanto, sinta-se à vontade para navegar conforme suas necessidades e interesses.
 
-Para geração e revisão de testes:
-
-> [🔗 Guia de Testes Apex](https://raw.githubusercontent.com/seu-org/gpt-guides/main/apex/Guia_Testes_Apex.md)
-
-### **GPTs para Logging e Monitoramento**
-
-> [🔗 Guia de Logging Apex](https://raw.githubusercontent.com/seu-org/gpt-guides/main/apex/Guia_Logger_Apex.md)
-
----
-
-## 📎 Templates para Revisão e Confirmação
-
-- [`comparativo-antes-depois.md`](./apex/comparativo-antes-depois.md) – Para revisões estruturadas  
-- [`confirmacao-final.md`](./apex/confirmacao-final.md) – Para validação de equivalência funcional  
-
----
-
-## 🛠️ Como Contribuir
-
-1. **Todas as mudanças nos guias devem ser aprovadas via Pull Request.**  
-2. **Nenhum guia pode ser alterado sem justificativa técnica.**  
-3. **Sugestões e melhorias são bem-vindas, desde que respeitem o Guia Rigoroso.**  
-
-Se tiver dúvidas ou quiser sugerir novas regras, abra uma **issue** neste repositório.
-
----
-
-## 📝 Licença
-
-Este repositório é licenciado sob [Creative Commons Attribution 4.0 International (CC-BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
-
----
-
-## 🚨 Importante
-
-> **Nenhuma revisão será aceita se não estiver 100% aderente a este guia.**
-
----
-
-## 👨‍💻 Autores e Contribuidores
-
-Desenvolvido e mantido por:  
-- [Seu Nome ou Equipe Técnica]  
-- [Organização/Projeto]  
-
----
+Lembre-se: a jornada para a excelência é contínua. **Vamos com tudo!**
