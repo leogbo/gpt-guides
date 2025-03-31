@@ -1,31 +1,47 @@
-# 🐍 Welcome to MambaDev Guides
 
-This is the official hub for all development guides powered by the **Mamba Mentality**. If you’re here, you're not just coding — you're executing with focus, discipline, and relentless drive.
+# 🐍 Mamba Coding Guide
 
-> **MambaDev is more than a name. It's a mindset.**
+Welcome to the **Mamba Coding Guide**, a collection of resources designed for developers who seek **high performance** and **excellence** in the world of technology. Inspired by the **Mamba Mentality** philosophy, this guide is dedicated to those who continuously strive to improve their skills and achieve exceptional results.
 
-Explore focused, high-performance guides on AI, automation, Salesforce development, intelligent agents, and more.
+## 💭 Mamba Mentality Philosophy
 
----
+The **Mamba Mentality** is about being committed to the process of becoming the best version of yourself. Applied to software development, it means:
 
-## 📚 Available Guides
+- **Dedication**: Total commitment to learning and continuous improvement.
+- **Discipline**: Staying focused on goals, even when facing obstacles.
+- **Resilience**: Overcoming challenges and learning from mistakes.
+- **Passion**: Loving what you do and always aiming for excellence.
 
-| Guide | Description | Link |
-|-------|-------------|------|
-| **Prompting** | Learn how to craft powerful prompts to interact effectively with AI models. | [Prompting](./prompting/) |
-| **AI Automation** | Discover how to automate tasks using AI to increase your efficiency. | [Automation](./automation/) |
-| **Intelligent Agents** | Build and deploy smart agents that can work autonomously. | [Agents](./agents/) |
-| **Salesforce Integration** | Integrate systems with Salesforce like an expert. | [Salesforce](./salesforce/) |
-| **Apex Development** | Deep dive into Apex language for Salesforce. | [Apex](./apex/) |
-| **Marketing Cloud** | Strategies and advanced use of Salesforce Marketing Cloud. | [Marketing Cloud](./marketingcloud/) |
+## 📚 Guide Index
 
----
+Below is a list of available guides, each focused on a specific area of software development:
 
-## 🧭 What is the Mamba Mentality for Devs?
+1. **Effective Prompting**
+   - *Description*: Learn how to craft effective prompts to interact with language models and get optimal results.
+   - *Link*: [Effective Prompting](https://mambadev.io/prompting) *(coming soon)*
 
-> Be better than you were yesterday. Apply focus. Execute with discipline. Obsess over details. Learn faster. Push boundaries.
+2. **AI Automation**
+   - *Description*: Discover how to automate tasks using artificial intelligence to boost productivity.
+   - *Link*: [AI Automation](https://mambadev.io/automation) *(coming soon)*
 
-This platform is built for those who don't just ship code — they shape the future.
+3. **Intelligent Agents**
+   - *Description*: Explore the development and deployment of intelligent agents across different contexts.
+   - *Link*: [Intelligent Agents](https://mambadev.io/agents) *(coming soon)*
 
-**Let’s go. Mamba style.**
+4. **Salesforce Integration**
+   - *Description*: A complete guide on how to efficiently integrate with the Salesforce platform.
+   - *Link*: [Salesforce Integration](https://mambadev.io/salesforce) *(coming soon)*
 
+5. **Apex Development**
+   - *Description*: Dive deep into the Apex language for development on the Salesforce platform.
+   - *Link*: [Apex Development](https://mambadev.io/apex)
+
+6. **Marketing Cloud**
+   - *Description*: Strategies and techniques to harness the full potential of Salesforce Marketing Cloud.
+   - *Link*: [Marketing Cloud](https://mambadev.io/marketingcloud) *(coming soon)*
+
+## 🧭 How to Use This Guide
+
+Each section above links to a detailed guide on its respective topic. It is recommended to follow the presented order for a progressive understanding of the concepts. However, feel free to navigate according to your needs and interests.
+
+Remember: the journey to excellence is continuous. **Let’s go all in!**
