@@ -1,46 +1,31 @@
-# Mamba Coding Guide
+# 🐍 Welcome to MambaDev Guides
 
-Bem-vindo ao **Mamba Coding Guide**, uma coleção de recursos projetados para desenvolvedores que buscam **alta performance** e **excelência** no mundo da tecnologia. Inspirado na filosofia **Mamba Mentality**, este guia é dedicado àqueles que desejam aprimorar continuamente suas habilidades e alcançar resultados excepcionais.
+This is the official hub for all development guides powered by the **Mamba Mentality**. If you’re here, you're not just coding — you're executing with focus, discipline, and relentless drive.
 
-## Filosofia Mamba Mentality
+> **MambaDev is more than a name. It's a mindset.**
 
-A **Mamba Mentality** é sobre estar comprometido com o processo de se tornar a melhor versão de si mesmo. Aplicada ao desenvolvimento de software, significa:
+Explore focused, high-performance guides on AI, automation, Salesforce development, intelligent agents, and more.
 
-- **Dedicação**: Comprometimento total com o aprendizado e aprimoramento contínuo.
-- **Disciplina**: Manter o foco nos objetivos, mesmo diante de desafios.
-- **Resiliência**: Superar obstáculos e aprender com os erros.
-- **Paixão**: Amar o que faz e buscar sempre a excelência.
+---
 
-## Índice dos Guias
+## 📚 Available Guides
 
-Abaixo, você encontrará uma lista dos guias disponíveis, cada um focado em uma área específica do desenvolvimento de software:
+| Guide | Description | Link |
+|-------|-------------|------|
+| **Prompting** | Learn how to craft powerful prompts to interact effectively with AI models. | [Prompting](./prompting/) |
+| **AI Automation** | Discover how to automate tasks using AI to increase your efficiency. | [Automation](./automation/) |
+| **Intelligent Agents** | Build and deploy smart agents that can work autonomously. | [Agents](./agents/) |
+| **Salesforce Integration** | Integrate systems with Salesforce like an expert. | [Salesforce](./salesforce/) |
+| **Apex Development** | Deep dive into Apex language for Salesforce. | [Apex](./apex/) |
+| **Marketing Cloud** | Strategies and advanced use of Salesforce Marketing Cloud. | [Marketing Cloud](./marketingcloud/) |
 
-1. **Prompting Eficaz**
-   - *Descrição*: Aprenda a criar prompts eficientes para interagir com modelos de linguagem e obter os melhores resultados.
-   - *Link*: [Prompting Eficaz](https://mambadev.io/prompting) (futuramente)
+---
 
-2. **Automação com IA**
-   - *Descrição*: Descubra como automatizar tarefas utilizando inteligência artificial para aumentar a produtividade.
-   - *Link*: [Automação com IA](https://mambadev.io/automation) (futuramente)
+## 🧭 What is the Mamba Mentality for Devs?
 
-3. **Agentes Inteligentes**
-   - *Descrição*: Explore o desenvolvimento e implementação de agentes inteligentes em diversos contextos.
-   - *Link*: [Agentes Inteligentes](https://mambadev.io/agents) (futuramente)
+> Be better than you were yesterday. Apply focus. Execute with discipline. Obsess over details. Learn faster. Push boundaries.
 
-4. **Integração com Salesforce**
-   - *Descrição*: Guia completo sobre como integrar soluções com a plataforma Salesforce de forma eficiente.
-   - *Link*: [Integração com Salesforce](https://mambadev.io/salesforce) (futuramente)
+This platform is built for those who don't just ship code — they shape the future.
 
-5. **Desenvolvimento Apex**
-   - *Descrição*: Aprofunde-se na linguagem Apex para desenvolvimento na plataforma Salesforce.
-   - *Link*: [Desenvolvimento Apex](https://mambadev.io/apex) (futuramente)
+**Let’s go. Mamba style.**
 
-6. **Marketing Cloud**
-   - *Descrição*: Estratégias e técnicas para potencializar o uso do Salesforce Marketing Cloud.
-   - *Link*: [Marketing Cloud](https://mambadev.io/marketingcloud) (futuramente)
-
-## Como Utilizar Este Guia
-
-Cada seção acima direciona para um guia detalhado sobre o respectivo tópico. Recomenda-se seguir a ordem apresentada para uma compreensão progressiva dos conceitos. No entanto, sinta-se à vontade para navegar conforme suas necessidades e interesses.
-
-Lembre-se: a jornada para a excelência é contínua. **Vamos com tudo!**
