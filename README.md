@@ -17,27 +17,27 @@ Abaixo, você encontrará uma lista dos guias disponíveis, cada um focado em um
 
 1. **Prompting Eficaz**
    - *Descrição*: Aprenda a criar prompts eficientes para interagir com modelos de linguagem e obter os melhores resultados.
-   - *Link*: [Prompting Eficaz](https://mambadev.io/prompting)
+   - *Link*: [Prompting Eficaz](https://mambadev.io/prompting) (futuramente)
 
 2. **Automação com IA**
    - *Descrição*: Descubra como automatizar tarefas utilizando inteligência artificial para aumentar a produtividade.
-   - *Link*: [Automação com IA](https://mambadev.io/automation)
+   - *Link*: [Automação com IA](https://mambadev.io/automation) (futuramente)
 
 3. **Agentes Inteligentes**
    - *Descrição*: Explore o desenvolvimento e implementação de agentes inteligentes em diversos contextos.
-   - *Link*: [Agentes Inteligentes](https://mambadev.io/agents)
+   - *Link*: [Agentes Inteligentes](https://mambadev.io/agents) (futuramente)
 
 4. **Integração com Salesforce**
    - *Descrição*: Guia completo sobre como integrar soluções com a plataforma Salesforce de forma eficiente.
-   - *Link*: [Integração com Salesforce](https://mambadev.io/salesforce)
+   - *Link*: [Integração com Salesforce](https://mambadev.io/salesforce) (futuramente)
 
 5. **Desenvolvimento Apex**
    - *Descrição*: Aprofunde-se na linguagem Apex para desenvolvimento na plataforma Salesforce.
-   - *Link*: [Desenvolvimento Apex](https://mambadev.io/apex)
+   - *Link*: [Desenvolvimento Apex](https://mambadev.io/apex) (futuramente)
 
 6. **Marketing Cloud**
    - *Descrição*: Estratégias e técnicas para potencializar o uso do Salesforce Marketing Cloud.
-   - *Link*: [Marketing Cloud](https://mambadev.io/marketingcloud)
+   - *Link*: [Marketing Cloud](https://mambadev.io/marketingcloud) (futuramente)
 
 ## Como Utilizar Este Guia
 
