@@ -8,19 +8,55 @@
     body {
       margin: 0;
       background-color: #000;
+      color: #E94560;
+      font-family: 'Courier New', monospace;
+      height: 100vh;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      overflow: hidden;
     }
 
-    img {
-      max-width: 90%;
-      max-height: 90%;
+    h1 {
+      font-size: 3em;
+      text-shadow: 0 0 20px #E94560;
+      animation: pulse 2s infinite;
+    }
+
+    p {
+      font-size: 1em;
+      color: #aaa;
+      margin-top: 10px;
+      letter-spacing: 2px;
+      opacity: 0.5;
+    }
+
+    @keyframes pulse {
+      0% { text-shadow: 0 0 5px #E94560; }
+      50% { text-shadow: 0 0 30px #E94560; }
+      100% { text-shadow: 0 0 5px #E94560; }
+    }
+
+    .circle {
+      position: absolute;
+      border: 1px solid #E94560;
+      border-radius: 50%;
+      width: 300px;
+      height: 300px;
+      animation: spin 10s linear infinite;
+      opacity: 0.05;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
-  <img src="github_banner_mambadev.png" alt="MambaDev Banner" />
+  <div class="circle"></div>
+  <h1>MambaDev</h1>
+  <p>Initializing protocol...</p>
 </body>
 </html>
