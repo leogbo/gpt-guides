@@ -5,58 +5,105 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MambaDev</title>
   <style>
-    body {
+    * {
       margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
       background-color: #000;
-      color: #E94560;
-      font-family: 'Courier New', monospace;
       height: 100vh;
+      overflow: hidden;
+      font-family: 'Courier New', monospace;
+      color: #e94560;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      overflow: hidden;
+      justify-content: center;
+      position: relative;
     }
 
-    h1 {
-      font-size: 3em;
-      text-shadow: 0 0 20px #E94560;
-      animation: pulse 2s infinite;
-    }
-
-    p {
-      font-size: 1em;
-      color: #aaa;
-      margin-top: 10px;
-      letter-spacing: 2px;
-      opacity: 0.5;
-    }
-
-    @keyframes pulse {
-      0% { text-shadow: 0 0 5px #E94560; }
-      50% { text-shadow: 0 0 30px #E94560; }
-      100% { text-shadow: 0 0 5px #E94560; }
-    }
-
-    .circle {
+    .pulse-bg {
       position: absolute;
-      border: 1px solid #E94560;
+      width: 600px;
+      height: 600px;
+      border: 2px solid #e94560;
       border-radius: 50%;
-      width: 300px;
-      height: 300px;
-      animation: spin 10s linear infinite;
+      animation: spin 20s linear infinite, pulse 2s ease-in-out infinite;
       opacity: 0.05;
+      z-index: 0;
     }
 
     @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(0.95); }
+      50% { transform: scale(1.05); }
+    }
+
+    .logo {
+      max-width: 240px;
+      z-index: 2;
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+
+    .banner {
+      max-width: 90%;
+      max-height: 50vh;
+      margin-top: 30px;
+      z-index: 2;
+      opacity: 0;
+      animation: fadeIn 3s ease-in-out 1.5s forwards;
+    }
+
+    .text {
+      margin-top: 40px;
+      font-size: 1rem;
+      letter-spacing: 2px;
+      color: #aaa;
+      opacity: 0.4;
+      z-index: 2;
+      animation: fadeIn 4s ease-in 3s forwards;
+    }
+
+    @keyframes glow {
+      from { filter: drop-shadow(0 0 5px #e94560); }
+      to { filter: drop-shadow(0 0 25px #e94560); }
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+      .pulse-bg {
+        width: 300px;
+        height: 300px;
+      }
+
+      .logo {
+        max-width: 160px;
+      }
+
+      .banner {
+        max-height: 40vh;
+      }
+
+      .text {
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="circle"></div>
-  <h1>MambaDev</h1>
-  <p>Initializing protocol...</p>
+  <div class="pulse-bg"></div>
+  <img class="logo" src="logo_primary_mambadev.png" alt="MambaDev Logo" />
+  <img class="banner" src="github_banner_mambadev.png" alt="MambaDev Banner" />
+  <div class="text">Initializing Mamba Protocol...</div>
 </body>
 </html>
